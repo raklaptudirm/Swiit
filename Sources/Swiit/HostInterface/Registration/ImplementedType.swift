@@ -4,26 +4,26 @@ import Foundation
 /// a Swift type, or by hand for a type a generator describes, and register it with
 /// ``Interpreter/register(_:)-(ImplementedType)``.
 public struct ImplementedType: Sendable {
-    /// What a script sees of the type: a symbol of kind `.type` with its name, documentation and
-    /// attributes, and its kind, reference, generic parameters and the protocols its Swift type conforms to
+    /// What a script sees of the type: its name, documentation and attributes, and its kind, reference,
+    /// generic parameters and the protocols its Swift type conforms to
     /// (of those Swiit knows: `Equatable`, `Hashable`, `Comparable`, `Sequence`). A host type is held by
     /// value under its Swift name, so its kind is a structure. `BridgedType` reads the conformances from the
     /// Swift type.
-    public var symbol: Symbol
+    public var symbol: Symbol.Nominal
     public var name: String {
         get { symbol.name }
         set {
             symbol.name = newValue
-            symbol.nominal?.typeRef = .native(newValue)
+            symbol.typeRef = .native(newValue)
         }
     }
-    public var genericParameters: [Symbol] {
-        get { symbol.nominal?.genericParameters ?? [] }
-        set { symbol.nominal?.genericParameters = newValue }
+    public var genericParameters: [Symbol.GenericParameter] {
+        get { symbol.genericParameters }
+        set { symbol.genericParameters = newValue }
     }
-    public var conformances: [String: [Symbol]] {
-        get { symbol.nominal?.conformances ?? [:] }
-        set { symbol.nominal?.conformances = newValue }
+    public var conformances: [String: [Symbol.GenericParameter]] {
+        get { symbol.conformances }
+        set { symbol.conformances = newValue }
     }
     public var members: [ImplementedSymbol]
     /// What a value of the type is: one of the core's kinds with storage of its own, or a Swift value
@@ -34,10 +34,7 @@ public struct ImplementedType: Sendable {
     var lowered: [BridgedMember] = []
 
     public init(name: String, members: [ImplementedSymbol] = []) {
-        symbol = Symbol(
-            name: name,
-            kind: .type(Symbol.Nominal(kind: .structure, typeRef: .native(name)))
-        )
+        symbol = Symbol.Nominal(name: name, kind: .structure, typeRef: .native(name))
         self.members = members
     }
 }

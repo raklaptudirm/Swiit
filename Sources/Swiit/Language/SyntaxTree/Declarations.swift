@@ -67,7 +67,7 @@ struct FunctionDecl: Equatable, Sendable {
     var isConvenience = false
     /// `<T, V: Comparable>` and `where` clauses: each type parameter, and
     /// the protocols it must conform to. Only the prelude has these, for now.
-    var generics: [Symbol] = []
+    var generics: [Symbol.GenericParameter] = []
     /// The type parameters the body names, which a call has to say the types of.
     var runtimeTypeParameters: Set<String> { Set(generics.map(\.name)).intersection(names.names) }
     var names = NamesUsed()
@@ -82,7 +82,7 @@ struct FunctionDecl: Equatable, Sendable {
         isThrowing: Bool = false,
         isAsync: Bool = false,
         isRethrowing: Bool = false,
-        generics: [Symbol] = [],
+        generics: [Symbol.GenericParameter] = [],
         names: NamesUsed = NamesUsed()
     ) {
         self.name = name

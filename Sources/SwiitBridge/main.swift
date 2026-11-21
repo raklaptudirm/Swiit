@@ -501,7 +501,7 @@ for (name, _) in bridgedTypeNames {
                 declare(
                     """
                     ImplementedSymbol.initializer(summary: "The value the text spells, or nil.", \
-                    signature: Symbol.Function(parameters: [Symbol.Parameter(name: "text", type: .string)], \
+                    signature: Symbol.Signature(parameters: [Symbol.Parameter(name: "text", type: .string)], \
                     returns: .optional(\(typeExpression(selfType))))) { arguments in
                     guard case .string(let text) = arguments[0].storage else { return .nothing }
                     return \(name)(text).map { \(toValue("$0", selfType)) } ?? .nothing
@@ -528,7 +528,7 @@ for (name, _) in bridgedTypeNames {
             """
                 fileprivate static let \(typeName): ImplementedType = {
                     var type = ImplementedType(name: \(quoted(name)), members: [\((members + associatedTypes).joined(separator: ", "))])
-                    type.genericParameters = [\(owner.parameters.map { ".genericParameter(\(quoted($0)))" }.joined(separator: ", "))]
+                    type.genericParameters = [\(owner.parameters.map { "Symbol.GenericParameter(name: \(quoted($0)))" }.joined(separator: ", "))]
                     type.conformances = [\(conformanceCode.isEmpty ? ":" : conformanceCode.joined(separator: ", "))]
                     return type
                 }()

@@ -43,7 +43,7 @@ private final class Log: @unchecked Sendable {
     swiit.register(
         ImplementedSymbol.function(
             name: "exchange",
-            signature: Symbol.Function(
+            signature: Symbol.Signature(
                 parameters: [
                     Symbol.Parameter(label: nil, name: "a", type: .int, isInout: true),
                     Symbol.Parameter(label: nil, name: "b", type: .int, isInout: true),
@@ -77,7 +77,7 @@ private final class Log: @unchecked Sendable {
         members: [
             .initializer(
                 summary: "A ruler.",
-                signature: Symbol.Function(parameters: [], returns: .named("Ruler"))
+                signature: Symbol.Signature(parameters: [], returns: .named("Ruler"))
             ) { _ in SwiftValue.make(3, as: "Ruler") },
             .method(
                 "subscript",

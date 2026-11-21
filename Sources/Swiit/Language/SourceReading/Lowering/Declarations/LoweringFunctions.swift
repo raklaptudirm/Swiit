@@ -95,12 +95,12 @@ extension Lowering {
     func genericParameters(
         _ clause: GenericParameterClauseSyntax?,
         where whereClause: GenericWhereClauseSyntax? = nil
-    ) -> [Symbol] {
-        var generics: [Symbol] = []
+    ) -> [Symbol.GenericParameter] {
+        var generics: [Symbol.GenericParameter] = []
         for parameter in clause?.parameters ?? [] {
             generics.append(
-                .genericParameter(
-                    parameter.name.text,
+                Symbol.GenericParameter(
+                    name: parameter.name.text,
                     constraints: parameter.inheritedType.map(constraints(of:)) ?? []
                 )
             )
@@ -110,8 +110,8 @@ extension Lowering {
                 let left = conformance.leftType.as(IdentifierTypeSyntax.self),
                 let index = generics.firstIndex(where: { $0.name == left.name.text })
             else { continue }
-            generics[index] = .genericParameter(
-                generics[index].name,
+            generics[index] = Symbol.GenericParameter(
+                name: generics[index].name,
                 constraints: generics[index].constraints + constraints(of: conformance.rightType)
             )
         }

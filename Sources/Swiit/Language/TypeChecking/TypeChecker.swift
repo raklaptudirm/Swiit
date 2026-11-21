@@ -49,7 +49,7 @@ final class TypeChecker {
         var index = 0
         /// Its type parameters and the protocols each must conform to:
         /// `sorted<V: Comparable>(by:)`, and a sequence method's `Element`.
-        var generics: [Swiit.Symbol] = []
+        var generics: [Symbol.GenericParameter] = []
         /// Of those, the ones its body names (`T()`, `x as? T`), which a call tells it the types
         /// of.
         var typeParameters: Set<String> = []
@@ -72,7 +72,7 @@ final class TypeChecker {
             isRethrowing: Bool = false,
             effect: Effect = .sync,
             index: Int = 0,
-            generics: [Swiit.Symbol] = []
+            generics: [Symbol.GenericParameter] = []
         ) {
             self.effect = effect
             self.name = name

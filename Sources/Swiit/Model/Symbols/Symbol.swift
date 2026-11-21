@@ -2,7 +2,105 @@ import Foundation
 import SwiftSyntax
 import Synchronization
 
-// What the interpreter says a name is: a function, a variable or a type, and what it has.
+// What the interpreter says a name is: a type, a function, a variable or a member of a type, and what each has.
+
+/// What every symbol has: its name, a line that says what it is, and the attributes it was declared
+/// with. A symbol of each kind (`Symbol.Function`, `Symbol.Nominal`, and the rest) is a struct that
+/// holds a `Header` and what only its kind has, and `Symbol` is the enum of them for a place that
+/// takes any.
+public protocol SymbolProtocol: Sendable, Hashable {
+    var header: Symbol.Header { get set }
+}
+
+extension SymbolProtocol {
+    public var name: String {
+        get { header.name }
+        set { header.name = newValue }
+    }
+
+    /// The line `help` shows, when it has one.
+    public var summary: String? {
+        get { header.summary }
+        set { header.summary = newValue }
+    }
+
+    /// The attributes it was declared with: `@discardableResult`, `@available(…)`, and the rest.
+    public var attributes: [Symbol.Attribute] {
+        get { header.attributes }
+        set { header.attributes = newValue }
+    }
+
+    /// Whether the core or the host provides it, as opposed to a script's own declaration.
+    public internal(set) var isBuiltin: Bool {
+        get { header.isBuiltin }
+        set { header.isBuiltin = newValue }
+    }
+}
+
+/// Something a script can name: a type, a function, a variable, or a member of a type. The kind of
+/// symbol decides what it has: only a function has parameters and effects, only a variable can be
+/// settable. Each case holds the symbol of its kind, which has everything its kind has, so an API
+/// that always gives a function names `Symbol.Function`.
+public enum Symbol: SymbolProtocol {
+    case type(Nominal)
+    case function(Function)
+    case variable(Variable)
+    case method(Method)
+    case property(Property)
+    case initializer(Initializer)
+    case enumCase(EnumCase)
+    case associatedType(AssociatedType)
+    case genericParameter(GenericParameter)
+
+    /// What every kind of symbol has, held once.
+    public struct Header: Sendable, Hashable {
+        public var name: String
+        /// The line `help` shows, when it has one.
+        public var summary: String?
+        /// The attributes it was declared with.
+        public var attributes: [Symbol.Attribute]
+        /// Whether the core or the host provides it.
+        public internal(set) var isBuiltin: Bool
+
+        public init(name: String, summary: String? = nil, attributes: [Symbol.Attribute] = []) {
+            self.name = name
+            self.summary = summary
+            self.attributes = attributes
+            self.isBuiltin = false
+        }
+    }
+
+    public var header: Header {
+        get {
+            switch self {
+            case .type(let symbol): symbol.header
+            case .function(let symbol): symbol.header
+            case .variable(let symbol): symbol.header
+            case .method(let symbol): symbol.header
+            case .property(let symbol): symbol.header
+            case .initializer(let symbol): symbol.header
+            case .enumCase(let symbol): symbol.header
+            case .associatedType(let symbol): symbol.header
+            case .genericParameter(let symbol): symbol.header
+            }
+        }
+        set {
+            switch self {
+            case .type(var symbol): symbol.header = newValue; self = .type(symbol)
+            case .function(var symbol): symbol.header = newValue; self = .function(symbol)
+            case .variable(var symbol): symbol.header = newValue; self = .variable(symbol)
+            case .method(var symbol): symbol.header = newValue; self = .method(symbol)
+            case .property(var symbol): symbol.header = newValue; self = .property(symbol)
+            case .initializer(var symbol): symbol.header = newValue; self = .initializer(symbol)
+            case .enumCase(var symbol): symbol.header = newValue; self = .enumCase(symbol)
+            case .associatedType(var symbol):
+                symbol.header = newValue; self = .associatedType(symbol)
+            case .genericParameter(var symbol):
+                symbol.header = newValue; self = .genericParameter(symbol)
+            }
+        }
+    }
+}
 
 extension Symbol {
     /// An attribute written on a declaration, as written: `@discardableResult` is a name with no
@@ -25,78 +123,5 @@ extension Sequence where Element == Symbol.Attribute {
     /// Whether one named `name` is among them.
     public func contains(named name: String) -> Bool {
         contains { $0.name == name }
-    }
-}
-
-/// Something a script can name: a function or method, a variable or property, or a type. Only a
-/// function has parameters and effects, only a variable can be settable: what a symbol is, its kind,
-/// decides what it has.
-public struct Symbol: Sendable, Hashable {
-    public var name: String
-    /// The line `help` shows, when it has one.
-    public var summary: String?
-    public var kind: Kind
-    /// The attributes it was declared with: `@discardableResult`, `@available(…)`, and the rest.
-    public var attributes: [Symbol.Attribute] = []
-    /// Whether the core or the host provides it, as opposed to a script's own declaration.
-    public internal(set) var isBuiltin = false
-    /// The kind, reference, generic parameters and conformances of this symbol, if it is a type.
-    public var nominal: Nominal? {
-        get { if case .type(let nominal) = kind { nominal } else { nil } }
-        set {
-            guard case .type = kind, let newValue else { return }
-            kind = .type(newValue)
-        }
-    }
-
-    /// The type's reference, for a type: nil for any other symbol.
-    public var typeRef: TypeRef? { nominal?.typeRef }
-
-    /// Which kind of type this is, if it is one.
-    public var typeKind: Nominal.Kind? { nominal?.kind }
-
-    public init(
-        name: String,
-        summary: String? = nil,
-        kind: Kind,
-        attributes: [Symbol.Attribute] = []
-    ) {
-        self.name = name
-        self.summary = summary
-        self.kind = kind
-        self.attributes = attributes
-    }
-
-    /// The function this is, if it is one: a function, a method or an initializer.
-    public var function: Function? {
-        switch kind {
-        case .function(let function), .member(.initializer(let function)): function
-        case .member(.method(let method)): method.function
-        default: nil
-        }
-    }
-
-    /// The variable this is, if it is one: a global or a property.
-    public var variable: Variable? {
-        switch kind {
-        case .variable(let variable): variable
-        case .member(.property(let property)): property.variable
-        default: nil
-        }
-    }
-
-    /// This symbol's type as a value. A function's is a function type (its parameter types in order, and
-    /// what it returns), a variable's is its own type, and a type's is the type it names. A type parameter's,
-    /// or an associated type a protocol asks for, is the parameter itself, and an associated type a type
-    /// binds is what it is bound to.
-    public var typeExpression: TypeExpression {
-        switch kind {
-        case .function, .member(.method), .member(.initializer): .function(function!.functionType)
-        case .variable, .member(.property): variable!.type
-        case .type(let nominal): .named(nominal.typeRef)
-        case .member(.enumCase): .any
-        case .member(.associatedType(.binding(let type))): type
-        case .member(.associatedType(.requirement)), .genericParameter: .parameter(name)
-        }
     }
 }

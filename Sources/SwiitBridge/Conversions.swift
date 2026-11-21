@@ -246,8 +246,8 @@ func attributesCode(of declaration: String) -> String {
 }
 
 /// The type parameters of a declaration with what each is constrained to, as the code that makes
-/// them (`[.genericParameter("Element"), .genericParameter("K", constraints: [.conforms(to: "Hashable")])]`). A
-/// constraint is a protocol, or `=Type` for exactly that type.
+/// them (`[Symbol.GenericParameter(name: "Element"), Symbol.GenericParameter(name: "K", constraints:
+/// [.conforms(to: "Hashable")])]`). A constraint is a protocol, or `=Type` for exactly that type.
 func genericParametersCode(_ generics: [String: [String]]) -> String {
     func constraint(_ text: String) -> [String] {
         text.components(separatedBy: " & ")
@@ -260,8 +260,8 @@ func genericParametersCode(_ generics: [String: [String]]) -> String {
         + generics.sorted { $0.key < $1.key }
         .map { name, constraints in
             constraints.isEmpty
-                ? ".genericParameter(\(quoted(name)))"
-                : ".genericParameter(\(quoted(name)), constraints: ["
+                ? "Symbol.GenericParameter(name: \(quoted(name)))"
+                : "Symbol.GenericParameter(name: \(quoted(name)), constraints: ["
                     + constraints.flatMap(constraint).joined(separator: ", ") + "])"
         }
         .joined(separator: ", ") + "]"

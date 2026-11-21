@@ -2,7 +2,7 @@ import Foundation
 import SwiftSyntax
 import Synchronization
 
-// A function's parameters and generic parameters.
+// A function's parameters, and what a type given for a type parameter must be.
 
 extension Symbol {
     /// What a type must be to be given for a type parameter.
@@ -28,17 +28,6 @@ extension Symbol {
             case .equals(let exact): "=" + exact.description
             }
         }
-    }
-
-    /// A type parameter, with what it asks of the type given for it: `Element` in `Array<Element>`,
-    /// `T` in `func f<T: Comparable>`.
-    public static func genericParameter(_ name: String, constraints: [Constraint] = []) -> Symbol {
-        Symbol(name: name, kind: .genericParameter(constraints: constraints))
-    }
-
-    /// What a type given for it must be, if this is a generic parameter.
-    public var constraints: [Constraint] {
-        if case .genericParameter(let constraints) = kind { constraints } else { [] }
     }
 
     /// A parameter of a function.

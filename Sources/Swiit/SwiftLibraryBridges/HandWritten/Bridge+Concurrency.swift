@@ -59,7 +59,9 @@ extension Bridge {
 
     private static let taskType: ImplementedType = {
         var type = ImplementedType(name: "Task", members: taskMembers)
-        type.genericParameters = [.genericParameter("Success"), .genericParameter("Failure")]
+        type.genericParameters = [
+            Symbol.GenericParameter(name: "Success"), Symbol.GenericParameter(name: "Failure"),
+        ]
         type.conformances = ["Hashable": [], "Equatable": []]
         return type
     }()
@@ -69,7 +71,7 @@ extension Bridge {
             summary:
                 "Runs the operation as a task of its own, which goes on while the code that started it does.",
             attributes: discardable,
-            signature: Symbol.Function(
+            signature: Symbol.Signature(
                 parameters: [
                     Symbol.Parameter(
                         label: "operation",
@@ -82,7 +84,7 @@ extension Bridge {
                     )
                 ],
                 returns: .named("Task", [.parameter("Success"), .named("Never")]),
-                generics: [.genericParameter("Success")]
+                generics: [Symbol.GenericParameter(name: "Success")]
             ),
             body: start
         ),
@@ -90,7 +92,7 @@ extension Bridge {
             summary:
                 "Runs the throwing operation as a task of its own, which goes on while the code that started it does.",
             attributes: discardable,
-            signature: Symbol.Function(
+            signature: Symbol.Signature(
                 parameters: [
                     Symbol.Parameter(
                         label: "operation",
@@ -104,7 +106,7 @@ extension Bridge {
                     )
                 ],
                 returns: .named("Task", [.parameter("Success"), .named("Error")]),
-                generics: [.genericParameter("Success")]
+                generics: [Symbol.GenericParameter(name: "Success")]
             ),
             body: start
         ),

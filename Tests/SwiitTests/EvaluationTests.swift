@@ -129,13 +129,16 @@ private func interpreter(
     // An enum it declares has its cases to ask for, before it exists to run.
     let cases = declared.members["Kind"]?
         .filter {
-            if case .member(.enumCase) = $0.kind { true } else { false }
+            if case .enumCase = $0 { true } else { false }
         }
     #expect(cases?.map(\.name) == ["a", "b"])
     #expect(declared.symbols.first { $0.name == "f" }?.summary == "Says f.")
-    let f = declared.symbols.first { $0.name == "f" }?.function
-    #expect(f?.parameters.map(\.label) == ["a", "b"])
-    #expect(f?.parameters[1].arity == .defaulted(.value(false)))
+    guard case .function(let f)? = declared.symbols.first(where: { $0.name == "f" }) else {
+        Issue.record("f is not a function")
+        return
+    }
+    #expect(f.signature.parameters.map(\.label) == ["a", "b"])
+    #expect(f.signature.parameters[1].arity == .defaulted(.value(false)))
     #expect(throws: Diagnostic.self) { try swiit.check(#"print("ran"); let x: Int = "s""#) }
     #expect(log.text == "")
     // Nothing was declared by checking.

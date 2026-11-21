@@ -12,7 +12,7 @@ internal enum SystemBridge {
         type41,
         type86,
     ]
-    private static let member0: ImplementedSymbol = ImplementedSymbol.initializer(summary: "Creates an empty, null-terminated path.", signature: Symbol.Function(parameters: [], returns: .named(.init(nativeType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member0: ImplementedSymbol = ImplementedSymbol.initializer(summary: "Creates an empty, null-terminated path.", signature: Symbol.Signature(parameters: [], returns: .named(.init(nativeType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = FilePath()
                 return Value(boxing: result, as: .init(nativeType: "FilePath"))
 }
@@ -33,12 +33,12 @@ receiver.components = try newValue.unboxing(FilePath.ComponentView.self)
 return Value(boxing: receiver, as: .init(nativeType: "FilePath"))
 })
 
-    private static let member3: ImplementedSymbol = ImplementedSymbol.initializer(summary: "Creates a file path from a string literal.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "stringLiteral", name: "stringLiteral", type: .string)], returns: .named(.init(nativeType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member3: ImplementedSymbol = ImplementedSymbol.initializer(summary: "Creates a file path from a string literal.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: "stringLiteral", name: "stringLiteral", type: .string)], returns: .named(.init(nativeType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = FilePath(stringLiteral: try String(arguments[0]))
                 return Value(boxing: result, as: .init(nativeType: "FilePath"))
 }
 
-    private static let member4: ImplementedSymbol = ImplementedSymbol.initializer(summary: "Creates a file path from a string.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "string", type: .string)], returns: .named(.init(nativeType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member4: ImplementedSymbol = ImplementedSymbol.initializer(summary: "Creates a file path from a string.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "string", type: .string)], returns: .named(.init(nativeType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = FilePath(try String(arguments[0]))
                 return Value(boxing: result, as: .init(nativeType: "FilePath"))
 }
@@ -73,13 +73,13 @@ let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 return result.value
 })
 
-    private static let member10: ImplementedSymbol = ImplementedSymbol.method("starts", summary: "Returns whether `other` is a prefix of `self`, only considering whole path components.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "other", type: .named(.init(nativeType: "FilePath")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member10: ImplementedSymbol = ImplementedSymbol.method("starts", summary: "Returns whether `other` is a prefix of `self`, only considering whole path components.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: "with", name: "other", type: .named(.init(nativeType: "FilePath")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 let result = receiver.starts(with: try arguments[0].unboxing(FilePath.self))
                 return result.value
 }
 
-    private static let member11: ImplementedSymbol = ImplementedSymbol.method("ends", summary: "Returns whether `other` is a suffix of `self`, only considering whole path components.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "other", type: .named(.init(nativeType: "FilePath")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member11: ImplementedSymbol = ImplementedSymbol.method("ends", summary: "Returns whether `other` is a suffix of `self`, only considering whole path components.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: "with", name: "other", type: .named(.init(nativeType: "FilePath")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 let result = receiver.ends(with: try arguments[0].unboxing(FilePath.self))
                 return result.value
@@ -91,7 +91,7 @@ let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 return result.value
 })
 
-    private static let member13: ImplementedSymbol = ImplementedSymbol.method("removingRoot", summary: "Creates a new path containing just the components, i.e. everything after `root`.", signature: Symbol.Function(parameters: [], returns: .named(.init(nativeType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member13: ImplementedSymbol = ImplementedSymbol.method("removingRoot", summary: "Creates a new path containing just the components, i.e. everything after `root`.", signature: Symbol.Signature(parameters: [], returns: .named(.init(nativeType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 let result = receiver.removingRoot()
                 return Value(boxing: result, as: .init(nativeType: "FilePath"))
@@ -103,13 +103,13 @@ let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 return (result.map { Value(boxing: $0, as: .init(nativeType: "FilePath.Component")) } ?? .nothing)
 })
 
-    private static let member15: ImplementedSymbol = ImplementedSymbol.method("removingLastComponent", summary: "Creates a new path with everything up to but not including `lastComponent`.", signature: Symbol.Function(parameters: [], returns: .named(.init(nativeType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member15: ImplementedSymbol = ImplementedSymbol.method("removingLastComponent", summary: "Creates a new path with everything up to but not including `lastComponent`.", signature: Symbol.Signature(parameters: [], returns: .named(.init(nativeType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 let result = receiver.removingLastComponent()
                 return Value(boxing: result, as: .init(nativeType: "FilePath"))
 }
 
-    private static let member16: ImplementedSymbol = ImplementedSymbol.mutatingMethod("removeLastComponent", summary: "In-place mutating variant of `removingLastComponent`.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member16: ImplementedSymbol = ImplementedSymbol.mutatingMethod("removeLastComponent", summary: "In-place mutating variant of `removingLastComponent`.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Signature(parameters: [], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: FilePath = try (consume taken).unboxing(FilePath.self)
@@ -140,7 +140,7 @@ let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 return result.value
 })
 
-    private static let member20: ImplementedSymbol = ImplementedSymbol.mutatingMethod("lexicallyNormalize", summary: "Collapse `.` and `..` components lexically (i.e. without following symlinks).", signature: Symbol.Function(parameters: [], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member20: ImplementedSymbol = ImplementedSymbol.mutatingMethod("lexicallyNormalize", summary: "Collapse `.` and `..` components lexically (i.e. without following symlinks).", signature: Symbol.Signature(parameters: [], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: FilePath = try (consume taken).unboxing(FilePath.self)
@@ -149,19 +149,19 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member21: ImplementedSymbol = ImplementedSymbol.method("lexicallyNormalized", summary: "Returns a copy of `self` in lexical-normal form, that is `.` and `..` components have been collapsed lexically (i.e. without following symlinks). See `lexicallyNormalize`", signature: Symbol.Function(parameters: [], returns: .named(.init(nativeType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member21: ImplementedSymbol = ImplementedSymbol.method("lexicallyNormalized", summary: "Returns a copy of `self` in lexical-normal form, that is `.` and `..` components have been collapsed lexically (i.e. without following symlinks). See `lexicallyNormalize`", signature: Symbol.Signature(parameters: [], returns: .named(.init(nativeType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 let result = receiver.lexicallyNormalized()
                 return Value(boxing: result, as: .init(nativeType: "FilePath"))
 }
 
-    private static let member22: ImplementedSymbol = ImplementedSymbol.method("lexicallyResolving", summary: "Create a new `FilePath` by resolving `subpath` relative to `self`, ensuring that the result is lexically contained within `self`.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "subpath", type: .named(.init(nativeType: "FilePath")))], returns: .optional(.named(.init(nativeType: "FilePath"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member22: ImplementedSymbol = ImplementedSymbol.method("lexicallyResolving", summary: "Create a new `FilePath` by resolving `subpath` relative to `self`, ensuring that the result is lexically contained within `self`.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "subpath", type: .named(.init(nativeType: "FilePath")))], returns: .optional(.named(.init(nativeType: "FilePath"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 let result = receiver.lexicallyResolving(try arguments[0].unboxing(FilePath.self))
                 return (result.map { Value(boxing: $0, as: .init(nativeType: "FilePath")) } ?? .nothing)
 }
 
-    private static let member23: ImplementedSymbol = ImplementedSymbol.mutatingMethod("removePrefix", summary: "If `prefix` is a prefix of `self`, removes it and returns `true`. Otherwise returns `false`.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.init(nativeType: "FilePath")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member23: ImplementedSymbol = ImplementedSymbol.mutatingMethod("removePrefix", summary: "If `prefix` is a prefix of `self`, removes it and returns `true`. Otherwise returns `false`.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.init(nativeType: "FilePath")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: FilePath = try (consume taken).unboxing(FilePath.self)
@@ -170,7 +170,7 @@ let taken = selfValue
                 return result.value
 }
 
-    private static let member24: ImplementedSymbol = ImplementedSymbol.mutatingMethod("append", summary: "Append a `component` on to the end of this path.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "component", type: .named(.init(nativeType: "FilePath.Component")))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member24: ImplementedSymbol = ImplementedSymbol.mutatingMethod("append", summary: "Append a `component` on to the end of this path.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "component", type: .named(.init(nativeType: "FilePath.Component")))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: FilePath = try (consume taken).unboxing(FilePath.self)
@@ -179,7 +179,7 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member25: ImplementedSymbol = ImplementedSymbol.mutatingMethod("append", summary: "Append the contents of `other`, ignoring any spurious leading separators.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .string)], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member25: ImplementedSymbol = ImplementedSymbol.mutatingMethod("append", summary: "Append the contents of `other`, ignoring any spurious leading separators.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "other", type: .string)], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: FilePath = try (consume taken).unboxing(FilePath.self)
@@ -188,19 +188,19 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member26: ImplementedSymbol = ImplementedSymbol.method("appending", summary: "Non-mutating version of `append(_:Component)`.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(nativeType: "FilePath.Component")))], returns: .named(.init(nativeType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member26: ImplementedSymbol = ImplementedSymbol.method("appending", summary: "Non-mutating version of `append(_:Component)`.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(nativeType: "FilePath.Component")))], returns: .named(.init(nativeType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 let result = receiver.appending(try arguments[0].unboxing(FilePath.Component.self))
                 return Value(boxing: result, as: .init(nativeType: "FilePath"))
 }
 
-    private static let member27: ImplementedSymbol = ImplementedSymbol.method("appending", summary: "Non-mutating version of `append(_:String)`.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .string)], returns: .named(.init(nativeType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member27: ImplementedSymbol = ImplementedSymbol.method("appending", summary: "Non-mutating version of `append(_:String)`.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "other", type: .string)], returns: .named(.init(nativeType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 let result = receiver.appending(try String(arguments[0]))
                 return Value(boxing: result, as: .init(nativeType: "FilePath"))
 }
 
-    private static let member28: ImplementedSymbol = ImplementedSymbol.mutatingMethod("push", summary: "If `other` does not have a root, append each component of `other`. If `other` has a root, replaces `self` with other.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(nativeType: "FilePath")))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member28: ImplementedSymbol = ImplementedSymbol.mutatingMethod("push", summary: "If `other` does not have a root, append each component of `other`. If `other` has a root, replaces `self` with other.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(nativeType: "FilePath")))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: FilePath = try (consume taken).unboxing(FilePath.self)
@@ -209,13 +209,13 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member29: ImplementedSymbol = ImplementedSymbol.method("pushing", summary: "Non-mutating version of `push()`.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(nativeType: "FilePath")))], returns: .named(.init(nativeType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member29: ImplementedSymbol = ImplementedSymbol.method("pushing", summary: "Non-mutating version of `push()`.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(nativeType: "FilePath")))], returns: .named(.init(nativeType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 let result = receiver.pushing(try arguments[0].unboxing(FilePath.self))
                 return Value(boxing: result, as: .init(nativeType: "FilePath"))
 }
 
-    private static let member30: ImplementedSymbol = ImplementedSymbol.mutatingMethod("removeAll", summary: "Remove the contents of the path, keeping the null terminator.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "keepingCapacity", name: "keepingCapacity", type: .bool, arity: .defaulted(.value(false)))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member30: ImplementedSymbol = ImplementedSymbol.mutatingMethod("removeAll", summary: "Remove the contents of the path, keeping the null terminator.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: "keepingCapacity", name: "keepingCapacity", type: .bool, arity: .defaulted(.value(false)))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: FilePath = try (consume taken).unboxing(FilePath.self)
@@ -224,7 +224,7 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member31: ImplementedSymbol = ImplementedSymbol.mutatingMethod("reserveCapacity", summary: "Reserve enough storage space to store `minimumCapacity` platform characters.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "minimumCapacity", type: .int)], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member31: ImplementedSymbol = ImplementedSymbol.mutatingMethod("reserveCapacity", summary: "Reserve enough storage space to store `minimumCapacity` platform characters.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "minimumCapacity", type: .int)], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: FilePath = try (consume taken).unboxing(FilePath.self)
@@ -242,17 +242,17 @@ let taken = selfValue
         return type
     }()
 
-    private static let member33: ImplementedSymbol = ImplementedSymbol.staticMethod("==", summary: "Returns a Boolean value indicating whether two values are equal.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(nativeType: "FilePath.Component"))), Symbol.Parameter(label: nil, name: "rhs", type: .named(.init(nativeType: "FilePath.Component")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member33: ImplementedSymbol = ImplementedSymbol.staticMethod("==", summary: "Returns a Boolean value indicating whether two values are equal.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(nativeType: "FilePath.Component"))), Symbol.Parameter(label: nil, name: "rhs", type: .named(.init(nativeType: "FilePath.Component")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = (try arguments[0].unboxing(FilePath.Component.self)) == (try arguments[1].unboxing(FilePath.Component.self))
                 return result.value
 }
 
-    private static let member34: ImplementedSymbol = ImplementedSymbol.initializer(summary: "Create a file path component from a string literal.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "stringLiteral", name: "stringLiteral", type: .string)], returns: .named(.init(nativeType: "FilePath.Component")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member34: ImplementedSymbol = ImplementedSymbol.initializer(summary: "Create a file path component from a string literal.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: "stringLiteral", name: "stringLiteral", type: .string)], returns: .named(.init(nativeType: "FilePath.Component")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = FilePath.Component(stringLiteral: try String(arguments[0]))
                 return Value(boxing: result, as: .init(nativeType: "FilePath.Component"))
 }
 
-    private static let member35: ImplementedSymbol = ImplementedSymbol.initializer(summary: "Create a file path component from a string.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "string", type: .string)], returns: .optional(.named(.init(nativeType: "FilePath.Component"))), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member35: ImplementedSymbol = ImplementedSymbol.initializer(summary: "Create a file path component from a string.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "string", type: .string)], returns: .optional(.named(.init(nativeType: "FilePath.Component"))), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = FilePath.Component(try String(arguments[0]))
                 return (result.map { Value(boxing: $0, as: .init(nativeType: "FilePath.Component")) } ?? .nothing)
 }
@@ -294,7 +294,7 @@ let receiver: FilePath.Component = try selfValue.unboxing(FilePath.Component.sel
         return type
     }()
 
-    private static let member42: ImplementedSymbol = ImplementedSymbol.mutatingMethod("removeFirst", summary: "Removes the specified number of elements from the beginning of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int)], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member42: ImplementedSymbol = ImplementedSymbol.mutatingMethod("removeFirst", summary: "Removes the specified number of elements from the beginning of the collection.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int)], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: FilePath.ComponentView = try (consume taken).unboxing(FilePath.ComponentView.self)
@@ -305,7 +305,7 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member43: ImplementedSymbol = ImplementedSymbol.mutatingMethod("removeAll", summary: "Removes all elements from the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "keepingCapacity", name: "keepCapacity", type: .bool, arity: .defaulted(.value(false)))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member43: ImplementedSymbol = ImplementedSymbol.mutatingMethod("removeAll", summary: "Removes all elements from the collection.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: "keepingCapacity", name: "keepCapacity", type: .bool, arity: .defaulted(.value(false)))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: FilePath.ComponentView = try (consume taken).unboxing(FilePath.ComponentView.self)
@@ -314,7 +314,7 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member44: ImplementedSymbol = ImplementedSymbol.mutatingMethod("reserveCapacity", summary: "Prepares the collection to store the specified number of elements, when doing so is appropriate for the underlying type.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "n", type: .int)], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member44: ImplementedSymbol = ImplementedSymbol.mutatingMethod("reserveCapacity", summary: "Prepares the collection to store the specified number of elements, when doing so is appropriate for the underlying type.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "n", type: .int)], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: FilePath.ComponentView = try (consume taken).unboxing(FilePath.ComponentView.self)
@@ -325,7 +325,7 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member45: ImplementedSymbol = ImplementedSymbol.mutatingMethod("removeLast", summary: "Removes the specified number of elements from the end of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int)], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member45: ImplementedSymbol = ImplementedSymbol.mutatingMethod("removeLast", summary: "Removes the specified number of elements from the end of the collection.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int)], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: FilePath.ComponentView = try (consume taken).unboxing(FilePath.ComponentView.self)
@@ -336,7 +336,7 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member46: ImplementedSymbol = ImplementedSymbol.staticMethod("==", summary: "Returns a Boolean value indicating whether two values are equal.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(nativeType: "FilePath.ComponentView"))), Symbol.Parameter(label: nil, name: "rhs", type: .named(.init(nativeType: "FilePath.ComponentView")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member46: ImplementedSymbol = ImplementedSymbol.staticMethod("==", summary: "Returns a Boolean value indicating whether two values are equal.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(nativeType: "FilePath.ComponentView"))), Symbol.Parameter(label: nil, name: "rhs", type: .named(.init(nativeType: "FilePath.ComponentView")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = (try arguments[0].unboxing(FilePath.ComponentView.self)) == (try arguments[1].unboxing(FilePath.ComponentView.self))
                 return result.value
 }
@@ -359,12 +359,12 @@ let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.Component
                 return result.value
 })
 
-    private static let member50: ImplementedSymbol = ImplementedSymbol.initializer(summary: "Creates a new, empty collection.", signature: Symbol.Function(parameters: [], returns: .named(.init(nativeType: "FilePath.ComponentView")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member50: ImplementedSymbol = ImplementedSymbol.initializer(summary: "Creates a new, empty collection.", signature: Symbol.Signature(parameters: [], returns: .named(.init(nativeType: "FilePath.ComponentView")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = FilePath.ComponentView()
                 return Value(boxing: result, as: .init(nativeType: "FilePath.ComponentView"))
 }
 
-    private static let member51: ImplementedSymbol = ImplementedSymbol.method("map", summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component"))], returns: .parameter("T"), isThrowing: true, isAsync: false))], returns: .list(.parameter("T")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("T")])) { selfValue, arguments in
+    private static let member51: ImplementedSymbol = ImplementedSymbol.method("map", summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component"))], returns: .parameter("T"), isThrowing: true, isAsync: false))], returns: .list(.parameter("T")), throwing: .rethrowing, isAsync: false, generics: [Symbol.GenericParameter(name: "T")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result: [Value] = try receiver.map({ (a0: FilePath.Component) throws -> Value in try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "FilePath.Component"))]) })
@@ -377,20 +377,20 @@ let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.Component
                 return (result.map { Value(boxing: $0, as: .init(nativeType: "FilePath.Component")) } ?? .nothing)
 })
 
-    private static let member53: ImplementedSymbol = ImplementedSymbol.method("last", summary: "Returns the last element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "FilePath.Component"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member53: ImplementedSymbol = ImplementedSymbol.method("last", summary: "Returns the last element of the sequence that satisfies the given predicate.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "FilePath.Component"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = try receiver.last(where: { (a0: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "FilePath.Component"))])) })
                 return (result.map { Value(boxing: $0, as: .init(nativeType: "FilePath.Component")) } ?? .nothing)
 }
 
-    private static let member54: ImplementedSymbol = ImplementedSymbol.method("shuffled", summary: "Returns the elements of the sequence, shuffled.", signature: Symbol.Function(parameters: [], returns: .list(.named(.init(nativeType: "FilePath.Component"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member54: ImplementedSymbol = ImplementedSymbol.method("shuffled", summary: "Returns the elements of the sequence, shuffled.", signature: Symbol.Signature(parameters: [], returns: .list(.named(.init(nativeType: "FilePath.Component"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result: [FilePath.Component] = receiver.shuffled()
                 return Value(list: result.map { Value(boxing: $0, as: .init(nativeType: "FilePath.Component")) })
 }
 
-    private static let member55: ImplementedSymbol = ImplementedSymbol.initializer(summary: "Creates a new collection containing the specified number of a single, repeated value.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "repeating", name: "repeatedValue", type: .named(.init(nativeType: "FilePath.Component"))), Symbol.Parameter(label: "count", name: "count", type: .int)], returns: .named(.init(nativeType: "FilePath.ComponentView")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member55: ImplementedSymbol = ImplementedSymbol.initializer(summary: "Creates a new collection containing the specified number of a single, repeated value.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: "repeating", name: "repeatedValue", type: .named(.init(nativeType: "FilePath.Component"))), Symbol.Parameter(label: "count", name: "count", type: .int)], returns: .named(.init(nativeType: "FilePath.ComponentView")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let repeating = try arguments[0].unboxing(FilePath.Component.self)
                 let count = try Int(arguments[1])
                 try Value.Bridging.require(!(count < 0), "a count can't be negative: \(count)")
@@ -398,12 +398,12 @@ let repeating = try arguments[0].unboxing(FilePath.Component.self)
                 return Value(boxing: result, as: .init(nativeType: "FilePath.ComponentView"))
 }
 
-    private static let member56: ImplementedSymbol = ImplementedSymbol.initializer(summary: "Creates a new instance of a collection containing the elements of a sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "elements", type: .named(.sequence, [.named(.init(nativeType: "FilePath.Component"))]))], returns: .named(.init(nativeType: "FilePath.ComponentView")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member56: ImplementedSymbol = ImplementedSymbol.initializer(summary: "Creates a new instance of a collection containing the elements of a sequence.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "elements", type: .named(.sequence, [.named(.init(nativeType: "FilePath.Component"))]))], returns: .named(.init(nativeType: "FilePath.ComponentView")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = FilePath.ComponentView(try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(FilePath.Component.self) })
                 return Value(boxing: result, as: .init(nativeType: "FilePath.ComponentView"))
 }
 
-    private static let member57: ImplementedSymbol = ImplementedSymbol.mutatingMethod("append", summary: "Adds an element to the end of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "newElement", type: .named(.init(nativeType: "FilePath.Component")))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member57: ImplementedSymbol = ImplementedSymbol.mutatingMethod("append", summary: "Adds an element to the end of the collection.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "newElement", type: .named(.init(nativeType: "FilePath.Component")))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: FilePath.ComponentView = try (consume taken).unboxing(FilePath.ComponentView.self)
@@ -412,7 +412,7 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member58: ImplementedSymbol = ImplementedSymbol.mutatingMethod("append", summary: "Adds the elements of a sequence or collection to the end of this collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "contentsOf", name: "newElements", type: .named(.sequence, [.named(.init(nativeType: "FilePath.Component"))]))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member58: ImplementedSymbol = ImplementedSymbol.mutatingMethod("append", summary: "Adds the elements of a sequence or collection to the end of this collection.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: "contentsOf", name: "newElements", type: .named(.sequence, [.named(.init(nativeType: "FilePath.Component"))]))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: FilePath.ComponentView = try (consume taken).unboxing(FilePath.ComponentView.self)
@@ -421,7 +421,7 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member59: ImplementedSymbol = ImplementedSymbol.mutatingMethod("removeFirst", summary: "Removes and returns the first element of the collection.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [], returns: .named(.init(nativeType: "FilePath.Component")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member59: ImplementedSymbol = ImplementedSymbol.mutatingMethod("removeFirst", summary: "Removes and returns the first element of the collection.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Signature(parameters: [], returns: .named(.init(nativeType: "FilePath.Component")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: FilePath.ComponentView = try (consume taken).unboxing(FilePath.ComponentView.self)
@@ -431,7 +431,7 @@ let taken = selfValue
                 return Value(boxing: result, as: .init(nativeType: "FilePath.Component"))
 }
 
-    private static let member60: ImplementedSymbol = ImplementedSymbol.mutatingMethod("popLast", summary: "Removes and returns the last element of the collection.", signature: Symbol.Function(parameters: [], returns: .optional(.named(.init(nativeType: "FilePath.Component"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member60: ImplementedSymbol = ImplementedSymbol.mutatingMethod("popLast", summary: "Removes and returns the last element of the collection.", signature: Symbol.Signature(parameters: [], returns: .optional(.named(.init(nativeType: "FilePath.Component"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: FilePath.ComponentView = try (consume taken).unboxing(FilePath.ComponentView.self)
@@ -440,7 +440,7 @@ let taken = selfValue
                 return (result.map { Value(boxing: $0, as: .init(nativeType: "FilePath.Component")) } ?? .nothing)
 }
 
-    private static let member61: ImplementedSymbol = ImplementedSymbol.mutatingMethod("removeLast", summary: "Removes and returns the last element of the collection.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [], returns: .named(.init(nativeType: "FilePath.Component")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member61: ImplementedSymbol = ImplementedSymbol.mutatingMethod("removeLast", summary: "Removes and returns the last element of the collection.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Signature(parameters: [], returns: .named(.init(nativeType: "FilePath.Component")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: FilePath.ComponentView = try (consume taken).unboxing(FilePath.ComponentView.self)
@@ -450,14 +450,14 @@ let taken = selfValue
                 return Value(boxing: result, as: .init(nativeType: "FilePath.Component"))
 }
 
-    private static let member62: ImplementedSymbol = ImplementedSymbol.method("filter", summary: "Returns a new collection of the same type containing, in order, the elements of the original collection that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "isIncluded", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "FilePath.ComponentView")), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member62: ImplementedSymbol = ImplementedSymbol.method("filter", summary: "Returns a new collection of the same type containing, in order, the elements of the original collection that satisfy the given predicate.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "isIncluded", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "FilePath.ComponentView")), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = try receiver.filter({ (a0: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "FilePath.Component"))])) })
                 return Value(boxing: result, as: .init(nativeType: "FilePath.ComponentView"))
 }
 
-    private static let member63: ImplementedSymbol = ImplementedSymbol.mutatingMethod("removeAll", summary: "Removes all the elements that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "shouldBeRemoved", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member63: ImplementedSymbol = ImplementedSymbol.mutatingMethod("removeAll", summary: "Removes all the elements that satisfy the given predicate.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: "where", name: "shouldBeRemoved", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let taken = selfValue
                 selfValue = .nothing
@@ -467,95 +467,95 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member64: ImplementedSymbol = ImplementedSymbol.method("forEach", summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "body", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component"))], returns: .void, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member64: ImplementedSymbol = ImplementedSymbol.method("forEach", summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "body", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component"))], returns: .void, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 try receiver.forEach({ (a0: FilePath.Component) throws -> Void in _ = try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "FilePath.Component"))]) })
                 return .nothing
 }
 
-    private static let member65: ImplementedSymbol = ImplementedSymbol.method("first", summary: "Returns the first element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "FilePath.Component"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member65: ImplementedSymbol = ImplementedSymbol.method("first", summary: "Returns the first element of the sequence that satisfies the given predicate.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "FilePath.Component"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = try receiver.first(where: { (a0: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "FilePath.Component"))])) })
                 return (result.map { Value(boxing: $0, as: .init(nativeType: "FilePath.Component")) } ?? .nothing)
 }
 
-    private static let member66: ImplementedSymbol = ImplementedSymbol.method("min", summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component")), .named(.init(nativeType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "FilePath.Component"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member66: ImplementedSymbol = ImplementedSymbol.method("min", summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Signature(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component")), .named(.init(nativeType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "FilePath.Component"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = try receiver.min(by: { (a0: FilePath.Component, a1: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "FilePath.Component")), Value(boxing: a1, as: .init(nativeType: "FilePath.Component"))])) })
                 return (result.map { Value(boxing: $0, as: .init(nativeType: "FilePath.Component")) } ?? .nothing)
 }
 
-    private static let member67: ImplementedSymbol = ImplementedSymbol.method("max", summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component")), .named(.init(nativeType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "FilePath.Component"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member67: ImplementedSymbol = ImplementedSymbol.method("max", summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Signature(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component")), .named(.init(nativeType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "FilePath.Component"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = try receiver.max(by: { (a0: FilePath.Component, a1: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "FilePath.Component")), Value(boxing: a1, as: .init(nativeType: "FilePath.Component"))])) })
                 return (result.map { Value(boxing: $0, as: .init(nativeType: "FilePath.Component")) } ?? .nothing)
 }
 
-    private static let member68: ImplementedSymbol = ImplementedSymbol.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.parameter("PossiblePrefix.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component")), .parameter("PossiblePrefix.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("PossiblePrefix.Element")])) { selfValue, arguments in
+    private static let member68: ImplementedSymbol = ImplementedSymbol.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.parameter("PossiblePrefix.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component")), .parameter("PossiblePrefix.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [Symbol.GenericParameter(name: "PossiblePrefix.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = try receiver.starts(with: try Value.Bridging.sequence(arguments[0]), by: { (a0: FilePath.Component, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "FilePath.Component")), a1])) })
                 return result.value
 }
 
-    private static let member69: ImplementedSymbol = ImplementedSymbol.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.named(.init(nativeType: "FilePath.Component"))]))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member69: ImplementedSymbol = ImplementedSymbol.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.named(.init(nativeType: "FilePath.Component"))]))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = receiver.starts(with: try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(FilePath.Component.self) })
                 return result.value
 }
 
-    private static let member70: ImplementedSymbol = ImplementedSymbol.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("OtherSequence.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component")), .parameter("OtherSequence.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("OtherSequence.Element")])) { selfValue, arguments in
+    private static let member70: ImplementedSymbol = ImplementedSymbol.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("OtherSequence.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component")), .parameter("OtherSequence.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [Symbol.GenericParameter(name: "OtherSequence.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = try receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]), by: { (a0: FilePath.Component, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "FilePath.Component")), a1])) })
                 return result.value
 }
 
-    private static let member71: ImplementedSymbol = ImplementedSymbol.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.named(.init(nativeType: "FilePath.Component"))]))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member71: ImplementedSymbol = ImplementedSymbol.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.named(.init(nativeType: "FilePath.Component"))]))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(FilePath.Component.self) })
                 return result.value
 }
 
-    private static let member72: ImplementedSymbol = ImplementedSymbol.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.named(.init(nativeType: "FilePath.Component"))])), Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component")), .named(.init(nativeType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member72: ImplementedSymbol = ImplementedSymbol.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.named(.init(nativeType: "FilePath.Component"))])), Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component")), .named(.init(nativeType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = try receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(FilePath.Component.self) }, by: { (a0: FilePath.Component, a1: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "FilePath.Component")), Value(boxing: a1, as: .init(nativeType: "FilePath.Component"))])) })
                 return result.value
 }
 
-    private static let member73: ImplementedSymbol = ImplementedSymbol.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member73: ImplementedSymbol = ImplementedSymbol.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = try receiver.contains(where: { (a0: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "FilePath.Component"))])) })
                 return result.value
 }
 
-    private static let member74: ImplementedSymbol = ImplementedSymbol.method("allSatisfy", summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "predicate", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member74: ImplementedSymbol = ImplementedSymbol.method("allSatisfy", summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "predicate", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = try receiver.allSatisfy({ (a0: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "FilePath.Component"))])) })
                 return result.value
 }
 
-    private static let member75: ImplementedSymbol = ImplementedSymbol.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains the given element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "element", type: .named(.init(nativeType: "FilePath.Component")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member75: ImplementedSymbol = ImplementedSymbol.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains the given element.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "element", type: .named(.init(nativeType: "FilePath.Component")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = receiver.contains(try arguments[0].unboxing(FilePath.Component.self))
                 return result.value
 }
 
-    private static let member76: ImplementedSymbol = ImplementedSymbol.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "nextPartialResult", type: .function(parameters: [.parameter("Result"), .named(.init(nativeType: "FilePath.Component"))], returns: .parameter("Result"), isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Result")])) { selfValue, arguments in
+    private static let member76: ImplementedSymbol = ImplementedSymbol.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "nextPartialResult", type: .function(parameters: [.parameter("Result"), .named(.init(nativeType: "FilePath.Component"))], returns: .parameter("Result"), isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [Symbol.GenericParameter(name: "Result")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = try receiver.reduce(arguments[0], { (a0: Value, a1: FilePath.Component) throws -> Value in try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0, Value(boxing: a1, as: .init(nativeType: "FilePath.Component"))]) })
                 return result
 }
 
-    private static let member77: ImplementedSymbol = ImplementedSymbol.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(TypeExpression.FunctionType(parameters: [.init(.parameter("Result"), isInout: true), .init(.named(.init(nativeType: "FilePath.Component")))], returns: .void, throwing: .any, isAsync: false)))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Result")])) { selfValue, arguments in
+    private static let member77: ImplementedSymbol = ImplementedSymbol.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(TypeExpression.FunctionType(parameters: [.init(.parameter("Result"), isInout: true), .init(.named(.init(nativeType: "FilePath.Component")))], returns: .void, throwing: .any, isAsync: false)))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [Symbol.GenericParameter(name: "Result")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = try receiver.reduce(into: arguments[0], { (a0: inout Value, a1: FilePath.Component) throws -> Void in
@@ -565,28 +565,28 @@ a0 = outcome.changed[0]
                 return result
 }
 
-    private static let member78: ImplementedSymbol = ImplementedSymbol.method("flatMap", summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component"))], returns: .named(.sequence, [.parameter("SegmentOfResult.Element")]), isThrowing: true, isAsync: false))], returns: .list(.parameter("SegmentOfResult.Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("SegmentOfResult.Element")])) { selfValue, arguments in
+    private static let member78: ImplementedSymbol = ImplementedSymbol.method("flatMap", summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component"))], returns: .named(.sequence, [.parameter("SegmentOfResult.Element")]), isThrowing: true, isAsync: false))], returns: .list(.parameter("SegmentOfResult.Element")), throwing: .rethrowing, isAsync: false, generics: [Symbol.GenericParameter(name: "SegmentOfResult.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result: [Value] = try receiver.flatMap({ (a0: FilePath.Component) throws -> [Value] in try Value.Bridging.sequence(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "FilePath.Component"))])) })
                 return Value(list: result)
 }
 
-    private static let member79: ImplementedSymbol = ImplementedSymbol.method("compactMap", summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component"))], returns: .optional(.parameter("ElementOfResult")), isThrowing: true, isAsync: false))], returns: .list(.parameter("ElementOfResult")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("ElementOfResult")])) { selfValue, arguments in
+    private static let member79: ImplementedSymbol = ImplementedSymbol.method("compactMap", summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component"))], returns: .optional(.parameter("ElementOfResult")), isThrowing: true, isAsync: false))], returns: .list(.parameter("ElementOfResult")), throwing: .rethrowing, isAsync: false, generics: [Symbol.GenericParameter(name: "ElementOfResult")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result: [Value] = try receiver.compactMap({ (a0: FilePath.Component) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "FilePath.Component"))])) { $0 } })
                 return Value(list: result)
 }
 
-    private static let member80: ImplementedSymbol = ImplementedSymbol.method("sorted", summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component")), .named(.init(nativeType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.named(.init(nativeType: "FilePath.Component"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member80: ImplementedSymbol = ImplementedSymbol.method("sorted", summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component")), .named(.init(nativeType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.named(.init(nativeType: "FilePath.Component"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result: [FilePath.Component] = try receiver.sorted(by: { (a0: FilePath.Component, a1: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "FilePath.Component")), Value(boxing: a1, as: .init(nativeType: "FilePath.Component"))])) })
                 return Value(list: result.map { Value(boxing: $0, as: .init(nativeType: "FilePath.Component")) })
 }
 
-    private static let member81: ImplementedSymbol = ImplementedSymbol.mutatingMethod("trimPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member81: ImplementedSymbol = ImplementedSymbol.mutatingMethod("trimPrefix", summary: "", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let taken = selfValue
                 selfValue = .nothing
@@ -596,7 +596,7 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member82: ImplementedSymbol = ImplementedSymbol.mutatingMethod("trimPrefix", summary: "Removes `prefix` from the start of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.named(.init(nativeType: "FilePath.Component"))]))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member82: ImplementedSymbol = ImplementedSymbol.mutatingMethod("trimPrefix", summary: "Removes `prefix` from the start of the collection.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.named(.init(nativeType: "FilePath.Component"))]))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: FilePath.ComponentView = try (consume taken).unboxing(FilePath.ComponentView.self)
@@ -605,14 +605,14 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member83: ImplementedSymbol = ImplementedSymbol.method("count", summary: "Returns the number of elements in the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .int, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member83: ImplementedSymbol = ImplementedSymbol.method("count", summary: "Returns the number of elements in the sequence that satisfy the given predicate.", signature: Symbol.Signature(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .int, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = try receiver.count(where: { (a0: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "FilePath.Component"))])) })
                 return result.value
 }
 
-    private static let member84: ImplementedSymbol = ImplementedSymbol.method("randomElement", summary: "Returns a random element of the collection.", signature: Symbol.Function(parameters: [], returns: .optional(.named(.init(nativeType: "FilePath.Component"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member84: ImplementedSymbol = ImplementedSymbol.method("randomElement", summary: "Returns a random element of the collection.", signature: Symbol.Signature(parameters: [], returns: .optional(.named(.init(nativeType: "FilePath.Component"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = receiver.randomElement()
                 return (result.map { Value(boxing: $0, as: .init(nativeType: "FilePath.Component")) } ?? .nothing)

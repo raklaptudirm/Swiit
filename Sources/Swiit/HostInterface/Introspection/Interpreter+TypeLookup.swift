@@ -6,10 +6,14 @@ import Synchronization
 
 extension Interpreter {
     func typeRef(named name: String) -> TypeRef? {
-        (globals(named: name) + types.filter { $0.name == name }).lazy.compactMap(\.typeRef).first
+        let declared = globals(named: name).lazy
+            .compactMap { symbol -> TypeRef? in
+                if case .type(let type) = symbol { type.typeRef } else { nil }
+            }
+        return declared.first ?? types.first { $0.name == name }?.typeRef
     }
 
-    func symbol(for typeRef: TypeRef) -> Symbol? {
+    func symbol(for typeRef: TypeRef) -> Symbol.Nominal? {
         withMainTask {
             switch typeRef.kind {
             case .declared:
@@ -47,24 +51,21 @@ extension Interpreter {
 
     /// Every type a script can name, its members to be had from `TypeExpression.members(named:in:)`: those scripts and
     /// the host declare, and Swift's own that the core bridges (`String`, `Array`, `Date`).
-    public var types: [Symbol] {
+    public var types: [Symbol.Nominal] {
         withMainTask {
             let declared = scopes[1].bindings.sorted { $0.key < $1.key }
-                .flatMap { symbols(of: $0.key, binding: $0.value) }
-                .filter {
-                    $0.nominal != nil
+                .compactMap { name, binding -> Symbol.Nominal? in
+                    if case .object(let type as any DeclaredType) = binding.value.storage {
+                        return typeSymbol(named: name, type)
+                    }
+                    return nil
                 }
             let bridged = scopes[0].bindings.sorted { $0.key < $1.key }
-                .compactMap { name, binding -> Symbol? in
+                .compactMap { name, binding -> Symbol.Nominal? in
                     if case .object(is NativeTypeName) = binding.value.storage {
                         var symbol =
                             Bridge.types[name]?.symbol
-                            ?? Symbol(
-                                name: name,
-                                kind: .type(
-                                    Symbol.Nominal(kind: .structure, typeRef: .native(name))
-                                )
-                            )
+                            ?? Symbol.Nominal(name: name, kind: .structure, typeRef: .native(name))
                         symbol.isBuiltin = true
                         return symbol
                     } else {

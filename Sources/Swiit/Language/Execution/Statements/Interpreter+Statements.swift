@@ -494,7 +494,7 @@ extension Interpreter {
                 guard let found = Bridge.types[type]?.lowered[member] else { return nil }
                 return bridgedSymbol(found, checker: TypeChecker(interpreter: self))
             case .call:
-                return task.lastCallee.map { symbol(of: $0, named: "closure") }
+                return task.lastCallee.map { .function(symbol(of: $0, named: "closure")) }
             default:
                 return nil
             }

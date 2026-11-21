@@ -91,7 +91,7 @@ extension Lowering {
             }
             var lowered = try function(method, isMember: true)
             if !lowered.generics.contains(where: { $0.name == "Element" }) {
-                lowered.generics.append(.genericParameter("Element"))
+                lowered.generics.append(Symbol.GenericParameter(name: "Element"))
             }
             methods.append(lowered)
         }

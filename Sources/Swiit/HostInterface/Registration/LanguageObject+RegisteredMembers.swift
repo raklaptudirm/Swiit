@@ -27,7 +27,7 @@ extension LanguageObject {
                 function: ImplementedSymbol.function(
                     name: name,
                     summary: member.summary,
-                    signature: Symbol.Function(
+                    signature: Symbol.Signature(
                         parameters: member.parameters.map {
                             Symbol.Parameter(
                                 label: $0.label,

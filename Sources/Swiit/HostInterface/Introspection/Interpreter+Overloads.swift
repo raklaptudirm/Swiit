@@ -5,16 +5,16 @@ import Synchronization
 // Choosing among the overloads of a function.
 
 extension Interpreter {
-    func overload(
-        among candidates: [Symbol],
+    func overload<Candidate: CallableSymbol>(
+        among candidates: [Candidate],
         arguments: [TypeExpression.TupleElement]
-    ) throws(Diagnostic) -> Symbol {
+    ) throws(Diagnostic) -> Candidate {
         guard !candidates.isEmpty else {
             throw Diagnostic(kind: .type, message: "there is nothing to call")
         }
         let checker = TypeChecker(interpreter: self)
-        func penalty(_ candidate: Symbol) -> Int? {
-            guard let parameters = candidate.function?.parameters else { return nil }
+        func penalty(_ candidate: Candidate) -> Int? {
+            let parameters = candidate.signature.parameters
             var cost = 0
             var next = 0
             var given: Set<String> = []

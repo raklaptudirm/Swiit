@@ -30,6 +30,8 @@ let answer = try swiit.evaluate("double(21)")   // 42
 ### Symbols
 
 - ``Symbol``
+- ``SymbolProtocol``
+- ``CallableSymbol``
 
 ### Registering Swift functions, types and objects
 

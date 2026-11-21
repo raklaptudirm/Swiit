@@ -8,7 +8,7 @@ protocol TypeRecord: AnyObject {
     var representation: ImplementedType.Representation { get }
     /// What is said of the type. An extension that adds a conformance updates it through
     /// `Interpreter.refreshDeclaration(ofTypeNamed:)`.
-    var symbol: Symbol { get set }
+    var symbol: Symbol.Nominal { get set }
     /// The protocols it names itself, and, for a class, those of the classes it comes from.
     var declaredConformances: [String] { get }
 }
@@ -58,7 +58,7 @@ extension Interpreter {
     func refreshDeclaration(ofTypeNamed name: String) {
         guard let record = record(ofTypeNamed: name) else { return }
         for protocolName in conformances(ofTypeNamed: name, declared: record.declaredConformances) {
-            record.symbol.nominal?.conformances[protocolName] = []
+            record.symbol.conformances[protocolName] = []
         }
     }
 }

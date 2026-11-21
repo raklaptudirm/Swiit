@@ -63,7 +63,7 @@ public struct BridgedType<T: Sendable>: Sendable {
         func fromText<L: LosslessStringConvertible>(_: L.Type) -> ImplementedSymbol {
             .initializer(
                 summary: "The value the text spells, or nil.",
-                signature: Symbol.Function(
+                signature: Symbol.Signature(
                     parameters: [Symbol.Parameter(name: "text", type: .string)],
                     returns: .optional(own)
                 )
@@ -77,7 +77,7 @@ public struct BridgedType<T: Sendable>: Sendable {
         func fromLiteral<L: ExpressibleByStringLiteral>(_: L.Type) -> ImplementedSymbol {
             .initializer(
                 summary: "The value the string literal is.",
-                signature: Symbol.Function(
+                signature: Symbol.Signature(
                     parameters: [
                         Symbol.Parameter(label: "stringLiteral", name: "value", type: .string)
                     ],
@@ -122,7 +122,7 @@ public struct BridgedType<T: Sendable>: Sendable {
     /// "Result")`. A script writes the type with its arguments (`Job<Int>`).
     public func generic(over names: String...) -> BridgedType {
         var made = self
-        made.type.genericParameters = names.map { Symbol.genericParameter($0) }
+        made.type.genericParameters = names.map { Symbol.GenericParameter(name: $0) }
         return made
     }
 

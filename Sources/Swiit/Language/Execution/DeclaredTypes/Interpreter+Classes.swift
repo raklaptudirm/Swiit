@@ -22,7 +22,7 @@ final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {
     var source: ClassDecl?
     /// What is said of the type, kept here so that every reader sees the same thing. An extension that
     /// adds a conformance updates it through `Interpreter.refreshDeclaration(ofTypeNamed:)`.
-    var symbol: Symbol
+    var symbol: Symbol.Nominal
 
     init(
         name: String,
@@ -39,11 +39,8 @@ final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {
         self.stored = stored
         self.conformances = conformances
         members.staticProperties = staticProperties
-        symbol = Symbol(
-            name: name,
-            kind: .type(Symbol.Nominal(kind: isActor ? .actor : .class, typeRef: typeRef))
-        )
-        for protocolName in allConformances { symbol.nominal?.conformances[protocolName] = [] }
+        symbol = Symbol.Nominal(name: name, kind: isActor ? .actor : .class, typeRef: typeRef)
+        for protocolName in allConformances { symbol.conformances[protocolName] = [] }
     }
 
     /// This class and each it comes from, nearest first.

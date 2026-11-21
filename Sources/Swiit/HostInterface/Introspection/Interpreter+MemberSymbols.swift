@@ -13,12 +13,13 @@ extension Interpreter {
         bindings: [String: TypeAnnotation] = [:],
         isSettable: Bool = false
     ) -> Symbol {
+        let summary = member.summary.isEmpty ? nil : member.summary
         func throwing() -> Symbol.Throwing {
             member.typedThrows.map { .typed(typeExpression(.named($0))) }
                 ?? (member.isRethrowing ? .rethrowing : member.isThrowing ? .any : .no)
         }
-        func function() -> Symbol.Function {
-            Symbol.Function(
+        func signature() -> Symbol.Signature {
+            Symbol.Signature(
                 parameters: member.parameters.map {
                     let substituted = checker.substitute($0.type, bindings)
                     var made = Symbol.Parameter(
@@ -40,36 +41,40 @@ extension Interpreter {
                 generics: member.generics
             )
         }
-        let kind: Symbol.Kind =
-            switch member.kind {
-            case .method:
-                .method(
-                    Symbol.Method(
-                        function: function(),
-                        isMutating: member.isMutating,
-                        isStatic: member.isStatic
-                    )
+        switch member.kind {
+        case .method:
+            return .method(
+                Symbol.Method(
+                    name: member.name,
+                    summary: summary,
+                    attributes: member.attributes,
+                    signature: signature(),
+                    isMutating: member.isMutating,
+                    isStatic: member.isStatic
                 )
-            case .initializer: .initializer(function())
-            default:
-                .property(
-                    Symbol.Property(
-                        variable: Symbol.Variable(
-                            type: typeExpression(checker.substitute(member.returns, bindings)),
-                            isSettable: isSettable
-                        ),
-                        isStatic: member.isStatic,
-                        isAsync: member.effect != .sync,
-                        throwing: throwing()
-                    )
+            )
+        case .initializer:
+            return .initializer(
+                Symbol.Initializer(
+                    summary: summary,
+                    attributes: member.attributes,
+                    signature: signature()
                 )
-            }
-        return Symbol(
-            name: member.kind == .initializer ? "init" : member.name,
-            summary: member.summary.isEmpty ? nil : member.summary,
-            kind: kind,
-            attributes: member.attributes
-        )
+            )
+        default:
+            return .property(
+                Symbol.Property(
+                    name: member.name,
+                    summary: summary,
+                    attributes: member.attributes,
+                    type: typeExpression(checker.substitute(member.returns, bindings)),
+                    isSettable: isSettable,
+                    isStatic: member.isStatic,
+                    isAsync: member.effect != .sync,
+                    throwing: throwing()
+                )
+            )
+        }
     }
 
     func parameter(
@@ -108,10 +113,10 @@ extension Interpreter {
         func function(
             _ signature: TypeChecker.Signature,
             dropping receiver: Bool = false
-        ) -> Symbol.Function {
+        ) -> Symbol.Signature {
             var parameters = signature.parameters
             if receiver, parameters.first?.name == "self" { parameters.removeFirst() }
-            return Symbol.Function(
+            return Symbol.Signature(
                 parameters: parameters.map {
                     parameter($0, documentation: signature.documentation?.parameters[$0.name])
                 },
@@ -127,18 +132,16 @@ extension Interpreter {
             isStatic: Bool = false
         ) {
             found.append(
-                Symbol(
-                    name: signature.name,
-                    summary: signature.documentation.map(\.summary)
-                        .flatMap { $0.isEmpty ? nil : $0 },
-                    kind: .method(
-                        Symbol.Method(
-                            function: function(signature, dropping: receiver),
-                            isMutating: signature.isMutating,
-                            isStatic: isStatic
-                        )
-                    ),
-                    attributes: signature.attributes
+                .method(
+                    Symbol.Method(
+                        name: signature.name,
+                        summary: signature.documentation.map(\.summary)
+                            .flatMap { $0.isEmpty ? nil : $0 },
+                        attributes: signature.attributes,
+                        signature: function(signature, dropping: receiver),
+                        isMutating: signature.isMutating,
+                        isStatic: isStatic
+                    )
                 )
             )
         }
@@ -155,15 +158,11 @@ extension Interpreter {
             for (member, property) in profile.declared.properties
             where name == nil || name == member {
                 found.append(
-                    Symbol(
-                        name: member,
-                        kind: .property(
-                            Symbol.Property(
-                                variable: Symbol.Variable(
-                                    type: typeExpression(property.type),
-                                    isSettable: property.isSettable
-                                )
-                            )
+                    .property(
+                        Symbol.Property(
+                            name: member,
+                            type: typeExpression(property.type),
+                            isSettable: property.isSettable
                         )
                     )
                 )
@@ -177,16 +176,12 @@ extension Interpreter {
             for (member, property) in profile.declared.staticProperties
             where name == nil || name == member {
                 found.append(
-                    Symbol(
-                        name: member,
-                        kind: .property(
-                            Symbol.Property(
-                                variable: Symbol.Variable(
-                                    type: typeExpression(property.type),
-                                    isSettable: property.isSettable
-                                ),
-                                isStatic: true
-                            )
+                    .property(
+                        Symbol.Property(
+                            name: member,
+                            type: typeExpression(property.type),
+                            isSettable: property.isSettable,
+                            isStatic: true
                         )
                     )
                 )
@@ -201,17 +196,20 @@ extension Interpreter {
                 }
                 for initializer in initializers {
                     found.append(
-                        Symbol(
-                            name: "init",
-                            kind: .initializer(function(initializer)),
-                            attributes: initializer.attributes
+                        .initializer(
+                            Symbol.Initializer(
+                                attributes: initializer.attributes,
+                                signature: function(initializer)
+                            )
                         )
                     )
                 }
             }
             for member in profile.associatedTypes where name == nil || name == member {
                 found.append(
-                    Symbol(name: member, kind: .associatedType(.requirement(constraints: [])))
+                    .associatedType(
+                        Symbol.AssociatedType(name: member, role: .requirement(constraints: []))
+                    )
                 )
             }
             if profile.kind == .enumeration {
@@ -221,17 +219,15 @@ extension Interpreter {
                         rawValues[profile.name]?[enumCase.name]
                         ?? runtime?.case(named: enumCase.name)?.rawValue
                     found.append(
-                        Symbol(
-                            name: enumCase.name,
-                            kind: .enumCase(
-                                parameters: enumCase.payload.enumerated()
-                                    .map { index, value in
-                                        Symbol.Parameter(
-                                            label: value.label,
-                                            name: value.label ?? String(index),
-                                            type: typeExpression(value.type)
-                                        )
-                                    },
+                        .enumCase(
+                            Symbol.EnumCase(
+                                name: enumCase.name,
+                                payload: enumCase.payload.map {
+                                    TypeExpression.TupleElement(
+                                        label: $0.label,
+                                        type: typeExpression($0.type)
+                                    )
+                                },
                                 rawValue: raw
                             )
                         )
@@ -255,9 +251,8 @@ extension Interpreter {
                     )
                 )
             }
-            for member in bridgedType.members
-            where member.symbol.kind.isAssociatedType && (name == nil || name == member.name) {
-                found.append(member.symbol)
+            for member in bridgedType.members where name == nil || name == member.name {
+                if case .associatedType = member.symbol { found.append(member.symbol) }
             }
         }
         // What every sequence has: what the host's prelude adds to `Sequence`, which

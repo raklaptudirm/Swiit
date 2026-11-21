@@ -20,7 +20,7 @@ it, `rawValue` is its own, and if it is `Comparable` its cases compare in the or
 ones it takes or gives, so a struct with a `shade: Shade` property needs nothing more for scripts to name `Shade`. An enum
 that only declarations in Swift source name is registered on its own, with `register(Shade.self)`.
 
-A type that is not a Swift value type, or one a generator describes, is an ``ImplementedType``: a type ``Symbol`` (what a script
+A type that is not a Swift value type, or one a generator describes, is an ``ImplementedType``: a ``Symbol/Nominal`` (what a script
 sees of the type, and what its Swift type says of itself) with ``ImplementedSymbol`` members. Hand it to ``Interpreter/register(_:)-(ImplementedType)``.
 
 ## Hand scripts a live object

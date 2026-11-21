@@ -83,8 +83,8 @@ func genericParametersDescription(_ generics: [String: [String]]) -> String {
         + generics.sorted { $0.key < $1.key }
         .map { name, constraints in
             constraints.isEmpty
-                ? ".genericParameter(\(quoted(name)))"
-                : ".genericParameter(\(quoted(name)), constraints: ["
+                ? "Symbol.GenericParameter(name: \(quoted(name)))"
+                : "Symbol.GenericParameter(name: \(quoted(name)), constraints: ["
                     + constraints.flatMap(constraint).joined(separator: ", ") + "])"
         }
         .joined(separator: ", ") + "]"
@@ -111,7 +111,7 @@ func describedMember(
     let throwing =
         declaration.rethrowing ? ".rethrowing" : declaration.throwing ? ".any" : ".no"
     let signature =
-        "Symbol.Function(parameters: [\(parameterCode.joined(separator: ", "))], returns: \(typeExpression(returns)), throwing: \(throwing), isAsync: \(declaration.isAsync), generics: \(genericParametersDescription(generics)))"
+        "Symbol.Signature(parameters: [\(parameterCode.joined(separator: ", "))], returns: \(typeExpression(returns)), throwing: \(throwing), isAsync: \(declaration.isAsync), generics: \(genericParametersDescription(generics)))"
     let head =
         "\(quoted(scriptName)), summary: \(quoted(symbol.summary)), \(attributesCode(of: text))"
     let code: String

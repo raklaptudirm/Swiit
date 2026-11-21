@@ -17,7 +17,7 @@ extension TypeRef {
     /// same name hides), or a type the host registers or the core bridges. It returns nil for a reference
     /// that names nothing: an unregistered Swift type (such as an encoded value's) or a declared type of
     /// another interpreter.
-    public func symbol(in interpreter: Interpreter) -> Symbol? {
+    public func symbol(in interpreter: Interpreter) -> Symbol.Nominal? {
         interpreter.symbol(for: self)
     }
 }
@@ -32,14 +32,14 @@ extension TypeExpression {
     }
 }
 
-extension Sequence where Element == Symbol {
+extension Sequence where Element: CallableSymbol {
     /// Which of these functions a call with these arguments means: by their labels and types, the
     /// one that fits with the fewest conversions. Throws the checker's own complaint when none fits
     /// or several do.
     public func overload(
         arguments: [TypeExpression.TupleElement],
         in interpreter: Interpreter
-    ) throws(Diagnostic) -> Symbol {
+    ) throws(Diagnostic) -> Element {
         try interpreter.overload(among: Array(self), arguments: arguments)
     }
 }

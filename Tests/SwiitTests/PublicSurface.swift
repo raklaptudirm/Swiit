@@ -7,7 +7,7 @@ enum PublicSurface {
     static let allowed: Set<String> = [
         "Interpreter", "Value", "TypeExpression", "BridgedValue", "TypeRef",
         "ImplementedSymbol", "Diagnostic", "OutputSink", "Symbol",
-        "ImplementedType", "BridgedType",
+        "ImplementedType", "BridgedType", "SymbolProtocol", "CallableSymbol",
         "ScriptTask",
     ]
 

@@ -171,7 +171,7 @@ private struct DataPair: BridgedValue, Hashable, CustomStringConvertible,
     let shade = TypeRef(named: "Shade", in: swiit)
     #expect(shade != nil)
     let cases = TypeExpression.named(shade!).members(in: swiit)
-        .filter { if case .member(.enumCase) = $0.kind { true } else { false } }
+        .filter { if case .enumCase = $0 { true } else { false } }
     #expect(cases.map(\.name) == ["light", "dark"])
     #expect(try shade.flatMap { $0.enumCase(named: "light", in: swiit) }.map(Shade.init) == .light)
 }
@@ -292,8 +292,8 @@ private struct DataPair: BridgedValue, Hashable, CustomStringConvertible,
 @Test func aTypeWrittenByHandSaysWhatItIsGenericOverAndWhatItConformsTo() throws {
     let swiit = interpreter()
     var pile = ImplementedType(name: "Pile")
-    pile.genericParameters = [.genericParameter("Element")]
-    pile.conformances = ["Hashable": [], "Sequence": [Symbol.genericParameter("Element")]]
+    pile.genericParameters = [Symbol.GenericParameter(name: "Element")]
+    pile.conformances = ["Hashable": [], "Sequence": [Symbol.GenericParameter(name: "Element")]]
     pile.members.append(.associatedType("Element", binding: .parameter("Element")))
     let id = swiit.register(pile)
 
@@ -310,7 +310,7 @@ private struct DataPair: BridgedValue, Hashable, CustomStringConvertible,
     pile.members = [
         .method(
             "each",
-            signature: Symbol.Function(
+            signature: Symbol.Signature(
                 parameters: [
                     Symbol.Parameter(
                         label: nil,
@@ -328,12 +328,12 @@ private struct DataPair: BridgedValue, Hashable, CustomStringConvertible,
     let symbol = try #require(
         TypeExpression.named(.init(nativeType: "Crate")).members(named: "each", in: swiit).first
     )
-    guard case .member(.method(let method)) = symbol.kind else {
+    guard case .method(let method) = symbol else {
         Issue.record("not a method")
         return
     }
-    #expect(method.function.parameters.first?.documentation == "Called with each item.")
-    #expect(method.function.throwing == .rethrowing)
+    #expect(method.signature.parameters.first?.documentation == "Called with each item.")
+    #expect(method.signature.throwing == .rethrowing)
 }
 
 @Test func aHostBoxesASwiftValueAsTheTypeItRegisteredAndGetsItBack() throws {
@@ -358,8 +358,12 @@ private struct DataPair: BridgedValue, Hashable, CustomStringConvertible,
     let element = TypeExpression.named(id).members(named: "Element", in: swiit)
 
     #expect(element.count == 1)
-    #expect(element.first?.kind == .member(.associatedType(.binding(.string))))
-    #expect(element.first?.typeExpression == .string)
+    guard case .associatedType(let associated)? = element.first else {
+        Issue.record("not an associated type")
+        return
+    }
+    #expect(associated.role == .binding(.string))
+    #expect(associated.typeExpression == .string)
 }
 
 @Test func anAssociatedTypeOfAProtocolIsARequirement() throws {
@@ -369,8 +373,12 @@ private struct DataPair: BridgedValue, Hashable, CustomStringConvertible,
     let container = try #require(TypeRef(named: "Container", in: swiit))
     let item = TypeExpression.named(container).members(named: "Item", in: swiit)
 
-    #expect(item.first?.kind == .member(.associatedType(.requirement(constraints: []))))
-    #expect(item.first?.typeExpression == .parameter("Item"))
+    guard case .associatedType(let associated)? = item.first else {
+        Issue.record("not an associated type")
+        return
+    }
+    #expect(associated.role == .requirement(constraints: []))
+    #expect(associated.typeExpression == .parameter("Item"))
 }
 
 private struct Hamper: Sendable { var size = 3 }
@@ -385,6 +393,6 @@ private struct Hamper: Sendable { var size = 3 }
     #expect(
         try swiit.evaluate("func size(_ c: Hamper<Int>) -> Int { c.size }\nsize(crate)") == Value(3)
     )
-    let nominal = try #require(id.symbol(in: swiit)?.nominal)
+    let nominal = try #require(id.symbol(in: swiit))
     #expect(nominal.genericParameters.map(\.name) == ["Item"])
 }

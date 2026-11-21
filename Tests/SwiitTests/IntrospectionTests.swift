@@ -53,11 +53,11 @@ private struct Point: Encodable { var x: Int }
     #expect(names.isSuperset(of: ["area", "check", "greet"]))
     #expect(names.contains("print"))
     let area = try #require(swiit.globals(named: "area").first)
-    let function = try #require(area.function)
+    let function = try #require(area.function).signature
     #expect(function.parameters.map(\.label) == ["width", "height"])
     #expect(function.parameters.map(\.arity) == [.required, .defaulted(.value(1))])
     #expect(function.returns == .int)
-    #expect(try #require(swiit.globals(named: "check").first?.function).isThrowing)
+    #expect(try #require(swiit.globals(named: "check").first?.function).signature.isThrowing)
     // The interpreter's own are found by name, not listed.
     #expect(!swiit.globals(named: "print").isEmpty)
     #expect(swiit.globals(named: "nosuch").isEmpty)
@@ -76,7 +76,7 @@ private struct Point: Encodable { var x: Int }
     #expect(
         Set(
             members.filter {
-                if case .member(.initializer) = $0.kind { false } else { true }
+                if case .initializer = $0 { false } else { true }
             }
             .map(\.name)
         ) == ["x", "scaled"]
@@ -84,7 +84,7 @@ private struct Point: Encodable { var x: Int }
     // A type's functions and variables are methods and properties; a global's are not.
     #expect(
         members.contains {
-            if case .member(.method(let method)) = $0.kind {
+            if case .method(let method) = $0 {
                 $0.name == "scaled" && !method.isStatic
             } else {
                 false
@@ -93,30 +93,30 @@ private struct Point: Encodable { var x: Int }
     )
     #expect(
         members.contains {
-            if case .member(.property(let property)) = $0.kind {
-                $0.name == "x" && property.variable.isSettable
+            if case .property(let property) = $0 {
+                $0.name == "x" && property.isSettable
             } else {
                 false
             }
         }
     )
     #expect(
-        swiit.globals(named: "f").allSatisfy { if case .function = $0.kind { true } else { false } }
+        swiit.globals(named: "f").allSatisfy { $0.function != nil }
     )
     // And what belongs to the type: its memberwise initializer.
     let initializers = members.filter {
-        if case .member(.initializer) = $0.kind { true } else { false }
+        if case .initializer = $0 { true } else { false }
     }
     #expect(initializers.count == 1)
     #expect(try swiit.typeExpression(ofExpression: "Point(x: 1)") == swiit.type("Point"))
     #expect(try swiit.typeExpression(ofExpression: "[1, 2].map { $0 + 1 }") == .list(.int))
-    let overloads = swiit.globals(named: "f")
+    let overloads = swiit.globals(named: "f").compactMap(\.function)
     #expect(
-        try overloads.overload(arguments: [.init(type: .string)], in: swiit).function?
+        try overloads.overload(arguments: [.init(type: .string)], in: swiit).signature
             .returns == .string
     )
     #expect(
-        try overloads.overload(arguments: [.init(type: .int)], in: swiit).function?
+        try overloads.overload(arguments: [.init(type: .int)], in: swiit).signature
             .parameters.first?
             .type
             == .int
@@ -177,6 +177,7 @@ private struct Point: Encodable { var x: Int }
         ) == 6
     )
     let reduce = TypeExpression.list(.int).members(named: "reduce", in: swiit)
+        .compactMap(\.method)
     #expect(
         try reduce
             .overload(arguments: [.init(type: .int), .init(type: .callable)], in: swiit)
@@ -188,8 +189,8 @@ private struct Point: Encodable { var x: Int }
 @Test func typeParametersCarryTheirConstraintsAsTypes() throws {
     let swiit = interpreter()
     // A host function's own type parameters, with and without constraints.
-    let t = Symbol.genericParameter("T", constraints: [.comparable, .hashable])
-    let u = Symbol.genericParameter("U")
+    let t = Symbol.GenericParameter(name: "T", constraints: [.comparable, .hashable])
+    let u = Symbol.GenericParameter(name: "U")
     swiit.register(
         ImplementedSymbol.function(
             name: "pick",
@@ -203,12 +204,10 @@ private struct Point: Encodable { var x: Int }
         )
     )
     let pick = swiit.globals(named: "pick").first?.function
-    #expect(
-        pick?.generics == [t, u]
-    )
+    #expect(pick?.signature.generics == [t, u])
     // A Swift member's, with what it asks of its type: `sorted()` needs a Comparable element.
     let sorted = TypeExpression.list(.int).members(named: "sorted", in: swiit)
-        .compactMap(\.function)
+        .compactMap(\.signature)
     #expect(
         sorted.contains {
             $0.generics.contains {
@@ -241,12 +240,11 @@ private struct Point: Encodable { var x: Int }
     #expect(try swiit.evaluate("scale(3, by: 4)") == 12)
     #expect(throws: Diagnostic.self) { try swiit.evaluate(#"scale("a", by: 4)"#) }
     let scale = try #require(swiit.globals(named: "scale").first)
-    #expect(
-        scale.function?.parameters.map(\.type) == [.int, .int] && scale.function?.returns == .int
-    )
+    let signature = try #require(scale.function).signature
+    #expect(signature.parameters.map(\.type) == [.int, .int] && signature.returns == .int)
     #expect(!TypeExpression([Int].self).members(named: "sorted", in: swiit).isEmpty)
     #expect(
-        try [scale]
+        try [try #require(scale.function)]
             .overload(
                 arguments: [.init(type: Int.self), .init(label: "by", type: Int.self)],
                 in: swiit
@@ -255,7 +253,10 @@ private struct Point: Encodable { var x: Int }
     )
     // A function symbol is also a function type, and a call's arguments are the elements of a tuple
     // type.
-    #expect(scale.typeExpression == .function(parameters: [.int, .int], returns: .int))
+    #expect(
+        try #require(scale.function).typeExpression
+            == .function(parameters: [.int, .int], returns: .int)
+    )
 }
 
 @Test func aTypeIsANameWithArgumentsAFunctionOrATuple() throws {
@@ -283,4 +284,27 @@ private struct Point: Encodable { var x: Int }
     #expect(type == .metatype(swiit.type("Tools")))
     #expect(type.members(in: swiit).map(\.name).contains("go"))
     #expect(!type.members(in: swiit).map(\.name).contains("other"))
+}
+
+extension Symbol {
+    /// The symbol, if it is a global function: what a test asks of a name that may be anything.
+    fileprivate var function: Symbol.Function? {
+        if case .function(let function) = self { function } else { nil }
+    }
+}
+
+extension Symbol {
+    /// What a call to the symbol takes and gives, if it is a function, a method or an initializer.
+    fileprivate var signature: Symbol.Signature? {
+        switch self {
+        case .function(let symbol): symbol.signature
+        case .method(let symbol): symbol.signature
+        case .initializer(let symbol): symbol.signature
+        default: nil
+        }
+    }
+
+    fileprivate var method: Symbol.Method? {
+        if case .method(let method) = self { method } else { nil }
+    }
 }

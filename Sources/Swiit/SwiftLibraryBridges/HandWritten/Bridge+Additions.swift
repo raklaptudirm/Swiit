@@ -76,12 +76,12 @@ extension Bridge {
             .initializer(
                 summary: "The text of a value that has one: String(5), String(2.5).",
                 attributes: discardable,
-                signature: Symbol.Function(
+                signature: Symbol.Signature(
                     parameters: [Symbol.Parameter(name: "value", type: .parameter("T"))],
                     returns: .string,
                     generics: [
-                        .genericParameter(
-                            "T",
+                        Symbol.GenericParameter(
+                            name: "T",
                             constraints: [.conforms(to: "CustomStringConvertible")]
                         )
                     ]
@@ -95,7 +95,7 @@ extension Bridge {
                 summary:
                     "The same integer: Int(x) of an Int, which also stands for the fixed-width integers.",
                 attributes: discardable,
-                signature: Symbol.Function(
+                signature: Symbol.Signature(
                     parameters: [Symbol.Parameter(name: "value", type: .int)],
                     returns: .int
                 )
@@ -105,7 +105,7 @@ extension Bridge {
             .initializer(
                 summary: "The values in lists, by the key each gives.",
                 attributes: discardable,
-                signature: Symbol.Function(
+                signature: Symbol.Signature(
                     parameters: [
                         Symbol.Parameter(
                             label: "grouping",
@@ -120,8 +120,8 @@ extension Bridge {
                     ],
                     returns: .dictionary(.parameter("K"), .list(.parameter("E"))),
                     generics: [
-                        .genericParameter("E"),
-                        .genericParameter("K", constraints: [.hashable]),
+                        Symbol.GenericParameter(name: "E"),
+                        Symbol.GenericParameter(name: "K", constraints: [.hashable]),
                     ]
                 )
             ) { arguments in

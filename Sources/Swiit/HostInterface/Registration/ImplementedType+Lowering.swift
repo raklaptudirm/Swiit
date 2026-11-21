@@ -10,7 +10,9 @@ extension ImplementedType {
     var associatedTypes: [String: TypeExpression] {
         var found: [String: TypeExpression] = [:]
         for member in members {
-            if case .member(.associatedType(.binding(let type))) = member.symbol.kind {
+            if case .associatedType(let associated) = member.symbol,
+                case .binding(let type) = associated.role
+            {
                 found[member.name] = type
             }
         }
@@ -60,7 +62,7 @@ extension ImplementedType {
     func conforming(to protocols: [String]) -> ImplementedType {
         guard !protocols.isEmpty else { return self }
         var made = self
-        for name in protocols { made.symbol.nominal?.conformances[name] = [] }
+        for name in protocols { made.symbol.conformances[name] = [] }
         return made
     }
 }
@@ -77,12 +79,12 @@ extension BridgedMember {
     }
 
     /// The parameters a script sees, from those a host declared.
-    private static func parameters(_ function: Symbol.Function) -> [Parameter] {
+    private static func parameters(_ function: Symbol.Signature) -> [Parameter] {
         function.parameters.map { Parameter(described: $0) }
     }
 
     /// The arguments in declared order, from what a call bound by name.
-    private static func ordered(_ function: Symbol.Function) -> @Sendable (Arguments) -> [Value] {
+    private static func ordered(_ function: Symbol.Signature) -> @Sendable (Arguments) -> [Value] {
         let slots = function.parameters.map { parameter -> (String, Value) in
             if case .defaulted(.value(let value)) = parameter.arity {
                 return (parameter.name, value)
@@ -122,7 +124,7 @@ extension BridgedMember {
             name: String? = nil,
             parameters: [Parameter] = [],
             returns: TypeAnnotation,
-            function: Symbol.Function? = nil,
+            function: Symbol.Signature? = nil,
             isMutating: Bool = false,
             call: @escaping @Sendable (Arguments) throws -> Value
         ) -> BridgedMember {
@@ -164,9 +166,9 @@ extension BridgedMember {
             made.plain = call
             return made
         }
-        switch (symbol.kind, member.body) {
-        case (.member(.method(let method)), .method(let body)):
-            let function = method.function, order = ordered(function)
+        switch (symbol, member.body) {
+        case (.method(let method), .method(let body)):
+            let function = method.signature, order = ordered(function)
             return [
                 make(
                     .method,
@@ -175,8 +177,8 @@ extension BridgedMember {
                     function: function
                 ) { try body($0["self"] ?? .nothing, order($0)) }
             ]
-        case (.member(.method(let method)), .mutatingMethod(let body)):
-            let function = method.function, order = ordered(function)
+        case (.method(let method), .mutatingMethod(let body)):
+            let function = method.signature, order = ordered(function)
             return [
                 make(
                     .method,
@@ -188,8 +190,8 @@ extension BridgedMember {
                     try mutating(arguments) { try body(&$0, order(arguments)) }
                 }
             ]
-        case (.member(.method(let method)), .staticMethod(let body)):
-            let function = method.function, order = ordered(function)
+        case (.method(let method), .staticMethod(let body)):
+            let function = method.signature, order = ordered(function)
             return [
                 make(
                     .method,
@@ -199,20 +201,20 @@ extension BridgedMember {
                     function: function
                 ) { try body(order($0)) }
             ]
-        case (.member(.property(let property)), .property(let get)):
+        case (.property(let property), .property(let get)):
             return [
                 make(
                     .property,
-                    returns: TypeAnnotation(property.variable.type),
-                    function: Symbol.Function(
-                        returns: property.variable.type,
+                    returns: TypeAnnotation(property.type),
+                    function: Symbol.Signature(
+                        returns: property.type,
                         throwing: property.throwing,
                         isAsync: property.isAsync
                     )
                 ) { try get($0["self"] ?? .nothing) }
             ]
-        case (.member(.property(let property)), .settableProperty(let get, let set)):
-            let type = property.variable.type
+        case (.property(let property), .settableProperty(let get, let set)):
+            let type = property.type
             return [
                 make(.property, returns: TypeAnnotation(type)) { try get($0["self"] ?? .nothing) },
                 make(
@@ -229,16 +231,16 @@ extension BridgedMember {
                     }
                 },
             ]
-        case (.member(.property(let property)), .staticProperty(let get)):
+        case (.property(let property), .staticProperty(let get)):
             return [
                 make(
                     .property,
                     isStatic: true,
-                    returns: TypeAnnotation(property.variable.type)
+                    returns: TypeAnnotation(property.type)
                 ) { _ in try get() }
             ]
-        case (.member(.initializer(let function)), .initializer(let body)):
-            let order = ordered(function)
+        case (.initializer(let initializer), .initializer(let body)):
+            let function = initializer.signature, order = ordered(function)
             return [
                 make(
                     .initializer,
@@ -249,7 +251,7 @@ extension BridgedMember {
                     function: function
                 ) { try body(order($0)) }
             ]
-        case (.member(.associatedType), .associatedType):
+        case (.associatedType, .associatedType):
             // It names a type, and nothing in it runs.
             return []
         default:

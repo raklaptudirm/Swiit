@@ -120,12 +120,13 @@ private struct Point: Encodable { var x: Int }
     let high = try swiit.evaluate("Level.high")
     #expect(high.typeRef?.name == "Level" && high.mirror.displayStyle == .enum)
     #expect((try? swiit.value(forMember: "rawValue", of: high)) == Value(2))
-    #expect(swiit.globals(named: "Point").first?.typeKind == .structure)
-    #expect(swiit.globals(named: "Level").first?.typeKind == .enumeration)
+    #expect(swiit.globals(named: "Point").first?.nominal?.kind == .structure)
+    #expect(swiit.globals(named: "Level").first?.nominal?.kind == .enumeration)
     #expect(swiit.globals(named: "twice").first?.function != nil)
     swiit["limit"] = 3
     #expect(
-        swiit.globals(named: "limit").first?.kind == .variable(Symbol.Variable(type: .int))
+        swiit.globals(named: "limit").first
+            == .variable(Symbol.Variable(name: "limit", type: .int))
     )
 }
 
@@ -185,9 +186,9 @@ private struct Point: Encodable { var x: Int }
     #expect(try swiit.evaluate("Wrapped.one(5)").mirror.children.first?.value as? Value == Value(5))
     // Its type resolves to a declaration with the cases and their labels, as a symbol says.
     let symbol = try #require(failedValue.typeRef.flatMap { $0.symbol(in: swiit) })
-    #expect(symbol.typeKind == .enumeration)
+    #expect(symbol.kind == .enumeration)
     let cases = TypeExpression.named(try #require(failedValue.typeRef)).members(in: swiit)
-        .filter { if case .member(.enumCase) = $0.kind { true } else { false } }
+        .filter { if case .enumCase = $0 { true } else { false } }
     #expect(cases.map(\.name).contains("failed"))
 }
 
@@ -323,7 +324,7 @@ private struct Point: Encodable { var x: Int }
 
     #expect(gizmo.name == "Gizmo")
     #expect(described?.summary == "A thing the host offers.")
-    #expect(described?.typeKind == .structure)
+    #expect(described?.kind == .structure)
 }
 
 @Test func aDeclaredTypeAndAHostTypeAreDescribedTheSameWay() throws {
@@ -337,34 +338,34 @@ private struct Point: Encodable { var x: Int }
     let hosted = try #require(typeSymbol("Widget", in: swiit))
     let bridged = try #require(typeSymbol("String", in: swiit))
 
-    #expect(declared.typeKind == .structure)
-    #expect(declared.nominal?.conformances.keys.contains("Equatable") == true)
-    #expect(hosted.nominal?.conformances.keys.contains("Hashable") == true)
-    #expect(bridged.nominal?.conformances.keys.contains("Collection") == true)
+    #expect(declared.kind == .structure)
+    #expect(declared.conformances.keys.contains("Equatable") == true)
+    #expect(hosted.conformances.keys.contains("Hashable") == true)
+    #expect(bridged.conformances.keys.contains("Collection") == true)
     #expect(typeSymbol("Nothing", in: swiit) == nil)
 }
 
 @Test func aStructsDeclarationNamesAConformanceAnExtensionGaveIt() throws {
     let swiit = interpreter()
     _ = try swiit.evaluate("struct Point { var x: Int }")
-    #expect(try #require(typeSymbol("Point", in: swiit)).nominal?.conformances.isEmpty == true)
+    #expect(try #require(typeSymbol("Point", in: swiit)).conformances.isEmpty == true)
 
     _ = try swiit.evaluate("extension Point: Equatable {}")
 
     let declared = try #require(typeSymbol("Point", in: swiit))
-    #expect(declared.nominal?.conformances.keys.contains("Equatable") == true)
+    #expect(declared.conformances.keys.contains("Equatable") == true)
 }
 
 @Test func anEnumsDeclarationNamesAConformanceAnExtensionGaveIt() throws {
     let swiit = interpreter()
     _ = try swiit.evaluate("enum Axis { case x, y }")
-    #expect(try #require(typeSymbol("Axis", in: swiit)).typeKind == .enumeration)
-    #expect(try #require(typeSymbol("Axis", in: swiit)).nominal?.conformances.isEmpty == true)
+    #expect(try #require(typeSymbol("Axis", in: swiit)).kind == .enumeration)
+    #expect(try #require(typeSymbol("Axis", in: swiit)).conformances.isEmpty == true)
 
     _ = try swiit.evaluate("extension Axis: Hashable {}")
 
     let declared = try #require(typeSymbol("Axis", in: swiit))
-    #expect(declared.nominal?.conformances.keys.contains("Hashable") == true)
+    #expect(declared.conformances.keys.contains("Hashable") == true)
 }
 
 @Test func aClassesDeclarationNamesWhatItAndAnExtensionGaveIt() throws {
@@ -372,14 +373,14 @@ private struct Point: Encodable { var x: Int }
     _ = try swiit.evaluate("class Base: Sendable {}")
     _ = try swiit.evaluate("class Leaf: Base {}")
     let before = try #require(typeSymbol("Leaf", in: swiit))
-    #expect(before.typeKind == .class)
-    #expect(before.nominal?.conformances.keys.contains("Sendable") == true)
-    #expect(before.nominal?.conformances.keys.contains("Hashable") == false)
+    #expect(before.kind == .class)
+    #expect(before.conformances.keys.contains("Sendable") == true)
+    #expect(before.conformances.keys.contains("Hashable") == false)
 
     _ = try swiit.evaluate("extension Leaf: Hashable {}")
 
     let after = try #require(typeSymbol("Leaf", in: swiit))
-    #expect(after.nominal?.conformances.keys.contains("Hashable") == true)
+    #expect(after.conformances.keys.contains("Hashable") == true)
 }
 
 @Test func aClassFromAnEarlierProgramCanBeSubclassed() throws {
@@ -396,18 +397,16 @@ private struct Point: Encodable { var x: Int }
 
     let declared = try #require(typeSymbol("Shape", in: swiit))
 
-    #expect(declared.typeKind == .protocol)
-    #expect(declared.nominal?.conformances.keys.contains("Equatable") == true)
+    #expect(declared.kind == .protocol)
+    #expect(declared.conformances.keys.contains("Equatable") == true)
 }
 
 @Test func aTypeParameterIsASymbolOfItsOwnKind() {
-    let element = Symbol.genericParameter("T", constraints: [.comparable])
+    let element = Symbol.GenericParameter(name: "T", constraints: [.comparable])
 
-    #expect(element.kind == .genericParameter(constraints: [.comparable]))
     #expect(element.constraints == [.comparable])
     #expect(element.typeExpression == .parameter("T"))
-    #expect(element.nominal == nil)
-    #expect(Symbol(name: "x", kind: .variable(Symbol.Variable(type: .int))).constraints.isEmpty)
+    #expect(Symbol.genericParameter(element).name == "T")
 }
 
 @Test func aRedeclaredStructIsCheckedAsItIsNow() throws {
@@ -432,7 +431,7 @@ private struct Point: Encodable { var x: Int }
 @Test func aParameterThatIsChangedInPlaceSaysSoOnItself() throws {
     let swiit = interpreter()
     let reduce = TypeExpression.list(.int).members(named: "reduce", in: swiit)
-        .compactMap(\.function)
+        .compactMap(\.signature)
         .first { $0.parameters.first?.label == "into" }
     let closure = try #require(reduce?.parameters.last)
 
@@ -447,14 +446,15 @@ private struct Point: Encodable { var x: Int }
 }
 
 @Test func theTypeOfARethrowingFunctionThrowsAsAClosureOfItDoes() {
-    let declared = Symbol.Function(parameters: [], returns: .int, throwing: .rethrowing)
+    let declared = Symbol.Signature(parameters: [], returns: .int, throwing: .rethrowing)
 
     #expect(declared.functionType.throwing == .any)
     #expect(declared.functionType.isThrowing)
     #expect(
-        Symbol.Function(returns: .int, throwing: .typed(.int)).functionType.throwing == .typed(.int)
+        Symbol.Signature(returns: .int, throwing: .typed(.int)).functionType.throwing
+            == .typed(.int)
     )
-    #expect(!Symbol.Function(returns: .int, throwing: .no).functionType.isThrowing)
+    #expect(!Symbol.Signature(returns: .int, throwing: .no).functionType.isThrowing)
 }
 
 @Test func everyTypeSymbolHasItsReferenceAndNoOtherSymbolDoes() throws {
@@ -464,9 +464,11 @@ private struct Point: Encodable { var x: Int }
     let types = swiit.types
     let others = swiit.globals().filter { $0.nominal == nil }
 
-    #expect(!types.isEmpty && types.allSatisfy { $0.typeRef != nil && $0.typeKind != nil })
-    #expect(!others.isEmpty && others.allSatisfy { $0.typeRef == nil && $0.typeKind == nil })
-    #expect(swiit.globals(named: "Point").first?.typeRef == TypeRef(named: "Point", in: swiit))
+    #expect(!types.isEmpty)
+    #expect(!others.isEmpty)
+    #expect(
+        swiit.globals(named: "Point").first?.nominal?.typeRef == TypeRef(named: "Point", in: swiit)
+    )
 }
 
 @Test func aHostBuildsAValueWhoseFieldsAreKnownOnlyToIt() throws {
@@ -486,16 +488,43 @@ private struct Point: Encodable { var x: Int }
     _ = try swiit.evaluate("extension Pip: Hashable {}")
     let byName = try #require(typeSymbol("Pip", in: swiit))
     let byReference = try #require(TypeRef(named: "Pip", in: swiit)?.symbol(in: swiit))
-    let inGlobals = try #require(swiit.globals(named: "Pip").first)
+    let inGlobals = try #require(swiit.globals(named: "Pip").first?.nominal)
     let inTypes = try #require(swiit.types.first { $0.name == "Pip" })
 
-    #expect(byName.nominal?.conformances.keys.contains("Hashable") == true)
+    #expect(byName.conformances.keys.contains("Hashable"))
     #expect(byReference == byName)
     #expect(inGlobals == byName)
     #expect(inTypes == byName)
 }
 
 /// The symbol of the type a script can name `name`, asked as a host does: by reference.
-private func typeSymbol(_ name: String, in swiit: Interpreter) -> Symbol? {
+private func typeSymbol(_ name: String, in swiit: Interpreter) -> Symbol.Nominal? {
     TypeRef(named: name, in: swiit)?.symbol(in: swiit)
+}
+
+extension Symbol {
+    /// The symbol, if it is a type: what a test asks of a name that may be anything.
+    fileprivate var nominal: Symbol.Nominal? {
+        if case .type(let nominal) = self { nominal } else { nil }
+    }
+
+    fileprivate var function: Symbol.Function? {
+        if case .function(let function) = self { function } else { nil }
+    }
+}
+
+extension Symbol {
+    /// What a call to the symbol takes and gives, if it is a function, a method or an initializer.
+    fileprivate var signature: Symbol.Signature? {
+        switch self {
+        case .function(let symbol): symbol.signature
+        case .method(let symbol): symbol.signature
+        case .initializer(let symbol): symbol.signature
+        default: nil
+        }
+    }
+
+    fileprivate var method: Symbol.Method? {
+        if case .method(let method) = self { method } else { nil }
+    }
 }

@@ -39,7 +39,7 @@
 
 ### Looking up symbols and types
 
-A type's members, a type reference's declaration and a candidate list's overload are asked of ``TypeExpression``, ``TypeRef`` and a sequence of ``Symbol``.
+A type's members, a type reference's declaration and a candidate list's overload are asked of ``TypeExpression``, ``TypeRef`` and a sequence of ``CallableSymbol``.
 
 - ``globals(named:)``
 - ``types``

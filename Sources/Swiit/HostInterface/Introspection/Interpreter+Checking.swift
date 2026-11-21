@@ -42,22 +42,21 @@ extension Interpreter {
                         symbols: checker.scopes[0].sorted { $0.key < $1.key }
                             .flatMap { declaredSymbols(of: $0.key, $0.value) }
                             .map { symbol in
-                                guard case .function(var function) = symbol.kind,
+                                guard case .function(var function) = symbol,
                                     var queue = docs[symbol.name],
                                     !queue.isEmpty
                                 else { return symbol }
                                 let documentation = queue.removeFirst()
                                 docs[symbol.name] = queue
-                                var documented = symbol
-                                documented.summary =
+                                function.summary =
                                     documentation.summary.isEmpty ? nil : documentation.summary
-                                function.parameters = function.parameters.map {
-                                    var p = $0
-                                    p.documentation = documentation.parameters[p.name]
-                                    return p
-                                }
-                                documented.kind = .function(function)
-                                return documented
+                                function.signature.parameters =
+                                    function.signature.parameters.map {
+                                        var p = $0
+                                        p.documentation = documentation.parameters[p.name]
+                                        return p
+                                    }
+                                return .function(function)
                             }
                     )
                     // What each type it declares has, which does not exist to ask yet: an enum's
