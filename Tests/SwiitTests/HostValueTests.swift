@@ -390,6 +390,16 @@ private struct Point: Encodable { var x: Int }
     #expect(try swiit.evaluate("Leaf().n") == Value(1))
 }
 
+@Test func aProtocolsDeclarationNamesWhatItTakesIn() throws {
+    let swiit = interpreter()
+    _ = try swiit.evaluate("protocol Shape: Equatable { var sides: Int { get } }")
+
+    let declared = try #require(swiit.declaration(ofType: "Shape"))
+
+    #expect(declared.symbol.kind == .type(.protocol))
+    #expect(declared.conformances.keys.contains("Equatable"))
+}
+
 @Test func aTypeParameterIsASymbolOfItsOwnKind() {
     let element = Symbol.genericParameter("T", constraints: [.comparable])
 

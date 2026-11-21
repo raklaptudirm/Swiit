@@ -7,14 +7,24 @@ final class ProtocolType: LanguageObject, DeclaredType, @unchecked Sendable {
     let typeRef: TypeRef
     /// The protocols it takes in: `protocol A: B`.
     let inherited: [String]
-    /// What it asks of a conforming type.
-    let declaration: ProtocolDecl
+    /// What it asks of a conforming type, as it was declared in source.
+    let source: ProtocolDecl
+    /// What it asks of the types that conform: no value is of a protocol, so it has requirements and
+    /// no storage.
+    let representation = TypeImplementation.Representation.requirements
+    /// What is said of the type, kept here so that every reader sees the same thing. An extension that
+    /// adds a protocol updates it through `Interpreter.refreshDeclaration(ofTypeNamed:)`.
+    var declaration: TypeDeclaration
 
-    init(_ declaration: ProtocolDecl) {
-        self.name = declaration.name
-        self.typeRef = .declare(declaration.name)
-        self.inherited = declaration.inherited
-        self.declaration = declaration
+    init(_ source: ProtocolDecl) {
+        self.name = source.name
+        self.typeRef = .declare(source.name)
+        self.inherited = source.inherited
+        self.source = source
+        var symbol = Symbol(name: name, kind: .type(.protocol))
+        symbol.typeRef = typeRef
+        declaration = TypeDeclaration(symbol: symbol)
+        for protocolName in inherited { declaration.conformances[protocolName] = [] }
     }
 
     var typeName: String { "protocol" }

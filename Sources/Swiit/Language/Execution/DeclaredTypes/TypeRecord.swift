@@ -1,0 +1,53 @@
+import Foundation
+
+/// What the interpreter keeps of a type a program declares, whatever its kind: a struct, an enum, a
+/// class or a protocol. It says how the type's values are stored and what is said of the type, which
+/// is the same for every kind.
+protocol TypeRecord: AnyObject {
+    var typeRef: TypeRef { get }
+    var representation: TypeImplementation.Representation { get }
+    /// What is said of the type. An extension that adds a conformance updates it through
+    /// `Interpreter.refreshDeclaration(ofTypeNamed:)`.
+    var declaration: TypeDeclaration { get set }
+    /// The protocols it names itself, and, for a class, those of the classes it comes from.
+    var declaredConformances: [String] { get }
+}
+
+extension StructType: TypeRecord {
+    var declaredConformances: [String] { conformances }
+}
+
+extension EnumType: TypeRecord {
+    var typeRef: TypeRef { enumeration.typeRef }
+    var declaredConformances: [String] { enumeration.conformances }
+}
+
+extension ClassType: TypeRecord {
+    var declaredConformances: [String] { allConformances }
+}
+
+extension ProtocolType: TypeRecord {
+    var declaredConformances: [String] { inherited }
+}
+
+extension Interpreter {
+    /// The record of the type a program declared under this name: nil for a host's type, which is
+    /// described by its `TypeImplementation`.
+    func record(ofTypeNamed name: String) -> (any TypeRecord)? {
+        switch lookup(name)?.value.storage {
+        case .object(let type as StructType)?: type
+        case .object(let type as ClassType)?: type
+        case .object(let type as ProtocolType)?: type
+        case .object(let type as Value.EnumCase.Enumeration)?: enumTypes[ObjectIdentifier(type)]
+        default: nil
+        }
+    }
+
+    /// Brings the stored declaration of a type up to date with the protocols extensions have given it.
+    func refreshDeclaration(ofTypeNamed name: String) {
+        guard let record = record(ofTypeNamed: name) else { return }
+        for protocolName in conformances(ofTypeNamed: name, declared: record.declaredConformances) {
+            record.declaration.conformances[protocolName] = []
+        }
+    }
+}

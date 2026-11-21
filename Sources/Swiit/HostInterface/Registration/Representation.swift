@@ -18,6 +18,9 @@ extension TypeImplementation {
         case enumeration
         /// An instance of a class a program declares, shared by every variable that holds it.
         case reference
+        /// What a protocol asks of the types that conform: nothing is stored, as no value is of a
+        /// protocol.
+        case requirements
 
         /// Swift's name for the type, for the kinds the interpreter stores itself: `Array` for a list.
         var name: String? {
@@ -28,7 +31,7 @@ extension TypeImplementation {
             case .string: "String"
             case .list: "Array"
             case .dictionary: "Dictionary"
-            case .held, .record, .enumeration, .reference: nil
+            case .held, .record, .enumeration, .reference, .requirements: nil
             }
         }
 
@@ -48,7 +51,7 @@ extension TypeImplementation {
             case .string: .string
             case .list: .list(.unknown)
             case .dictionary: .dictionary(.unknown, .unknown)
-            case .held, .record, .enumeration, .reference: nil
+            case .held, .record, .enumeration, .reference, .requirements: nil
             }
         }
 

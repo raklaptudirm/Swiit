@@ -78,36 +78,17 @@ extension Interpreter {
     /// type the core bridges are described the same way. Nil if no type has that name.
     public func declaration(ofType name: String) -> TypeDeclaration? {
         withMainTask {
-            switch lookup(name)?.value.storage {
-            case .object(let type as StructType)?: return type.declaration
-            case .object(let type as ClassType)?: return type.declaration
-            case .object(let type as Value.EnumCase.Enumeration)?:
-                if let enumType = enumTypes[ObjectIdentifier(type)] { return enumType.declaration }
-            default: break
-            }
-            if case .object(let type as any DeclaredType)? = lookup(name)?.value.storage {
+            if let record = record(ofTypeNamed: name) { return record.declaration }
+            // An enum a host offers has no record, only its cases.
+            if case .object(let type as Value.EnumCase.Enumeration)? = lookup(name)?.value.storage {
                 var declaration = TypeDeclaration(symbol: typeSymbol(named: name, type))
-                for protocolName in declaredConformances(of: type) {
+                for protocolName in conformances(ofTypeNamed: name, declared: type.conformances) {
                     declaration.conformances[protocolName] = []
                 }
                 return declaration
             }
             return Bridge.types[name]?.declaration
         }
-    }
-
-    /// The protocols a declared type says it conforms to, and extensions gave it.
-    private func declaredConformances(of type: any DeclaredType) -> [String] {
-        let declared: [String]
-        switch type {
-        case let structType as StructType: declared = structType.conformances
-        case let enumType as Value.EnumCase.Enumeration:
-            declared = enumType.conformances
-        case let classType as ClassType: declared = classType.allConformances
-        case let protocolType as ProtocolType: declared = protocolType.inherited
-        default: declared = []
-        }
-        return conformances(ofTypeNamed: type.typeRef.name, declared: declared)
     }
 
     /// A declared type as a symbol.

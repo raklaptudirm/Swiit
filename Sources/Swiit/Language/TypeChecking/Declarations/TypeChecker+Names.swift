@@ -50,7 +50,11 @@ extension TypeChecker {
             typeProfiles[key] = profile
             return .enumType(profile)
         case .object(let type as ProtocolType):
-            return .protocolType(protocolInfo(type.declaration))
+            let key = ObjectIdentifier(type)
+            if let profile = typeProfiles[key] { return .protocolType(profile) }
+            let profile = protocolInfo(type.source)
+            typeProfiles[key] = profile
+            return .protocolType(profile)
         case .object(let type as BridgedTypeName):
             return .swiftType(type.name)
         // Declared with `func`: a `let` that holds a function is a value, whose type has no labels.

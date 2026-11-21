@@ -43,7 +43,7 @@ import Testing
     #expect(
         Set(samples.keys)
             == Set(TypeImplementation.Representation.allCases)
-            .subtracting([.held, .record, .enumeration, .reference])
+            .subtracting([.held, .record, .enumeration, .reference, .requirements])
     )
 
     for (kind, sample) in samples {
@@ -77,6 +77,11 @@ import Testing
     #expect(node.representation == .reference)
     #expect(TypeImplementation.Representation.reference.encodes(node.storage))
     #expect(!TypeImplementation.Representation.reference.encodes(pair.storage))
+
+    // No value is of a protocol, so its requirements have no storage.
+    for sample in [pair, axis, node, Value.int(1)] {
+        #expect(!TypeImplementation.Representation.requirements.encodes(sample.storage))
+    }
 
     // A held value is stored as the Swift value it is.
     let held = SwiftValue.make(Set<Value>(), as: "Set")
