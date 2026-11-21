@@ -87,9 +87,9 @@ final class SwiftValue: LanguageObject, @unchecked Sendable {
         }
         return AnyHashable(ObjectIdentifier(self))
     }
-    /// What the held value answers for at run time, if it says (``DynamicMembers``).
-    var memberNames: [String] { (value as? any DynamicMembers)?.memberNames ?? [] }
-    func member(_ name: String) -> Value? { (value as? any DynamicMembers)?.member(name) }
+    /// A held Swift value has the members registered for its type and no others.
+    var memberNames: [String] { [] }
+    func member(_ name: String) -> Value? { nil }
     var description: String {
         registered("description") ?? String(describing: value)
     }

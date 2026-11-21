@@ -5,7 +5,7 @@ import Foundation
 /// by adding its name here and to the design.
 enum PublicSurface {
     static let allowed: Set<String> = [
-        "Interpreter", "Value", "TypeExpression", "BridgedValue", "DynamicMembers", "TypeRef",
+        "Interpreter", "Value", "TypeExpression", "BridgedValue", "TypeRef",
         "SymbolImplementation", "Diagnostic", "OutputSink", "Symbol",
         "TypeImplementation", "BridgedType",
         "ScriptTask", "DisplayStyle",

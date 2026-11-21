@@ -48,19 +48,4 @@ extension LanguageObject {
         default: return nil
         }
     }
-
-    /// Its data as named fields, which a host lays out as a record (a table, JSON): every member that isn't
-    /// a method. What the language makes itself (a type, an instance, a Swift value held as it is)
-    /// has none: it is one value, like a `FileSize`.
-    var dataFields: [(key: Value, value: Value)]? {
-        // A held value is data if it names its members: a parsed object's keys, a job's fields.
-        guard let box = self as? SwiftValue, box.value is any DynamicMembers else { return nil }
-        var fields: [(key: Value, value: Value)] = []
-        for name in memberNames {
-            guard let value = member(name) else { continue }
-            if case .function = value.storage { continue }
-            fields.append((Value.string(name), value))
-        }
-        return fields
-    }
 }

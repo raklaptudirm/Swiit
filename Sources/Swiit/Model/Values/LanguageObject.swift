@@ -19,26 +19,12 @@ protocol LanguageObject: AnyObject, Sendable, CustomStringConvertible, CustomDeb
 }
 
 extension LanguageObject {
-    /// `dataFields` as the language's record of the object's type.
-    var objectFields: Value.Record? {
-        guard let fields = dataFields else { return nil }
-        var record = Value.Record(typeName: typeName)
-        for (key, value) in fields {
-            if case .string(let name) = key.storage { record[name] = value }
-        }
-        return record
-    }
-
     /// The object itself, which is what equality and hashing go by unless it says otherwise.
     var objectIdentity: AnyHashable {
         AnyHashable(ObjectIdentifier(self))
     }
 
-    /// Its fields, as a Swift struct prints them: `Job(id: 1, …)`; or its
-    /// description, for an object that isn't data.
-    var debugDescription: String {
-        objectFields?.debugDescription ?? description
-    }
+    var debugDescription: String { description }
 }
 
 /// A function value: the interpreter implements this for Swiit functions, closures, overload sets

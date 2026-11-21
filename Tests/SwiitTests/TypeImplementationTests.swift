@@ -65,8 +65,8 @@ struct Swatch: Hashable, Sendable, BridgedValue {
     func flipped() -> Shade { shade == .light ? .dark : .light }
 }
 
-/// A thing: a class, which is equal only to itself, and says its members at run time.
-private final class Pair: BridgedValue, DynamicMembers, CustomStringConvertible,
+/// A thing: a class, which is equal only to itself.
+private final class Pair: BridgedValue, CustomStringConvertible,
     CustomDebugStringConvertible,
     @unchecked Sendable
 {
@@ -74,20 +74,16 @@ private final class Pair: BridgedValue, DynamicMembers, CustomStringConvertible,
     init(_ a: Int, _ b: Int) { (self.a, self.b) = (a, b) }
     var description: String { "Pair" }
     var debugDescription: String { "Pair(\(a), \(b))" }
-    var memberNames: [String] { ["a", "b"] }
-    func member(_ name: String) -> Value? { name == "a" ? Value(a) : name == "b" ? Value(b) : nil }
 }
 
 /// Data: a struct, which is equal to another that holds the same.
-private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringConvertible,
+private struct DataPair: BridgedValue, Hashable, CustomStringConvertible,
     CustomDebugStringConvertible, Sendable
 {
     let a: Int, b: Int
     init(_ a: Int, _ b: Int) { (self.a, self.b) = (a, b) }
     var description: String { "DataPair" }
     var debugDescription: String { "DataPair(\(a), \(b))" }
-    var memberNames: [String] { ["a", "b"] }
-    func member(_ name: String) -> Value? { name == "a" ? Value(a) : name == "b" ? Value(b) : nil }
 }
 
 @Test func aHostObjectIsTypedByTheTypeThatIsRegisteredForIt() throws {
@@ -243,10 +239,9 @@ private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringCon
     #expect(Value(DataPair(1, 2)) == Value(DataPair(1, 2)))
     #expect(Value(DataPair(1, 2)) != Value(DataPair(2, 1)))
     #expect(Set([Value(DataPair(1, 2)), Value(DataPair(1, 2))]).count == 1)
-    // Both say their members, so both are read as a record by their mirrors.
-    #expect(Value(DataPair(1, 2)).mirror.displayStyle == .class)
-    #expect(Value(DataPair(1, 2)).mirror.children.map(\.label) == ["a", "b"])
-    #expect(Value(thing).mirror.children.map(\.label) == ["a", "b"])
+    // A held Swift value is one opaque value: its host shows what it holds.
+    #expect(Value(DataPair(1, 2)).mirror.children.isEmpty)
+    #expect(Value(thing).mirror.children.isEmpty)
 }
 
 @Suite struct TypeImplementationTests {

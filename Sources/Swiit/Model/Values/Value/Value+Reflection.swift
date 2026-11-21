@@ -36,13 +36,8 @@ extension Value: CustomReflectable {
         case .enumValue(let value):
             return Mirror(self, children: value.reflected, displayStyle: .enum)
         case .object(let object):
-            guard let fields = object.dataFields else {
-                return Mirror(self, children: [Mirror.Child]())
-            }
-            let children = fields.map { field in
-                Mirror.Child(label: field.key.casting(to: String.self), value: field.value)
-            }
-            return Mirror(self, children: children, displayStyle: .class)
+            // A live object is one value: what it holds is for its host to show.
+            return Mirror(self, children: [Mirror.Child]())
         }
     }
 }

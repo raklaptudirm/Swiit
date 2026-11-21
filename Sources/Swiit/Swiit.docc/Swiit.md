@@ -56,7 +56,6 @@ let answer = try swiit.evaluate("double(21)")   // 42
 - ``TypeImplementation``
 - ``SymbolImplementation``
 - ``BridgedValue``
-- ``DynamicMembers``
 
 ### Errors
 

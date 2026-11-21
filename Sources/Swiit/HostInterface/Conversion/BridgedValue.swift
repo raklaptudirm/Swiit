@@ -6,8 +6,7 @@ import Foundation
 ///
 /// A type that is `Sendable` conforms with no more than `extension URL: BridgedValue {}`: it is held as
 /// it is under its Swift name, by value if it is `Hashable` and by identity if it is a class, and its
-/// registered members (`BridgedType`) are its members. A type that answers for members it only
-/// knows at run time also conforms to ``DynamicMembers``.
+/// registered members (`BridgedType`) are its members.
 ///
 /// The bridge generator (`swiit-bridge`), run on a module, writes `typeImplementation` for each type the module
 /// defines for scripts, and the conformance itself for one that does not declare it.

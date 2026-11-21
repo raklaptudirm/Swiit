@@ -8,7 +8,6 @@ extension Value {
         switch self.storage {
         case .tuple(let tuple): tuple.record
         case .structure(let structure): structure.record
-        case .object(let object): object.objectFields
         default: nil
         }
     }
@@ -206,7 +205,6 @@ extension Value {
         case .dictionary(let dictionary): dictionary.map { (key: $0.key, value: $0.value) }
         case .tuple, .structure:
             record!.map { (key: Value.string($0.key), value: $0.value) }
-        case .object(let object): object.dataFields
         default: nil
         }
     }

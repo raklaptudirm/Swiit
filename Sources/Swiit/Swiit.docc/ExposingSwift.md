@@ -26,8 +26,8 @@ sees of the type, and what its Swift type says of itself) with ``SymbolImplement
 ## Hand scripts a live object
 
 A class that conforms to ``BridgedValue`` reaches scripts by reference: it is equal only to itself unless it is `Hashable`. Its members are
-the ones its ``BridgedType`` registers, and a type, class or struct, can answer for names looked up only at run time by saying
-``DynamicMembers/memberNames`` and ``DynamicMembers/member(_:)``: a parsed object's keys, a job's fields.
+the ones its ``BridgedType`` registers. For names a script looks up that no member answers, declare a `@dynamicMemberLookup` struct
+in Swift source with `subscript(dynamicMember:)` that asks the object through a registered function.
 
 ## Declare types and functions in Swift
 
