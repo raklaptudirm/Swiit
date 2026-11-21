@@ -84,6 +84,8 @@ struct TypeProfile {
     var conformances: [String] = []
     /// The protocols a protocol takes in.
     var inherited: [String] = []
+    /// A protocol's associated types, by name.
+    var associatedTypes: [String] = []
     /// An enum's cases, and the type of its raw values.
     var cases: [(name: String, payload: [AssociatedValue])] = []
     var rawType: TypeAnnotation?

@@ -209,6 +209,11 @@ extension Interpreter {
                     )
                 }
             }
+            for member in profile.associatedTypes where name == nil || name == member {
+                found.append(
+                    Symbol(name: member, kind: .associatedType(.requirement(constraints: [])))
+                )
+            }
             if profile.kind == .enumeration {
                 let runtime = enumType(named: profile.name)
                 for enumCase in profile.cases where name == nil || name == enumCase.name {
@@ -249,6 +254,10 @@ extension Interpreter {
                         isSettable: settable.contains(member.name)
                     )
                 )
+            }
+            for member in bridgedType.members
+            where member.symbol.kind.isAssociatedType && (name == nil || name == member.name) {
+                found.append(member.symbol)
             }
         }
         // What every sequence has: what the host's prelude adds to `Sequence`, which

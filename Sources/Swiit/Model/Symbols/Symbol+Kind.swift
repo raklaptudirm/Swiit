@@ -19,8 +19,13 @@ extension Symbol {
         /// A type parameter, with what it asks of the type given for it.
         case genericParameter(constraints: [Constraint])
 
-        /// Written as a symbol is declared: a method, a property, an initializer or an enum case of a
-        /// type.
+        /// Whether it is an associated type.
+        var isAssociatedType: Bool {
+            if case .member(.associatedType) = self { true } else { false }
+        }
+
+        /// Written as a symbol is declared: a method, a property, an initializer, an enum case or an
+        /// associated type of a type.
         public static func method(_ method: Method) -> Kind { .member(.method(method)) }
         public static func property(_ property: Property) -> Kind { .member(.property(property)) }
         public static func initializer(_ function: Function) -> Kind {
@@ -29,6 +34,9 @@ extension Symbol {
         public static func enumCase(parameters: [Parameter], rawValue: Value?) -> Kind {
             .member(.enumCase(parameters: parameters, rawValue: rawValue))
         }
+        public static func associatedType(_ associatedType: AssociatedType) -> Kind {
+            .member(.associatedType(associatedType))
+        }
     }
 
     /// The kinds of type Swift declares.
@@ -36,7 +44,7 @@ extension Symbol {
         case structure, enumeration, `class`, actor, `protocol`
     }
 
-    /// What a type has: a method, a property, an initializer or a case.
+    /// What a type has: a method, a property, an initializer, a case or an associated type.
     public enum Member: Sendable, Hashable {
         /// A function that also says whether it changes its value and whether it is the type's own.
         case method(Method)
@@ -47,6 +55,17 @@ extension Symbol {
         /// A case of an enum: the values it carries (none for most), and its raw value when the
         /// enum has them.
         case enumCase(parameters: [Parameter], rawValue: Value?)
+        /// A type that goes with the type, as `Element` goes with a sequence.
+        case associatedType(AssociatedType)
+    }
+
+    /// An associated type, which a protocol asks of the types that conform to it and each of them
+    /// binds: a sequence's `Element` is `String` for a sequence of text.
+    public enum AssociatedType: Sendable, Hashable {
+        /// In a protocol: what the type that binds it must conform to.
+        case requirement(constraints: [Constraint])
+        /// In a type that conforms: the type it is bound to.
+        case binding(ScriptType)
     }
 
     /// A variable: its type, and whether a script can assign to it.

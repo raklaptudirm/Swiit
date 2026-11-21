@@ -161,7 +161,7 @@ extension Bridge {
             ]
         )
         type.genericParameters = [.genericParameter("ChildTaskResult")]
-        type.associatedTypes = ["Element": element]
+        type.members.append(.associatedType("Element", binding: element))
         return type
     }
 

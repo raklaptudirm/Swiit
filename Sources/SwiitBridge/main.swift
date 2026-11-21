@@ -519,7 +519,7 @@ for (name, _) in bridgedTypeNames {
                 guard let resolved = resolve(value, context),
                     supported(resolved, generics: context.generics, asParameter: false)
                 else { return nil }
-                return "\(quoted(key)): \(scriptType(resolved))"
+                return ".associatedType(\(quoted(key)), binding: \(scriptType(resolved)))"
             }
             .sorted()
         let conformanceCode = owner.conformances.sorted { $0.key < $1.key }
@@ -527,10 +527,9 @@ for (name, _) in bridgedTypeNames {
         declarations.append(
             """
                 fileprivate static let \(typeName): TypeImplementation = {
-                    var type = TypeImplementation(name: \(quoted(name)), members: [\(members.joined(separator: ", "))])
+                    var type = TypeImplementation(name: \(quoted(name)), members: [\((members + associatedTypes).joined(separator: ", "))])
                     type.genericParameters = [\(owner.parameters.map { ".genericParameter(\(quoted($0)))" }.joined(separator: ", "))]
                     type.conformances = [\(conformanceCode.isEmpty ? ":" : conformanceCode.joined(separator: ", "))]
-                    type.associatedTypes = [\(associatedTypes.isEmpty ? ":" : associatedTypes.joined(separator: ", "))]
                     return type
                 }()
 

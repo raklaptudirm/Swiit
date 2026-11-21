@@ -299,7 +299,7 @@ private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringCon
     var pile = TypeImplementation(name: "Pile")
     pile.genericParameters = [.genericParameter("Element")]
     pile.conformances = ["Hashable": [], "Sequence": [Symbol.genericParameter("Element")]]
-    pile.associatedTypes["Element"] = .parameter("Element")
+    pile.members.append(.associatedType("Element", binding: .parameter("Element")))
     let id = swiit.register(pile)
 
     #expect(id == TypeRef(nativeType: "Pile"))
@@ -349,4 +349,29 @@ private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringCon
     #expect(try value.unboxing(URL.self) == url)
     #expect(value.typeRef == id)
     #expect(throws: (any Error).self) { try Value(integerLiteral: 3).unboxing(URL.self) }
+}
+
+@Test func anAssociatedTypeIsAMemberOfTheTypeThatBindsIt() throws {
+    let swiit = interpreter()
+    var lines = TypeImplementation(name: "Lines")
+    lines.conformances = ["Sequence": []]
+    lines.members.append(.associatedType("Element", binding: .string))
+    let id = swiit.register(lines)
+
+    let element = ScriptType.named(id).members(named: "Element", in: swiit)
+
+    #expect(element.count == 1)
+    #expect(element.first?.kind == .associatedType(.binding(.string)))
+    #expect(element.first?.scriptType == .string)
+}
+
+@Test func anAssociatedTypeOfAProtocolIsARequirement() throws {
+    let swiit = interpreter()
+    _ = try swiit.evaluate("protocol Container { associatedtype Item }")
+
+    let container = try #require(TypeRef(named: "Container", in: swiit))
+    let item = ScriptType.named(container).members(named: "Item", in: swiit)
+
+    #expect(item.first?.kind == .associatedType(.requirement(constraints: [])))
+    #expect(item.first?.scriptType == .parameter("Item"))
 }

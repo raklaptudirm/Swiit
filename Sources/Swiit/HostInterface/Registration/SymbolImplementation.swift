@@ -38,6 +38,8 @@ public struct SymbolImplementation: Sendable {
         case staticProperty(get: @Sendable () throws -> Value)
         /// What makes a value of the type; for an initializer that can fail, nothing is a failure.
         case initializer(@Sendable (_ arguments: [Value]) throws -> Value)
+        /// An associated type, which names a type and runs nothing.
+        case associatedType
     }
 
     init(
@@ -524,6 +526,21 @@ extension SymbolImplementation {
             ),
             attributes: attributes,
             body: .staticProperty(get: get)
+        )
+    }
+
+    /// The type this type gives an associated type its protocol asks for: `Element` is `String` for a
+    /// sequence of text.
+    public static func associatedType(
+        _ name: String,
+        summary: String = "",
+        binding: ScriptType
+    ) -> SymbolImplementation {
+        SymbolImplementation(
+            name: name,
+            summary: summary,
+            kind: .associatedType(.binding(binding)),
+            body: .associatedType
         )
     }
 

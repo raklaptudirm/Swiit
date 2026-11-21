@@ -23,6 +23,7 @@ extension TypeChecker {
         }
         var info = TypeProfile(name: decl.name, kind: .protocolType)
         info.inherited = decl.inherited
+        info.associatedTypes = decl.associatedTypes
         info.declared.methods = signatures(decl.methods)
         info.declared.staticMethods = signatures(decl.staticMethods)
         for property in decl.properties {

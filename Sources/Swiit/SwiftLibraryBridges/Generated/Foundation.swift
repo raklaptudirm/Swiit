@@ -176,10 +176,9 @@ let receiver: Date = try selfValue.unboxing(Date.self)
 })
 
     fileprivate static let type29: TypeImplementation = {
-        var type = TypeImplementation(name: "Date", members: [member0, member1, member2, member3, member4, member5, member6, member7, member8, member9, member10, member11, member12, member13, member14, member15, member16, member17, member18, member19, member20, member21, member22, member23, member24, member25, member26, member27, member28])
+        var type = TypeImplementation(name: "Date", members: [member0, member1, member2, member3, member4, member5, member6, member7, member8, member9, member10, member11, member12, member13, member14, member15, member16, member17, member18, member19, member20, member21, member22, member23, member24, member25, member26, member27, member28, .associatedType("Stride", binding: .double)])
         type.genericParameters = []
         type.conformances = ["Comparable": [], "CustomStringConvertible": [], "Encodable": [], "Equatable": [], "Hashable": []]
-        type.associatedTypes = ["Stride": .double]
         return type
     }()
 
@@ -210,10 +209,9 @@ let result = (try arguments[0].unboxing(AttributedString.self)) + (try arguments
 }
 
     fileprivate static let type35: TypeImplementation = {
-        var type = TypeImplementation(name: "AttributedString", members: [member30, member31, member32, member33, member34])
+        var type = TypeImplementation(name: "AttributedString", members: [member30, member31, member32, member33, member34, .associatedType("ExtendedGraphemeClusterLiteralType", binding: .string), .associatedType("StringLiteralType", binding: .string), .associatedType("UnicodeScalarLiteralType", binding: .string)])
         type.genericParameters = []
         type.conformances = ["CustomStringConvertible": [], "Encodable": [], "Equatable": [], "ExpressibleByStringLiteral": [], "Hashable": []]
-        type.associatedTypes = ["ExtendedGraphemeClusterLiteralType": .string, "StringLiteralType": .string, "UnicodeScalarLiteralType": .string]
         return type
     }()
 }
