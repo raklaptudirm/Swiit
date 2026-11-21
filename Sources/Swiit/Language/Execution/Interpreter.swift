@@ -109,7 +109,7 @@ extension Interpreter {
                 if binding.isFunction { return .function }
                 if binding.isComputed { return .variable }
                 if case .object(is any DeclaredType) = binding.value.storage { return .type }
-                if case .object(is BridgedTypeName) = binding.value.storage { return .type }
+                if case .object(is NativeTypeName) = binding.value.storage { return .type }
                 return .variable
             }
             .merging(declaredOperators.mapValues(NameKind.operatorDeclaration)) { $1 }

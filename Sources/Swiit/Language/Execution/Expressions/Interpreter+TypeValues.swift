@@ -64,7 +64,7 @@ extension Interpreter {
         case let type as StructType: name = type.name
         case let type as Value.EnumCase.Enumeration: name = type.name
         case let type as ProtocolType: name = type.name
-        case let type as BridgedTypeName: name = type.name
+        case let type as NativeTypeName: name = type.name
         default: return nil
         }
         return TypeAnnotation.spelled(name) ?? .named(name)

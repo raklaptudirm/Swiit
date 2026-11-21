@@ -235,7 +235,7 @@ extension Interpreter {
             return type.case(rawValue: try evaluate(arguments[0].value)).map(Value.enumValue)
                 ?? .nothing
         }
-        if case .object(let type as BridgedTypeName) = value.storage {
+        if case .object(let type as NativeTypeName) = value.storage {
             return try constructBridged(type, arguments)
         }
         // A function's type has no argument labels: called through a variable, a function takes
@@ -267,8 +267,7 @@ extension Interpreter {
 
     /// `String(n)` in a body nothing has checked (a type a host declared): the checker chooses the
     /// initializer, for the values the call is given.
-    private func constructBridged(_ type: BridgedTypeName, _ arguments: [Argument]) throws -> Value
-    {
+    private func constructBridged(_ type: NativeTypeName, _ arguments: [Argument]) throws -> Value {
         let given = try arguments.map { argument -> Argument in
             if case .caseLiteral = argument.value { return argument }
             return Argument(label: argument.label, value: .literal(try evaluate(argument.value)))

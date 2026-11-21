@@ -41,7 +41,7 @@ private struct Tag: BridgedValue, Hashable, Sendable, LosslessStringConvertible,
     #expect(try swiit.evaluate("Double(\"2.5\")") == 2.5)
     #expect(try swiit.evaluate("Int(\"nope\")") == .nothing)
 
-    swiit.register(TypeImplementation.Builder<Tag>())
+    swiit.register(BridgedType<Tag>())
     #expect(try swiit.evaluate("String(describing: Tag(\"a\")!)") == "A")
     #expect(try swiit.evaluate("let t: Tag = \"b\"\nString(describing: t)") == "literal b")
 }

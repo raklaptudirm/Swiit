@@ -55,7 +55,7 @@ extension TypeChecker {
             let profile = protocolInfo(type.source)
             typeProfiles[key] = profile
             return .protocolType(profile)
-        case .object(let type as BridgedTypeName):
+        case .object(let type as NativeTypeName):
             return .swiftType(type.name)
         // Declared with `func`: a `let` that holds a function is a value, whose type has no labels.
         case .function(let set as OverloadSet) where binding.isFunction:

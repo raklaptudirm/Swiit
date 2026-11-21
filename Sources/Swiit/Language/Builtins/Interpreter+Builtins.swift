@@ -14,7 +14,7 @@ extension Interpreter {
         // Swift's types by name, for their initializers and static members.
         for name in Bridge.types.keys {
             scopes[0].bindings[name] = Binding(
-                value: .object(BridgedTypeName(name)),
+                value: .object(NativeTypeName(name)),
                 mutable: false
             )
         }

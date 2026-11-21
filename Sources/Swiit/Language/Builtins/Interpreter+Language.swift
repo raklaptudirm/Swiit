@@ -361,24 +361,24 @@ extension Interpreter {
         case .tuple:
             // A tuple is of the type its elements make: `(x: Int, Double)`.
             return .object(
-                BridgedTypeName(TypeChecker(interpreter: self).type(of: value).description)
+                NativeTypeName(TypeChecker(interpreter: self).type(of: value).description)
             )
         case .structure(let structure):
             guard let type = structType(named: structure.typeName) else {
                 return .object(
-                    BridgedTypeName(TypeChecker(interpreter: self).type(of: value).description)
+                    NativeTypeName(TypeChecker(interpreter: self).type(of: value).description)
                 )
             }
             return .object(type)
         case .object(let instance as ClassInstance): return .object(instance.type)
         case .object(let box as SwiftValue): name = box.typeName
         // The type of a type: `Int.Type`.
-        case .object(let type as ClassType): return .object(BridgedTypeName(type.name + ".Type"))
-        case .object(let type as StructType): return .object(BridgedTypeName(type.name + ".Type"))
+        case .object(let type as ClassType): return .object(NativeTypeName(type.name + ".Type"))
+        case .object(let type as StructType): return .object(NativeTypeName(type.name + ".Type"))
         case .object(let type as Value.EnumCase.Enumeration):
-            return .object(BridgedTypeName(type.name + ".Type"))
-        case .object(let type as BridgedTypeName):
-            return .object(BridgedTypeName(type.name + ".Type"))
+            return .object(NativeTypeName(type.name + ".Type"))
+        case .object(let type as NativeTypeName):
+            return .object(NativeTypeName(type.name + ".Type"))
         default: return .nothing
         }
         return lookup(name)?.value ?? .nothing

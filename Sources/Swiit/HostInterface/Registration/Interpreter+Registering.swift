@@ -6,7 +6,7 @@ import Synchronization
 
 extension Interpreter {
     /// Makes a described function one scripts can call, checked like any they declare. A member of a
-    /// type is registered with its type (`TypeImplementation.Builder`), so this takes only a function.
+    /// type is registered with its type (`BridgedType`), so this takes only a function.
     public func register(_ function: SymbolImplementation) {
         guard function.function != nil else {
             preconditionFailure("\(function.name) is a member of a type: register it with its type")

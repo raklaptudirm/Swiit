@@ -135,7 +135,7 @@ extension Interpreter {
             for above in classType.chain {
                 declared += typeExtensions[above.name]?.conformances ?? []
             }
-        case let named as BridgedTypeName:
+        case let named as NativeTypeName:
             declared = typeExtensions[named.name]?.conformances ?? []
         default:
             return false

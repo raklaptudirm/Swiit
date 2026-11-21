@@ -100,7 +100,7 @@ extension Interpreter {
             return type.name
         case .object(let type as Value.EnumCase.Enumeration):
             return type.name
-        case .object(let type as BridgedTypeName):
+        case .object(let type as NativeTypeName):
             return type.name
         case .object(let type as ClassType):
             return type.name

@@ -252,7 +252,7 @@ extension Interpreter {
         return switch object {
         case let type as StructType: type.name
         case let type as Value.EnumCase.Enumeration: type.name
-        case let type as BridgedTypeName: type.name
+        case let type as NativeTypeName: type.name
         default: nil
         }
     }
