@@ -34,13 +34,16 @@ jobs:
       - name: Write the symbol graphs
         run: |
           set -o pipefail
-          swift package dump-symbol-graph --minimum-access-level public | tee graphs.log
+          # On Linux SwiftPM also tries its test-discovery modules and exits with an error for them;
+          # what matters is that the library's own graph is written.
+          swift package dump-symbol-graph --minimum-access-level public | tee graphs.log || true
           directory=$(sed -n 's/^Files written to //p' graphs.log | tail -1)
           ls "$directory"
           mkdir graphs
           # Swiit's own graph, and the extensions it makes to other modules' types where there are any.
           find "$directory" \( -name 'Swiit.symbols.json' -o -name 'Swiit@*.symbols.json' \) -exec cp {} graphs/ \;
           ls graphs
+          test -f graphs/Swiit.symbols.json
 
       # A link the catalog can't resolve, or one that names an overload ambiguously, fails the
       # build, as it would show readers a broken reference.
