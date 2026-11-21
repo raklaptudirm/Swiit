@@ -76,10 +76,10 @@ extension MemberSet {
 }
 
 struct TypeProfile {
-    enum Kind { case structure, classType, actor, enumeration, protocolType, other }
-
     var name: String
-    var kind: Kind
+    /// What the program declared it as; nil for a type it did not declare (a Swift type an
+    /// extension adds to).
+    var kind: Symbol.Nominal.Kind?
     var superclass: String?
     var conformances: [String] = []
     /// The protocols a protocol takes in.
@@ -133,7 +133,7 @@ struct TypeProfile {
     }
 
     var isActor: Bool { kind == .actor }
-    var isClass: Bool { kind == .classType || kind == .actor }
+    var isClass: Bool { kind == .class || kind == .actor }
 
     /// The initializers a call chooses among: the type's own (or its memberwise one), and those
     /// extensions add.
@@ -200,7 +200,7 @@ extension TypeChecker {
             description.declared = requirementMembers(of: key)
         default:
             guard let ext = extensionLayer(forKey: key) else { return nil }
-            description = TypeProfile(name: key, kind: .other)
+            description = TypeProfile(name: key, kind: nil)
             description.extended = ext.members
             description.conformances = ext.conformances
             return description

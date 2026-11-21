@@ -13,7 +13,7 @@ extension TypeChecker {
         var members = decl.members
         members.conformances = conformances
         var info = try structInfo(members)
-        info.kind = decl.isActor ? .actor : .classType
+        info.kind = decl.isActor ? .actor : .class
         info.superclass = parent?.name
         info.convenienceInitializers = members.initializers.map(\.isConvenience)
         info.nonisolated = Set(

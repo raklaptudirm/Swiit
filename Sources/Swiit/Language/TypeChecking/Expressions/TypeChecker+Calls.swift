@@ -302,7 +302,7 @@ extension TypeChecker {
             // A class's method is shared by every reference and a protocol's is any type's: no
             // overload set of a value type's own to name one of, and no value to change.
             let ofAValue =
-                !(description.kind == .protocolType
+                !(description.kind == .protocol
                 || origin == .declaration && description.isClass)
             let result = try callMember(
                 methods,
@@ -313,7 +313,7 @@ extension TypeChecker {
                 narrowing: ofAValue,
                 mutating: ofAValue ? baseExpr : nil
             )
-            return description.kind == .protocolType ? substitute(result, [:]) : result
+            return description.kind == .protocol ? substitute(result, [:]) : result
         }
         // Swift's own methods first; then what the prelude adds for sequences,
         // like `sorted(by: \.size)`.

@@ -329,7 +329,7 @@ extension TypeChecker {
             )
         case .named(let typeName):
             switch description?.kind {
-            case .protocolType?, .structure?, .classType?, .actor?:
+            case .protocol?, .structure?, .class?, .actor?:
                 throw TypeError("\(typeName) has no member '\(name)'")
             case .enumeration?:
                 throw TypeError(

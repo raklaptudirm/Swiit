@@ -21,7 +21,7 @@ extension TypeChecker {
             }
             return result
         }
-        var info = TypeProfile(name: decl.name, kind: .protocolType)
+        var info = TypeProfile(name: decl.name, kind: .protocol)
         info.inherited = decl.inherited
         info.associatedTypes = decl.associatedTypes
         info.declared.methods = signatures(decl.methods)
@@ -58,7 +58,7 @@ extension TypeChecker {
         if case .protocolType(let info)? = lookup(name) { return info }
         // `A & B`: what both ask.
         if name.contains(" & ") {
-            var composition = TypeProfile(name: name, kind: .protocolType)
+            var composition = TypeProfile(name: name, kind: .protocol)
             composition.inherited = name.components(separatedBy: " & ")
             return composition
         }
@@ -93,7 +93,7 @@ extension TypeChecker {
     /// default for it.
     func checkConformance(of typeName: String, to protocolName: String) throws {
         guard protocolInfo(named: protocolName) != nil else { return }
-        let description = describe(named: typeName) ?? TypeProfile(name: typeName, kind: .other)
+        let description = describe(named: typeName) ?? TypeProfile(name: typeName, kind: nil)
         func has(method name: String, labels: [String?]) -> Bool {
             ((description.declared.methods[name] ?? []) + (description.extended.methods[name] ?? []))
             .contains { $0.parameters.map(\.label) == labels }

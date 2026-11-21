@@ -56,7 +56,7 @@ extension TypeChecker {
                 if case .member(let name) = assignment.path[index],
                     case .named(let structName) = type,
                     let description = describe(type),
-                    [.structure, .classType, .actor].contains(description.kind)
+                    [.structure, .class, .actor].contains(description.kind)
                 {
                     // `@dynamicMemberLookup`: `x.name = v` is `x[dynamicMember: "name"] = v`.
                     if let info = structInfo(named: structName), info.isDynamicMemberLookup,
