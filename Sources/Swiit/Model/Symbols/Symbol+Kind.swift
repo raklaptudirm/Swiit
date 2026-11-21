@@ -24,17 +24,14 @@ extension Symbol {
             if case .member(.associatedType) = self { true } else { false }
         }
 
-        /// Written as a symbol is declared: a method, a property, an initializer, an enum case or an
-        /// associated type of a type.
-        public static func method(_ method: Method) -> Kind { .member(.method(method)) }
-        public static func property(_ property: Property) -> Kind { .member(.property(property)) }
-        public static func initializer(_ function: Function) -> Kind {
-            .member(.initializer(function))
-        }
-        public static func enumCase(parameters: [Parameter], rawValue: Value?) -> Kind {
+        /// A member written as a kind: `.method(…)` for `.member(.method(…))`.
+        static func method(_ method: Method) -> Kind { .member(.method(method)) }
+        static func property(_ property: Property) -> Kind { .member(.property(property)) }
+        static func initializer(_ function: Function) -> Kind { .member(.initializer(function)) }
+        static func enumCase(parameters: [Parameter], rawValue: Value?) -> Kind {
             .member(.enumCase(parameters: parameters, rawValue: rawValue))
         }
-        public static func associatedType(_ associatedType: AssociatedType) -> Kind {
+        static func associatedType(_ associatedType: AssociatedType) -> Kind {
             .member(.associatedType(associatedType))
         }
     }
@@ -164,12 +161,8 @@ extension Symbol {
         }
 
         /// Whether it throws errors of its own, as `throws` and `throws(Failure)` do: not a
-        /// `rethrows` function, which throws only what its closures do. Setting it says `throws`
-        /// or nothing.
-        public var isThrowing: Bool {
-            get { throwing != .no && throwing != .rethrowing }
-            set { throwing = newValue ? .any : .no }
-        }
+        /// `rethrows` function, which throws only what its closures do.
+        public var isThrowing: Bool { throwing != .no && throwing != .rethrowing }
 
         public init(
             parameters: [Parameter] = [],

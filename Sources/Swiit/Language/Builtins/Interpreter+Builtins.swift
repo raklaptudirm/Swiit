@@ -6,7 +6,6 @@ import Foundation
 extension Interpreter {
     /// Installs the builtins.
     func installBuiltinFunctions() {
-        register(AttributedString.native)
         scopes[0].bindings["args"] = Binding(value: .list([]), mutable: false)
         let extensions = installPrelude()
         installPrint()

@@ -118,6 +118,14 @@ public struct BridgedType<T: Sendable>: Sendable {
         return copy
     }
 
+    /// Makes the type generic over the type parameters named, as `Job<Result>` is: `.generic(over:
+    /// "Result")`. A script writes the type with its arguments (`Job<Int>`).
+    public func generic(over names: String...) -> BridgedType {
+        var made = self
+        made.type.genericParameters = names.map { Symbol.genericParameter($0) }
+        return made
+    }
+
     /// A member written by hand, for what a key path or a method reference cannot say, such as
     /// an `async` method: made with `SymbolImplementation`'s `.method`, `.property` and the rest. A
     /// function is not a member, and is registered on its own.

@@ -358,7 +358,7 @@ private struct DataPair: BridgedValue, Hashable, CustomStringConvertible,
     let element = TypeExpression.named(id).members(named: "Element", in: swiit)
 
     #expect(element.count == 1)
-    #expect(element.first?.kind == .associatedType(.binding(.string)))
+    #expect(element.first?.kind == .member(.associatedType(.binding(.string))))
     #expect(element.first?.typeExpression == .string)
 }
 
@@ -369,6 +369,22 @@ private struct DataPair: BridgedValue, Hashable, CustomStringConvertible,
     let container = try #require(TypeRef(named: "Container", in: swiit))
     let item = TypeExpression.named(container).members(named: "Item", in: swiit)
 
-    #expect(item.first?.kind == .associatedType(.requirement(constraints: [])))
+    #expect(item.first?.kind == .member(.associatedType(.requirement(constraints: []))))
     #expect(item.first?.typeExpression == .parameter("Item"))
+}
+
+private struct Hamper: Sendable { var size = 3 }
+
+@Test func aBuilderMakesATypeGenericOverTheParametersNamed() throws {
+    let swiit = interpreter()
+    let id = swiit.register(
+        BridgedType<Hamper>("Hamper").generic(over: "Item").property("size", \.size)
+    )
+    swiit["crate"] = Value(boxing: Hamper(), as: id)
+
+    #expect(
+        try swiit.evaluate("func size(_ c: Hamper<Int>) -> Int { c.size }\nsize(crate)") == Value(3)
+    )
+    let nominal = try #require(id.symbol(in: swiit)?.nominal)
+    #expect(nominal.genericParameters.map(\.name) == ["Item"])
 }

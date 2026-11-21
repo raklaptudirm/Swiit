@@ -52,7 +52,7 @@ extension Interpreter {
             let declared = scopes[1].bindings.sorted { $0.key < $1.key }
                 .flatMap { symbols(of: $0.key, binding: $0.value) }
                 .filter {
-                    if $0.isType { true } else { false }
+                    $0.nominal != nil
                 }
             let bridged = scopes[0].bindings.sorted { $0.key < $1.key }
                 .compactMap { name, binding -> Symbol? in

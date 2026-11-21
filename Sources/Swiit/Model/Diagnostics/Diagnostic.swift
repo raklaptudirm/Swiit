@@ -179,13 +179,9 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     /// The diagnostic as a compiler shows one: what is wrong, then the line of the source it is in,
     /// with the place marked. `source` is the text that was run; `path` names it, if it came from a
     /// file. `style`, if given, makes the result styled: the source in the colors it has where it
-    /// is written, the marks and places in their own.
-    public func rendered(in source: String, path: String? = nil, color: Bool = false) -> String {
-        rendered(in: source, path: path, style: color ? .ansi : nil)
-    }
-
-    /// As above, styled as a host says (a host's syntax highlighting).
-    public func rendered(in source: String, path: String? = nil, style: Style?) -> String {
+    /// is written, the marks and places in their own (`.ansi` for a terminal, or a host's own
+    /// syntax highlighting).
+    public func rendered(in source: String, path: String? = nil, style: Style? = nil) -> String {
         // A syntax error's own text says its line, which the excerpt shows.
         var text = message
         if let match = text.range(of: #" \(line \d+\)$"#, options: .regularExpression) {

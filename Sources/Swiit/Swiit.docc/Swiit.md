@@ -62,8 +62,6 @@ let answer = try swiit.evaluate("double(21)")   // 42
 - <doc:ReadingDiagnostics>
 - ``Diagnostic``
 
-### Output streams and styled text
+### Output streams
 
 - ``OutputSink``
-- ``DisplayStyle``
-- ``DisplayStyle/Attribute``

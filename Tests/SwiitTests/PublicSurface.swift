@@ -8,7 +8,7 @@ enum PublicSurface {
         "Interpreter", "Value", "TypeExpression", "BridgedValue", "TypeRef",
         "SymbolImplementation", "Diagnostic", "OutputSink", "Symbol",
         "TypeImplementation", "BridgedType",
-        "ScriptTask", "DisplayStyle",
+        "ScriptTask",
     ]
 
     private static let sources = URL(fileURLWithPath: #filePath).deletingLastPathComponent()

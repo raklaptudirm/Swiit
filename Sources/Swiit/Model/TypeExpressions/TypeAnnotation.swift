@@ -48,15 +48,13 @@ indirect enum TypeAnnotation: Hashable, Sendable, CustomStringConvertible {
         }
     }
 
-    var description: String { AttributedString(joining: styled).plain }
+    var description: String { pieces.joined() }
 
-    /// As Swift writes it, in pieces by what each is (the name of a type, a
-    /// label, a keyword, or punctuation), so help can color it and no one has
-    /// to read the text back to find out.
-    var styled: [AttributedString] {
-        func name(_ text: String) -> AttributedString { .init(text, .type) }
-        func punctuation(_ text: String) -> AttributedString { .init(text) }
-        func list(_ items: [[AttributedString]]) -> [AttributedString] {
+    /// As Swift writes it, in pieces: the name of a type, a label, a keyword or punctuation.
+    private var pieces: [String] {
+        func name(_ text: String) -> String { text }
+        func punctuation(_ text: String) -> String { text }
+        func list(_ items: [[String]]) -> [String] {
             items.enumerated()
                 .flatMap { index, item in (index > 0 ? [punctuation(", ")] : []) + item }
         }
@@ -68,48 +66,48 @@ indirect enum TypeAnnotation: Hashable, Sendable, CustomStringConvertible {
         case .string: return [name("String")]
         case .record: return [name("Record")]
         case .void: return [name("Void")]
-        case .list(let element): return [punctuation("[")] + element.styled + [punctuation("]")]
+        case .list(let element): return [punctuation("[")] + element.pieces + [punctuation("]")]
         case .dictionary(let key, let value):
-            return [punctuation("[")] + key.styled + [punctuation(": ")] + value.styled + [
+            return [punctuation("[")] + key.pieces + [punctuation(": ")] + value.pieces + [
                 punctuation("]")
             ]
         case .tuple(let elements):
             return [punctuation("(")]
                 + list(
                     elements.map { element in
-                        (element.label.map { [AttributedString($0, .variable), punctuation(": ")] }
+                        (element.label.map { [$0, punctuation(": ")] }
                             ?? [])
-                            + element.type.styled
+                            + element.type.pieces
                     }
                 ) + [punctuation(")")]
         case .function: return [name("function")]
         case .functionType(let parameters, let result, let throwing, let effect):
-            return [punctuation("(")] + list(parameters.map(\.styled)) + [punctuation(")")]
-                + (effect == .async ? [punctuation(" "), .init("async", .keyword)] : [])
-                + (throwing ? [punctuation(" "), .init("throws", .keyword)] : []) + [
+            return [punctuation("(")] + list(parameters.map(\.pieces)) + [punctuation(")")]
+                + (effect == .async ? [punctuation(" "), "async"] : [])
+                + (throwing ? [punctuation(" "), "throws"] : []) + [
                     punctuation(" -> ")
                 ]
-                + result.styled
+                + result.pieces
         case .named(let text), .parameter(let text): return [name(text)]
         case .generic(let text, let arguments):
-            return [name(text), punctuation("<")] + list(arguments.map(\.styled)) + [
+            return [name(text), punctuation("<")] + list(arguments.map(\.pieces)) + [
                 punctuation(">")
             ]
         case .someSequence(let element):
-            return [.init("some", .keyword), punctuation(" "), name("Sequence"), punctuation("<")]
-                + element.styled + [
+            return ["some", punctuation(" "), name("Sequence"), punctuation("<")]
+                + element.pieces + [
                     punctuation(">")
                 ]
         case .keyPath(let root, let value):
-            return [name("KeyPath"), punctuation("<")] + root.styled + [punctuation(", ")]
-                + value.styled + [
+            return [name("KeyPath"), punctuation("<")] + root.pieces + [punctuation(", ")]
+                + value.pieces + [
                     punctuation(">")
                 ]
         case .optional(let wrapped):
             if case .functionType = wrapped {
-                return [punctuation("(")] + wrapped.styled + [punctuation(")?")]
+                return [punctuation("(")] + wrapped.pieces + [punctuation(")?")]
             }
-            return wrapped.styled + [punctuation("?")]
+            return wrapped.pieces + [punctuation("?")]
         case .inOut(let wrapped): return [punctuation("inout " + wrapped.description)]
         case .metatype(let wrapped): return [name(wrapped.description), punctuation(".Type")]
         case .unknown: return [punctuation("_")]

@@ -406,7 +406,7 @@ private struct Point: Encodable { var x: Int }
     #expect(element.kind == .genericParameter(constraints: [.comparable]))
     #expect(element.constraints == [.comparable])
     #expect(element.typeExpression == .parameter("T"))
-    #expect(!element.isType)
+    #expect(element.nominal == nil)
     #expect(Symbol(name: "x", kind: .variable(Symbol.Variable(type: .int))).constraints.isEmpty)
 }
 
@@ -462,7 +462,7 @@ private struct Point: Encodable { var x: Int }
     _ = try swiit.evaluate("struct Point { var x = 0 }; func area() -> Int { 1 }; let size = 3")
 
     let types = swiit.types
-    let others = swiit.globals().filter { !$0.isType }
+    let others = swiit.globals().filter { $0.nominal == nil }
 
     #expect(!types.isEmpty && types.allSatisfy { $0.typeRef != nil && $0.typeKind != nil })
     #expect(!others.isEmpty && others.allSatisfy { $0.typeRef == nil && $0.typeKind == nil })

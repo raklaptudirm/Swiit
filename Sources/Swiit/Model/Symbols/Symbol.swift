@@ -39,7 +39,7 @@ public struct Symbol: Sendable, Hashable {
     /// The attributes it was declared with: `@discardableResult`, `@available(…)`, and the rest.
     public var attributes: [Symbol.Attribute] = []
     /// Whether the core or the host provides it, as opposed to a script's own declaration.
-    public var isBuiltin = false
+    public internal(set) var isBuiltin = false
     /// The kind, reference, generic parameters and conformances of this symbol, if it is a type.
     public var nominal: Nominal? {
         get { if case .type(let nominal) = kind { nominal } else { nil } }
@@ -83,11 +83,6 @@ public struct Symbol: Sendable, Hashable {
         case .member(.property(let property)): property.variable
         default: nil
         }
-    }
-
-    /// Whether it is a type: a struct, an enum, a class, an actor or a protocol.
-    public var isType: Bool {
-        if case .type = kind { true } else { false }
     }
 
     /// This symbol's type as a value. A function's is a function type (its parameter types in order, and

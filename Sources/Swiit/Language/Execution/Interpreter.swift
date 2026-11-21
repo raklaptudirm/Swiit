@@ -77,14 +77,13 @@ public final class Interpreter: @unchecked Sendable {
 extension Interpreter {
     /// Reports an error, to wherever standard error is redirected.
     func report(_ message: String) {
+        // Bold red, as a terminal writes it, when the stream is styled.
         let styled = host.error.traits().isStyled
+        func red(_ text: String) -> String { styled ? "\u{1B}[1;31m\(text)\u{1B}[0m" : text }
         if message.hasPrefix("error: ") {
-            host.error.write(
-                "\(host.name): error:".styled(DisplayStyle.error, styled) + message.dropFirst(6)
-                    + "\n"
-            )
+            host.error.write(red("\(host.name): error:") + message.dropFirst(6) + "\n")
         } else {
-            host.error.write("\(host.name):".styled(DisplayStyle.error, styled) + " \(message)\n")
+            host.error.write(red("\(host.name):") + " \(message)\n")
         }
     }
 }
