@@ -19,7 +19,6 @@ extension Interpreter {
         return type
     }
 
-    // swiftlint:disable function_body_length - a long walk over every case; splitting it is item 25 of Docs/agenda.md
     /// `class Dog: Animal { … }`, `actor Counter { … }`.
     func declare(_ decl: ClassDecl) throws {
         var conformances = decl.inherited
@@ -28,6 +27,7 @@ extension Interpreter {
             superclass = found
             conformances.removeFirst()
         }
+
         let members = decl.members
         let type = ClassType(
             name: decl.name,
@@ -38,172 +38,41 @@ extension Interpreter {
             conformances: conformances
         )
         type.source = decl
-        var declaredMethods: [String: [Function]] = [:]
-        var declaredStaticMethods: [String: [Function]] = [:]
-        var declaredInitializers: [Function] = []
-        func make(_ function: Function) -> Function { function.owner = type; return function }
-        for property in members.properties {
-            if let getter = property.getter {
-                type.members.computed[property.name] = make(
-                    Function(
-                        name: property.name,
-                        parameters: [],
-                        returnType: property.type,
-                        body: .swiit(getter),
-                        captured: captureScopes(property.getterNames)
-                    )
-                )
-            }
-            if let setter = property.setter {
-                type.members.setters[property.name] = make(
-                    Function(
-                        name: property.name,
-                        parameters: [
-                            Parameter(name: property.setterName, type: property.type ?? .any)
-                        ],
-                        returnType: nil,
-                        body: .swiit(setter),
-                        captured: captureScopes(property.setterNames),
-                        isMutating: true
-                    )
-                )
-            }
-            if property.willSet != nil || property.didSet != nil {
-                func observer(
-                    _ body: Program?,
-                    _ parameter: String,
-                    _ names: NamesUsed
-                ) -> Function? {
-                    body.map {
-                        make(
-                            Function(
-                                name: property.name,
-                                parameters: [
-                                    Parameter(name: parameter, type: property.type ?? .any)
-                                ],
-                                returnType: nil,
-                                body: .swiit($0),
-                                captured: captureScopes(names),
-                                isMutating: true
-                            )
-                        )
-                    }
-                }
-                type.observers[property.name] = (
-                    observer(property.willSet, property.willSetName, property.willSetNames),
-                    observer(property.didSet, property.didSetName, property.didSetNames)
-                )
-            }
+        func adopt(_ function: Function) -> Function {
+            function.owner = type
+            return function
         }
-        for method in members.methods {
-            declaredMethods[method.name, default: []]
-                .append(
-                    make(
-                        Function(
-                            name: method.name,
-                            parameters: method.parameters,
-                            returnType: method.returnType,
-                            body: .swiit(method.body),
-                            captured: captureScopes(method.names),
-                            documentation: method.documentation,
-                            attributes: method.attributes,
-                            isThrowing: method.isThrowing,
-                            effect: method.effect
-                        )
-                    )
-                )
+
+        type.members.computed = computedProperties(of: members.properties, adopt: adopt)
+        type.observers = declareSettersAndObservers(
+            members.properties,
+            in: type.members,
+            adopt: adopt
+        )
+        declareSubscripts(members.subscripts, in: type.members, adopt: adopt)
+        type.members.staticComputed =
+            staticFunctions(of: members.staticProperties, adopt: adopt)
+            .getters
+        type.members.methods = overloads(of: members.methods, adopt: adopt) {
+            .swiit($0.body)
         }
-        for initializer in members.initializers {
-            declaredInitializers.append(
-                make(
-                    Function(
-                        name: "\(decl.name).init",
-                        parameters: initializer.parameters,
-                        returnType: nil,
-                        body: .swiit(initializer.body),
-                        captured: captureScopes(initializer.names),
-                        documentation: initializer.documentation,
-                        isMutating: true,
-                        isThrowing: initializer.isThrowing,
-                        isFailable: initializer.isFailable,
-                        isConvenience: initializer.isConvenience
-                    )
-                )
-            )
+        type.members.staticMethods = overloads(of: members.staticMethods, adopt: adopt) {
+            .swiit($0.body)
         }
-        for declared in members.subscripts {
-            type.members.subscriptGetters.append(
-                make(
-                    Function(
-                        name: "subscript",
-                        parameters: declared.parameters,
-                        returnType: declared.returnType,
-                        body: .swiit(declared.getter),
-                        captured: captureScopes(declared.getterNames)
-                    )
-                )
-            )
-            type.members.subscriptSetters.append(
-                declared.setter.map { setter in
-                    make(
-                        Function(
-                            name: "subscript",
-                            parameters: declared.parameters + [
-                                Parameter(name: declared.setterName, type: declared.returnType)
-                            ],
-                            returnType: nil,
-                            body: .swiit(setter),
-                            captured: captureScopes(declared.setterNames),
-                            isMutating: true
-                        )
-                    )
-                }
-            )
-        }
-        for property in members.staticProperties {
-            if let getter = property.getter {
-                type.members.staticComputed[property.name] = make(
-                    Function(
-                        name: property.name,
-                        parameters: [],
-                        returnType: property.type,
-                        body: .swiit(getter),
-                        captured: captureScopes(property.getterNames)
-                    )
-                )
-            }
-        }
-        for method in members.staticMethods {
-            declaredStaticMethods[method.name, default: []]
-                .append(
-                    make(
-                        Function(
-                            name: method.name,
-                            parameters: method.parameters,
-                            returnType: method.returnType,
-                            body: .swiit(method.body),
-                            captured: captureScopes(method.names),
-                            documentation: method.documentation,
-                            attributes: method.attributes,
-                            isThrowing: method.isThrowing
-                        )
-                    )
-                )
-        }
-        type.members.methods = declaredMethods.mapValues {
-            OverloadSet(name: $0[0].name!, candidates: $0)
-        }
-        type.members.staticMethods = declaredStaticMethods.mapValues {
-            OverloadSet(name: $0[0].name!, candidates: $0)
-        }
-        if !declaredInitializers.isEmpty {
+
+        let initializers = initializerFunctions(
+            of: members.initializers,
+            in: decl.name,
+            adopt: adopt
+        )
+        if !initializers.isEmpty {
             type.members.initializers = OverloadSet(
                 name: "\(decl.name).init",
-                candidates: declaredInitializers
+                candidates: initializers
             )
         }
         if let body = decl.deinitializer {
-            type.deinitializer = make(
+            type.deinitializer = adopt(
                 Function(
                     name: "deinit",
                     parameters: [],
@@ -214,27 +83,13 @@ extension Interpreter {
                 )
             )
         }
+
         declaredTypes[type.typeRef] = type
         scopes[scopes.count - 1].bindings[decl.name] = Binding(value: .object(type), mutable: false)
+
         // Bound first, so a static value can be made of the class itself.
-        for property in members.staticProperties where property.getter == nil {
-            guard let expr = property.defaultValue else { continue }
-            var value = try evaluate(expr, expecting: property.type)
-            if let expected = property.type {
-                guard let conforming = conform(value, to: expected) else {
-                    throw RuntimeError(
-                        "\(decl.name).\(property.name) must be \(expected), not \(value.typeName)"
-                    )
-                }
-                value = conforming
-            }
-            type.members.statics[property.name] = StructType.StaticValue(
-                value,
-                mutable: property.mutable
-            )
-        }
+        try evaluateStaticValues(members.staticProperties, in: type.members, named: decl.name)
     }
-    // swiftlint:enable function_body_length
 
     // MARK: Making instances
 
