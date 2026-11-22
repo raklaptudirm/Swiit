@@ -109,9 +109,34 @@ extension TypeChecker {
         return profile
     }
 
-    // swiftlint:disable:next function_body_length - a long walk over every case; splitting it is item 25 of Docs/agenda.md
     func checkStruct(_ decl: inout StructDecl, isClass: Bool = false) throws {
         let selfType = TypeAnnotation.named(decl.name)
+
+        try checkConformances(of: decl, isClass: isClass)
+        try checkProperties(of: &decl, self: selfType)
+        for index in decl.methods.indices {
+            try checkFunction(
+                &decl.methods[index],
+                self: selfType,
+                mutating: isClass || decl.methods[index].isMutating
+            )
+        }
+        try checkSubscripts(of: &decl, self: selfType)
+        try checkStaticProperties(of: &decl)
+        for index in decl.staticMethods.indices {
+            try checkFunction(&decl.staticMethods[index])
+        }
+        for index in decl.initializers.indices {
+            var function = decl.initializers[index]
+            function.name = "\(decl.name).init"
+            try checkFunction(&function, self: selfType, initializing: true)
+            function.name = "init"
+            decl.initializers[index] = function
+        }
+    }
+
+    /// Checks what a type says it conforms to against what it declares.
+    private func checkConformances(of decl: StructDecl, isClass: Bool) throws {
         // Equatable, Hashable and Encodable come from the fields, which must
         // have them too; Comparable would need a `<` of its own.
         for proto in decl.conformances {
@@ -138,6 +163,10 @@ extension TypeChecker {
                 }
             }
         }
+    }
+
+    /// Checks the observers, accessors and defaults of a type's properties.
+    private func checkProperties(of decl: inout StructDecl, self selfType: TypeAnnotation) throws {
         for index in decl.properties.indices {
             let property = decl.properties[index]
             // Observers see the property's value, and may change the rest of the struct.
@@ -193,13 +222,9 @@ extension TypeChecker {
                 )
             }
         }
-        for index in decl.methods.indices {
-            try checkFunction(
-                &decl.methods[index],
-                self: selfType,
-                mutating: isClass || decl.methods[index].isMutating
-            )
-        }
+    }
+
+    private func checkSubscripts(of decl: inout StructDecl, self selfType: TypeAnnotation) throws {
         for index in decl.subscripts.indices {
             let declared = decl.subscripts[index]
             var getter = FunctionDecl(
@@ -223,6 +248,9 @@ extension TypeChecker {
                 decl.subscripts[index].setter = setter.body
             }
         }
+    }
+
+    private func checkStaticProperties(of decl: inout StructDecl) throws {
         for index in decl.staticProperties.indices {
             let property = decl.staticProperties[index]
             if let getter = property.getter {
@@ -250,16 +278,6 @@ extension TypeChecker {
                 }
                 decl.staticProperties[index].defaultValue = value
             }
-        }
-        for index in decl.staticMethods.indices {
-            try checkFunction(&decl.staticMethods[index])
-        }
-        for index in decl.initializers.indices {
-            var function = decl.initializers[index]
-            function.name = "\(decl.name).init"
-            try checkFunction(&function, self: selfType, initializing: true)
-            function.name = "init"
-            decl.initializers[index] = function
         }
     }
 
