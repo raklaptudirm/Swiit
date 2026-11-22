@@ -3,38 +3,9 @@ import Foundation
 extension Interpreter {
     // MARK: Declaring
 
-    // swiftlint:disable function_body_length - a long walk over every case; splitting it is item 25 of Docs/agenda.md
     /// `natives`: Swift bodies for the methods the prelude declares without
     /// one, by `Type.method`.
     func declare(_ decl: StructDecl, natives: [String: FunctionBody] = [:]) throws {
-        var computed: [String: Function] = [:]
-        for property in decl.properties {
-            guard let getter = property.getter else { continue }
-            computed[property.name] = Function(
-                name: property.name,
-                parameters: [],
-                returnType: property.type,
-                body: .swiit(getter),
-                captured: captureScopes(property.getterNames)
-            )
-        }
-        var methods: [String: [Function]] = [:]
-        for method in decl.methods {
-            methods[method.name, default: []]
-                .append(
-                    Function(
-                        name: method.name,
-                        parameters: method.parameters,
-                        returnType: method.returnType,
-                        body: natives["\(decl.name).\(method.name)"] ?? .swiit(method.body),
-                        captured: captureScopes(method.names),
-                        documentation: method.documentation,
-                        attributes: method.attributes,
-                        isMutating: method.isMutating,
-                        isThrowing: method.isThrowing
-                    )
-                )
-        }
         let initializers = decl.initializers.map { initializer in
             Function(
                 name: "\(decl.name).init",
@@ -49,10 +20,84 @@ extension Interpreter {
             )
         }
         let stored = decl.properties.filter { $0.getter == nil }
-        // As in Swift: every stored property, except a `let` that already
-        // has its value, in order; one with a default may be left out.
-        let memberwise = Function(
+        let statics = staticFunctions(of: decl.staticProperties)
+        let methods = overloads(of: decl.methods) { method in
+            natives["\(decl.name).\(method.name)"] ?? .swiit(method.body)
+        }
+
+        let type = StructType(
             name: decl.name,
+            stored: stored,
+            computed: computedProperties(of: decl.properties),
+            methods: methods,
+            initializers: initializers.isEmpty
+                ? nil : OverloadSet(name: "\(decl.name).init", candidates: initializers),
+            memberwise: memberwiseInitializer(of: decl.name, stored: stored),
+            conformances: decl.conformances,
+            staticProperties: decl.staticProperties,
+            staticComputed: statics.getters,
+            staticMethods: overloads(of: decl.staticMethods, isStatic: true) { .swiit($0.body) }
+        )
+        type.members.staticSetters = statics.setters
+        type.isDynamicMemberLookup = decl.isDynamicMemberLookup
+        declareSubscripts(decl.subscripts, in: type)
+        declareSettersAndObservers(decl.properties, in: type)
+
+        declaredTypes[type.typeRef] = type
+        scopes[scopes.count - 1].bindings[decl.name] = Binding(value: .object(type), mutable: false)
+
+        // Bound first, so a static value can be made of the type itself.
+        try evaluateStaticValues(decl.staticProperties, in: type, named: decl.name)
+    }
+
+    /// The getter of each computed property, by name.
+    private func computedProperties(of properties: [PropertyDecl]) -> [String: Function] {
+        var computed: [String: Function] = [:]
+        for property in properties {
+            guard let getter = property.getter else { continue }
+            computed[property.name] = Function(
+                name: property.name,
+                parameters: [],
+                returnType: property.type,
+                body: .swiit(getter),
+                captured: captureScopes(property.getterNames)
+            )
+        }
+        return computed
+    }
+
+    /// The methods of a declaration, grouped by name into overloads. Static ones are not
+    /// mutating.
+    private func overloads(
+        of methods: [FunctionDecl],
+        isStatic: Bool = false,
+        body: (FunctionDecl) -> FunctionBody
+    ) -> [String: OverloadSet] {
+        var grouped: [String: [Function]] = [:]
+        for method in methods {
+            grouped[method.name, default: []]
+                .append(
+                    Function(
+                        name: method.name,
+                        parameters: method.parameters,
+                        returnType: method.returnType,
+                        body: body(method),
+                        captured: captureScopes(method.names),
+                        documentation: method.documentation,
+                        attributes: method.attributes,
+                        isMutating: !isStatic && method.isMutating,
+                        isThrowing: method.isThrowing
+                    )
+                )
+        }
+        return grouped.mapValues { OverloadSet(name: $0[0].name!, candidates: $0) }
+    }
+
+    /// As in Swift: every stored property, except a `let` that already has its value, in order;
+    /// one with a default may be left out.
+    private func memberwiseInitializer(of name: String, stored: [PropertyDecl]) -> Function {
+        Function(
+            name: name,
             parameters: stored.filter { $0.mutable || $0.defaultValue == nil }
                 .map { property in
                     Parameter(
@@ -66,11 +111,17 @@ extension Interpreter {
             body: .native { _, _ in .nothing },
             captured: captureScopes(NamesUsed())
         )
-        var staticComputed: [String: Function] = [:]
-        var staticSetters: [String: Function] = [:]
-        for property in decl.staticProperties {
+    }
+
+    /// The getters and setters of the computed static properties, by name.
+    private func staticFunctions(
+        of properties: [PropertyDecl]
+    ) -> (getters: [String: Function], setters: [String: Function]) {
+        var getters: [String: Function] = [:]
+        var setters: [String: Function] = [:]
+        for property in properties {
             guard let getter = property.getter else { continue }
-            staticComputed[property.name] = Function(
+            getters[property.name] = Function(
                 name: property.name,
                 parameters: [],
                 returnType: property.type,
@@ -78,7 +129,7 @@ extension Interpreter {
                 captured: captureScopes(property.getterNames)
             )
             if let setter = property.setter {
-                staticSetters[property.name] = Function(
+                setters[property.name] = Function(
                     name: property.name,
                     parameters: [Parameter(name: property.setterName, type: property.type ?? .any)],
                     returnType: nil,
@@ -87,40 +138,11 @@ extension Interpreter {
                 )
             }
         }
-        var staticMethods: [String: [Function]] = [:]
-        for method in decl.staticMethods {
-            staticMethods[method.name, default: []]
-                .append(
-                    Function(
-                        name: method.name,
-                        parameters: method.parameters,
-                        returnType: method.returnType,
-                        body: .swiit(method.body),
-                        captured: captureScopes(method.names),
-                        documentation: method.documentation,
-                        attributes: method.attributes,
-                        isThrowing: method.isThrowing
-                    )
-                )
-        }
-        let type = StructType(
-            name: decl.name,
-            stored: stored,
-            computed: computed,
-            methods: methods.mapValues { OverloadSet(name: $0[0].name!, candidates: $0) },
-            initializers: initializers.isEmpty
-                ? nil : OverloadSet(name: "\(decl.name).init", candidates: initializers),
-            memberwise: memberwise,
-            conformances: decl.conformances,
-            staticProperties: decl.staticProperties,
-            staticComputed: staticComputed,
-            staticMethods: staticMethods.mapValues {
-                OverloadSet(name: $0[0].name!, candidates: $0)
-            }
-        )
-        type.members.staticSetters = staticSetters
-        type.isDynamicMemberLookup = decl.isDynamicMemberLookup
-        for declared in decl.subscripts {
+        return (getters, setters)
+    }
+
+    private func declareSubscripts(_ subscripts: [SubscriptDecl], in type: StructType) {
+        for declared in subscripts {
             type.members.subscriptGetters.append(
                 Function(
                     name: "subscript",
@@ -145,7 +167,10 @@ extension Interpreter {
                 }
             )
         }
-        for property in decl.properties {
+    }
+
+    private func declareSettersAndObservers(_ properties: [PropertyDecl], in type: StructType) {
+        for property in properties {
             if let setter = property.setter {
                 type.members.setters[property.name] = Function(
                     name: property.name,
@@ -156,39 +181,39 @@ extension Interpreter {
                     isMutating: true
                 )
             }
-            if property.willSet != nil || property.didSet != nil {
-                func observer(
-                    _ body: Program?,
-                    _ parameter: String,
-                    _ names: NamesUsed
-                ) -> Function? {
-                    body.map { body in
-                        Function(
-                            name: property.name,
-                            parameters: [Parameter(name: parameter, type: property.type ?? .any)],
-                            returnType: nil,
-                            body: .swiit(body),
-                            captured: captureScopes(names),
-                            isMutating: true
-                        )
-                    }
+
+            guard property.willSet != nil || property.didSet != nil else { continue }
+            func observer(_ body: Program?, _ parameter: String, _ names: NamesUsed) -> Function? {
+                body.map { body in
+                    Function(
+                        name: property.name,
+                        parameters: [Parameter(name: parameter, type: property.type ?? .any)],
+                        returnType: nil,
+                        body: .swiit(body),
+                        captured: captureScopes(names),
+                        isMutating: true
+                    )
                 }
-                type.observers[property.name] = (
-                    observer(property.willSet, property.willSetName, property.willSetNames),
-                    observer(property.didSet, property.didSetName, property.didSetNames)
-                )
             }
+            type.observers[property.name] = (
+                observer(property.willSet, property.willSetName, property.willSetNames),
+                observer(property.didSet, property.didSetName, property.didSetNames)
+            )
         }
-        declaredTypes[type.typeRef] = type
-        scopes[scopes.count - 1].bindings[decl.name] = Binding(value: .object(type), mutable: false)
-        // Bound first, so a static value can be made of the type itself.
-        for property in decl.staticProperties where property.getter == nil {
+    }
+
+    private func evaluateStaticValues(
+        _ properties: [PropertyDecl],
+        in type: StructType,
+        named name: String
+    ) throws {
+        for property in properties where property.getter == nil {
             guard let expr = property.defaultValue else { continue }
             var value = try evaluate(expr, expecting: property.type)
             if let expected = property.type {
                 guard let conforming = conform(value, to: expected) else {
                     throw RuntimeError(
-                        "\(decl.name).\(property.name) must be \(expected), not \(value.typeName)"
+                        "\(name).\(property.name) must be \(expected), not \(value.typeName)"
                     )
                 }
                 value = conforming
@@ -199,7 +224,6 @@ extension Interpreter {
             )
         }
     }
-    // swiftlint:enable function_body_length
 
     func structType(named name: String) -> StructType? {
         guard case .object(let type as StructType)? = lookup(name)?.value.storage else {
