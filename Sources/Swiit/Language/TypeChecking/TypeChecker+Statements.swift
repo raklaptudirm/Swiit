@@ -153,75 +153,14 @@ extension TypeChecker {
         }
     }
 
-    // swiftlint:disable function_body_length - a long walk over every case; splitting it is item 25 of Docs/agenda.md
     /// What a statement does: control flow, errors, expressions.
     private func checkControl(_ statement: inout Statement) throws {
         switch statement {
         case .doCatch(var body, var clauses):
-            // It handles what its body throws if a clause catches anything.
-            let catchesAll = clauses.contains {
-                $0.guardExpr == nil
-                    && ($0.patterns.isEmpty || $0.patterns.contains(where: \.catchesAll))
-            }
-            errorContexts.append(
-                ErrorContext(
-                    handled: catchesAll || errorContexts.last!.handled,
-                    boundary: errorContexts.last!.boundary,
-                    thrown: catchesAll ? nil : errorContexts.last!.thrown
-                )
-            )
-            let seenBefore = thrownSeen.count
-            let sitesBefore = throwingSites
-            try checkBlock(&body, newScope: true)
-            errorContexts.removeLast()
-            // What a `catch` that catches everything handles doesn't make the closure around it
-            // throw.
-            if catchesAll { throwingSites = sitesBefore }
-            // What the body throws is one type, if every call in it says so (`throws(E)`).
-            let seen = Array(thrownSeen[seenBefore...])
-            var errorType = TypeAnnotation.named("Error")
-            if let first = seen.first, let type = first, seen.allSatisfy({ $0 == type }) {
-                errorType = type
-            }
-            if catchesAll { thrownSeen.removeSubrange(seenBefore...) }
-            for index in clauses.indices {
-                var bound: [String: ScopeEntry] = [:]
-                if clauses[index].patterns.isEmpty {
-                    bound["error"] = .variable(errorType, mutable: false)
-                } else {
-                    try checkPattern(
-                        &clauses[index].patterns[0],
-                        against: errorType,
-                        binding: &bound
-                    )
-                }
-                scopes.append(bound)
-                defer { scopes.removeLast() }
-                if clauses[index].guardExpr != nil {
-                    try expect(&clauses[index].guardExpr!, .bool, "a catch's 'where'")
-                }
-                try checkBlock(&clauses[index].body, newScope: true)
-            }
+            try checkDoCatch(&body, &clauses)
             statement = .doCatch(body: body, clauses: clauses)
         case .throwStatement(var value):
-            // In a `throws(E)` function, what is thrown is an E (so `throw .bad` names its case).
-            if let thrown = errorContexts.last?.thrown {
-                try expect(&value, thrown, "what this function throws")
-                throwingSites += 1
-                thrownSeen.append(thrown)
-                try checkHandled("throw")
-                statement = .throwStatement(value)
-                return
-            }
-            let type = try typeOf(&value)
-            guard conforms(type, to: "Error") else {
-                throw TypeError(
-                    "only an Error can be thrown, and \(type) isn't one: declare it ': Error'"
-                )
-            }
-            throwingSites += 1
-            thrownSeen.append(nil)
-            try checkHandled("throw")
+            try checkThrow(&value)
             statement = .throwStatement(value)
         case .guardStatement(let condition, var otherwise):
             var node = IfStatement(condition: condition, then: Program(statements: []))
@@ -235,25 +174,10 @@ extension TypeChecker {
             // What the condition binds is bound for the rest of the block.
             for (name, symbol) in bound { scopes[scopes.count - 1][name] = symbol }
             statement = .guardStatement(node.condition, otherwise: otherwise)
-        case .returnStatement(var value):
-            guard let context = returns.last else { return }
-            if value != nil {
-                if context.declared == .void {
-                    throw TypeError(
-                        "a function without '->' returns nothing, so 'return' takes no value"
-                    )
-                }
-                if let declared = context.declared {
-                    try expect(&value!, declared, "the returned value")
-                } else {
-                    context.seen.append(try typeOf(&value!))
-                }
-            } else if let declared = context.declared, declared != .void, declared != .unknown,
-                declared != .optional(.void)
-            {
-                throw TypeError("this function must return \(declared)")
-            }
-            statement = .returnStatement(value)
+        case .returnStatement(let value):
+            var checked = value
+            try checkReturn(&checked)
+            statement = .returnStatement(checked)
         case .fallthroughStatement, .breakStatement, .continueStatement, .extensionDecl:
             break
         case .deferBlock(var body):
@@ -287,7 +211,97 @@ extension TypeChecker {
             preconditionFailure("this was sent to the wrong group")
         }
     }
-    // swiftlint:enable function_body_length
+
+    /// `do { … } catch …`: the body is checked with what its clauses catch, and each clause with what it binds.
+    private func checkDoCatch(_ body: inout Program, _ clauses: inout [SwitchCase]) throws {
+        // It handles what its body throws if a clause catches anything.
+        let catchesAll = clauses.contains {
+            $0.guardExpr == nil
+                && ($0.patterns.isEmpty || $0.patterns.contains(where: \.catchesAll))
+        }
+        errorContexts.append(
+            ErrorContext(
+                handled: catchesAll || errorContexts.last!.handled,
+                boundary: errorContexts.last!.boundary,
+                thrown: catchesAll ? nil : errorContexts.last!.thrown
+            )
+        )
+        let seenBefore = thrownSeen.count
+        let sitesBefore = throwingSites
+        try checkBlock(&body, newScope: true)
+        errorContexts.removeLast()
+        // What a `catch` that catches everything handles doesn't make the closure around it
+        // throw.
+        if catchesAll { throwingSites = sitesBefore }
+        // What the body throws is one type, if every call in it says so (`throws(E)`).
+        let seen = Array(thrownSeen[seenBefore...])
+        var errorType = TypeAnnotation.named("Error")
+        if let first = seen.first, let type = first, seen.allSatisfy({ $0 == type }) {
+            errorType = type
+        }
+        if catchesAll { thrownSeen.removeSubrange(seenBefore...) }
+        for index in clauses.indices {
+            var bound: [String: ScopeEntry] = [:]
+            if clauses[index].patterns.isEmpty {
+                bound["error"] = .variable(errorType, mutable: false)
+            } else {
+                try checkPattern(
+                    &clauses[index].patterns[0],
+                    against: errorType,
+                    binding: &bound
+                )
+            }
+            scopes.append(bound)
+            defer { scopes.removeLast() }
+            if clauses[index].guardExpr != nil {
+                try expect(&clauses[index].guardExpr!, .bool, "a catch's 'where'")
+            }
+            try checkBlock(&clauses[index].body, newScope: true)
+        }
+
+    }
+
+    /// `throw value`: an error, or in a `throws(E)` function an E.
+    private func checkThrow(_ value: inout Expr) throws {
+        // In a `throws(E)` function, what is thrown is an E (so `throw .bad` names its case).
+        if let thrown = errorContexts.last?.thrown {
+            try expect(&value, thrown, "what this function throws")
+            throwingSites += 1
+            thrownSeen.append(thrown)
+            try checkHandled("throw")
+            return
+        }
+        let type = try typeOf(&value)
+        guard conforms(type, to: "Error") else {
+            throw TypeError(
+                "only an Error can be thrown, and \(type) isn't one: declare it ': Error'"
+            )
+        }
+        throwingSites += 1
+        thrownSeen.append(nil)
+        try checkHandled("throw")
+    }
+
+    /// `return value` against what the function says it returns.
+    private func checkReturn(_ value: inout Expr?) throws {
+        guard let context = returns.last else { return }
+        if value != nil {
+            if context.declared == .void {
+                throw TypeError(
+                    "a function without '->' returns nothing, so 'return' takes no value"
+                )
+            }
+            if let declared = context.declared {
+                try expect(&value!, declared, "the returned value")
+            } else {
+                context.seen.append(try typeOf(&value!))
+            }
+        } else if let declared = context.declared, declared != .void, declared != .unknown,
+            declared != .optional(.void)
+        {
+            throw TypeError("this function must return \(declared)")
+        }
+    }
 
     /// `for try await x in s`: s must be an AsyncSequence, read where `await`
     /// may be written, and its reading throws (all of Swiit's do).
