@@ -66,16 +66,15 @@ extension Interpreter {
     private func declareMembers(of decl: EnumDecl, on type: Value.EnumCase.Enumeration) throws {
         let enumType = EnumType(type)
         enumTypes[ObjectIdentifier(type)] = enumType
-        try fill(
-            enumType.members,
-            of: decl.name,
+        var source = StructDecl(
+            name: decl.name,
             properties: decl.properties,
             methods: decl.methods,
-            staticProperties: decl.staticProperties,
-            staticMethods: decl.staticMethods,
-            initializers: decl.initializers,
-            subscripts: []
+            initializers: decl.initializers
         )
+        source.staticProperties = decl.staticProperties
+        source.staticMethods = decl.staticMethods
+        try fill(enumType.members, of: decl.name, from: source)
     }
 
     /// What an enum a program declared adds to its cases: nil for a host's enum, which adds nothing.

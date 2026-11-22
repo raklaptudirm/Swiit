@@ -20,169 +20,54 @@ final class TypeMembers {
 }
 
 extension Interpreter {
-    // swiftlint:disable function_body_length function_parameter_count - a long walk over every case; it threads one state through; splitting it is item 25 of Docs/agenda.md
     /// Builds the functions of a type's declared members into `members`, adding to what is there.
-    func fill(
-        _ members: TypeMembers,
-        of name: String,
-        properties: [PropertyDecl],
-        methods: [FunctionDecl],
-        staticProperties: [PropertyDecl],
-        staticMethods: [FunctionDecl],
-        initializers: [FunctionDecl],
-        subscripts: [SubscriptDecl]
-    ) throws {
-        members.staticProperties += staticProperties
-        for property in properties {
-            guard let getter = property.getter else { continue }
-            members.computed[property.name] = Function(
-                name: property.name,
-                parameters: [],
-                returnType: property.type,
-                body: .swiit(getter),
-                captured: captureScopes(property.getterNames)
-            )
-            if let setter = property.setter {
-                members.setters[property.name] = Function(
-                    name: property.name,
-                    parameters: [Parameter(name: property.setterName, type: property.type ?? .any)],
-                    returnType: nil,
-                    body: .swiit(setter),
-                    captured: captureScopes(property.setterNames),
-                    isMutating: true
-                )
-            }
-        }
-        func add(_ functions: [Function], to table: inout [String: OverloadSet]) {
-            for function in functions {
-                let existing = table[function.name!]?.candidates ?? []
-                table[function.name!] = OverloadSet(
-                    name: function.name!,
-                    candidates: existing + [function]
-                )
-            }
-        }
-        add(
-            methods.map { method in
-                Function(
-                    name: method.name,
-                    parameters: method.parameters,
-                    returnType: method.returnType,
-                    body: .swiit(method.body),
-                    captured: captureScopes(method.names),
-                    documentation: method.documentation,
-                    attributes: method.attributes,
-                    isMutating: method.isMutating,
-                    isThrowing: method.isThrowing
-                )
-            },
+    func fill(_ members: TypeMembers, of name: String, from source: StructDecl) throws {
+        members.staticProperties += source.staticProperties
+        members.computed.merge(computedProperties(of: source.properties)) { _, new in new }
+
+        // A type that is not a class has no stored properties to observe here.
+        _ = declareSettersAndObservers(source.properties, in: members)
+
+        append(
+            overloads(of: source.methods, honorsMutating: true) { .swiit($0.body) },
             to: &members.methods
         )
-        for property in staticProperties {
-            guard let getter = property.getter else { continue }
-            members.staticComputed[property.name] = Function(
-                name: property.name,
-                parameters: [],
-                returnType: property.type,
-                body: .swiit(getter),
-                captured: captureScopes(property.getterNames)
-            )
+        members.staticComputed.merge(staticFunctions(of: source.staticProperties).getters) {
+            _,
+            new in new
         }
-        add(
-            staticMethods.map { method in
-                Function(
-                    name: method.name,
-                    parameters: method.parameters,
-                    returnType: method.returnType,
-                    body: .swiit(method.body),
-                    captured: captureScopes(method.names),
-                    documentation: method.documentation,
-                    attributes: method.attributes,
-                    isThrowing: method.isThrowing
-                )
-            },
-            to: &members.staticMethods
-        )
-        let made = initializers.map { initializer in
-            Function(
-                name: "\(name).init",
-                parameters: initializer.parameters,
-                returnType: nil,
-                body: .swiit(initializer.body),
-                captured: captureScopes(initializer.names),
-                documentation: initializer.documentation,
-                isMutating: true,
-                isThrowing: initializer.isThrowing,
-                isFailable: initializer.isFailable
-            )
-        }
+        append(overloads(of: source.staticMethods) { .swiit($0.body) }, to: &members.staticMethods)
+
+        let made = initializerFunctions(of: source.initializers, in: name)
         if !made.isEmpty {
             members.initializers = OverloadSet(
                 name: "\(name).init",
                 candidates: (members.initializers?.candidates ?? []) + made
             )
         }
-        for declared in subscripts {
-            members.subscriptGetters.append(
-                Function(
-                    name: "subscript",
-                    parameters: declared.parameters,
-                    returnType: declared.returnType,
-                    body: .swiit(declared.getter),
-                    captured: captureScopes(declared.getterNames)
-                )
-            )
-            members.subscriptSetters.append(
-                declared.setter.map { setter in
-                    Function(
-                        name: "subscript",
-                        parameters: declared.parameters + [
-                            Parameter(name: declared.setterName, type: declared.returnType)
-                        ],
-                        returnType: nil,
-                        body: .swiit(setter),
-                        captured: captureScopes(declared.setterNames),
-                        isMutating: true
-                    )
-                }
-            )
-        }
+
+        declareSubscripts(source.subscripts, in: members)
+
         // Static values, which may be of the type itself, which is declared by now.
-        for property in staticProperties where property.getter == nil {
-            guard let expr = property.defaultValue else { continue }
-            var value = try evaluate(expr, expecting: property.type)
-            if let expected = property.type {
-                guard let conforming = conform(value, to: expected) else {
-                    throw RuntimeError(
-                        "\(name).\(property.name) must be \(expected), not \(value.typeName)"
-                    )
-                }
-                value = conforming
-            }
-            members.statics[property.name] = StructType.StaticValue(
-                value,
-                mutable: property.mutable
+        try evaluateStaticValues(source.staticProperties, in: members, named: name)
+    }
+
+    /// Adds overloads to a table, after those it already has under the same name.
+    private func append(_ added: [String: OverloadSet], to table: inout [String: OverloadSet]) {
+        for (name, set) in added {
+            table[name] = OverloadSet(
+                name: name,
+                candidates: (table[name]?.candidates ?? []) + set.candidates
             )
         }
     }
-    // swiftlint:enable function_body_length function_parameter_count
 
     /// `extension Int { … }`: members and protocols added to a type, by its name.
     func declare(_ decl: ExtensionDecl) throws {
         let members = typeExtensions[decl.typeName] ?? TypeMembers()
         typeExtensions[decl.typeName] = members
         members.conformances += decl.conformances
-        let source = decl.members
-        try fill(
-            members,
-            of: decl.typeName,
-            properties: source.properties,
-            methods: source.methods,
-            staticProperties: source.staticProperties,
-            staticMethods: source.staticMethods,
-            initializers: source.initializers,
-            subscripts: source.subscripts
-        )
+        try fill(members, of: decl.typeName, from: decl.members)
     }
 
     /// What names a value's type: `Int`, a struct's own name, `Array`.
