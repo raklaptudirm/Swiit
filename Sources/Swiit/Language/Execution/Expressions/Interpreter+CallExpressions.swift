@@ -92,13 +92,13 @@ extension Interpreter {
         }
     }
 
-    // swiftlint:disable cyclomatic_complexity function_body_length - one branch for each case; a long walk over every case; splitting it is item 25 of Docs/agenda.md
     /// A call: the callee's overload, a struct or enum made, or a function run.
     func evaluateCall(_ callee: Expr, _ arguments: [Argument]) throws -> Value {
         // A generic function whose body names its type parameters: this call's, bound for it.
         if case .specialized = callee {
             return try evaluateCall(.literal(try evaluate(callee)), arguments)
         }
+
         // The overload the checker chose, when there's a choice.
         var callee = callee
         var overload: Int?
@@ -106,122 +106,184 @@ extension Interpreter {
             callee = inner
             overload = index
         }
+
         let value: Value
-        // `x?.f()`: nothing when `x` is nil.
         if case .optionalMember(let baseExpr, let name) = callee {
+            // `x?.f()`: nothing when `x` is nil.
             let base = try evaluate(baseExpr)
             if base == .nothing { return .nothing }
             return try evaluate(.call(.member(.literal(base), name), arguments))
-        }
-        if case .member(let baseExpr, let name) = callee {
-            // `super.describe()`, `super.init(…)`: above the class whose body this is.
-            if case .variable("super") = baseExpr {
-                return try callSuperMethod(name, arguments, overload: overload)
+        } else if case .member(let baseExpr, let name) = callee {
+            switch try evaluateMemberCall(baseExpr, name, arguments, overload: overload) {
+            case .result(let result): return result
+            case .callee(let member): value = member
             }
-            let base = try evaluate(baseExpr)
-            // `self.init(…)` in a convenience initializer.
-            if name == "init", case .object(let instance as ClassInstance) = base.storage {
-                try delegateInitializer(
-                    of: instance,
-                    in: task.owners.last ?? instance.type,
-                    arguments,
-                    isSuper: false
-                )
-                return .nothing
-            }
-            // `obj.move(by: 1)`: the method of the instance's own class, or one it inherits.
-            if case .object(let instance as ClassInstance) = base.storage,
-                let result = try callClassMethod(instance, name, arguments, overload: overload)
-            {
-                return result
-            }
-            // `Counter.make()`: a static or class method, inherited ones too.
-            if case .object(let type as ClassType) = base.storage {
-                for next in type.chain {
-                    if let methods = next.members.staticMethods[name] {
-                        return try callStatic(narrowed(methods, overload), arguments)
-                    }
-                }
-            }
-            // `self.init(x: 1)`: another initializer makes the value.
-            if name == "init", let record = base.record, let type = structType(of: record) {
-                let made = try construct(type, arguments, overload: overload)
-                try assign(Assignment(root: "self", path: [], op: nil, value: .literal(made)))
-                return .nothing
-            }
-            // `Level.make()`: a static method of an enum.
-            if case .object(let type as Value.EnumCase.Enumeration) = base.storage,
-                let methods = enumMembers(of: type)?.staticMethods[name]
-            {
-                return try callStatic(narrowed(methods, overload), arguments)
-            }
-            // `P.make()`, `Int.make()`: a static method an extension adds to a type.
-            if let typeName = declaredTypeName(of: base),
-                let methods = typeExtensions[typeName]?.staticMethods[name]
-            {
-                return try callStatic(narrowed(methods, overload), arguments)
-            }
-            // `Result.failed(code: 2)`: a case with associated values.
-            if case .object(let type as Value.EnumCase.Enumeration) = base.storage {
-                return try makeCase(type, name, arguments)
-            }
-            // `direction.opposite()`: an enum's method, with the case as `self`.
-            if case .enumValue(let enumValue) = base.storage,
-                let methods = enumMembers(of: enumValue.type)?.methods[name]
-            {
-                return try callMethod(
-                    narrowed(methods, overload),
-                    of: base,
-                    at: baseExpr,
-                    arguments
-                )
-            }
-            // `Point.make(1)`: a static method.
-            if case .object(let type as StructType) = base.storage,
-                let methods = type.members.staticMethods[name]
-            {
-                return try callStatic(narrowed(methods, overload), arguments)
-            }
-            // `p.move(by: 1)`: a struct's method, with `p` as `self`.
-            if let record = base.record, record[name] == nil,
-                let type = structType(of: record),
-                let methods = type.members.methods[name]
-            {
-                return try callMethod(
-                    narrowed(methods, overload),
-                    of: base,
-                    at: baseExpr,
-                    arguments
-                )
-            }
-            // `x.double()`: a method an extension adds, or a protocol's default, after the type's
-            // own.
-            if let methods = extensionMethods(name, of: base) {
-                return try callMethod(
-                    narrowed(methods, overload),
-                    of: base,
-                    at: baseExpr,
-                    arguments
-                )
-            }
-            // `xs.sorted(by: "size")`: a sequence's method.
-            if let methods = sequenceMethods[name], let items = base.sequenceItems {
-                return try callSequenceMethod(narrowed(methods, overload), on: items, arguments)
-            }
-            value = try member(name, of: base)
         } else {
             value = try evaluate(callee)
         }
-        // `Point(x: 1, y: 2)`: a new struct.
-        if case .object(let type as StructType) = value.storage {
-            return try construct(type, arguments, overload: overload)
+
+        if let made = try construct(from: value, arguments, overload: overload) {
+            return made
         }
-        // `Dog(name: "Rex")`: a new instance.
-        if case .object(let type as ClassType) = value.storage {
-            return try construct(type, arguments, overload: overload)
+        return try invokeValue(value, callee: callee, arguments, overload: overload)
+    }
+
+    /// What calling `base.name(…)` came to: the call's result, or, when no method answers, the
+    /// member to call as a value.
+    private enum MemberCall {
+        case result(Value)
+        case callee(Value)
+    }
+
+    private func evaluateMemberCall(
+        _ baseExpr: Expr,
+        _ name: String,
+        _ arguments: [Argument],
+        overload: Int?
+    ) throws -> MemberCall {
+        // `super.describe()`, `super.init(…)`: above the class whose body this is.
+        if case .variable("super") = baseExpr {
+            return .result(try callSuperMethod(name, arguments, overload: overload))
         }
-        // `Level(rawValue: 2)`: the case with that raw value, or nil.
-        if case .object(let type as Value.EnumCase.Enumeration) = value.storage {
+
+        let base = try evaluate(baseExpr)
+        if let result = try callOnTypeOrInstance(base, name, arguments, overload: overload) {
+            return .result(result)
+        }
+        if let result = try callOnValue(
+            base,
+            at: baseExpr,
+            name,
+            arguments,
+            overload: overload
+        ) {
+            return .result(result)
+        }
+        return .callee(try member(name, of: base))
+    }
+
+    /// A call on a class instance, or on a type: an initializer, a static method, a case.
+    private func callOnTypeOrInstance(
+        _ base: Value,
+        _ name: String,
+        _ arguments: [Argument],
+        overload: Int?
+    ) throws -> Value? {
+        // `self.init(…)` in a convenience initializer.
+        if name == "init", case .object(let instance as ClassInstance) = base.storage {
+            try delegateInitializer(
+                of: instance,
+                in: task.owners.last ?? instance.type,
+                arguments,
+                isSuper: false
+            )
+            return .nothing
+        }
+
+        // `obj.move(by: 1)`: the method of the instance's own class, or one it inherits.
+        if case .object(let instance as ClassInstance) = base.storage,
+            let result = try callClassMethod(instance, name, arguments, overload: overload)
+        {
+            return result
+        }
+
+        // `Counter.make()`: a static or class method, inherited ones too.
+        if case .object(let type as ClassType) = base.storage {
+            for next in type.chain {
+                if let methods = next.members.staticMethods[name] {
+                    return try callStatic(narrowed(methods, overload), arguments)
+                }
+            }
+        }
+
+        // `self.init(x: 1)`: another initializer makes the value.
+        if name == "init", let record = base.record, let type = structType(of: record) {
+            let made = try construct(type, arguments, overload: overload)
+            try assign(Assignment(root: "self", path: [], op: nil, value: .literal(made)))
+            return .nothing
+        }
+
+        // `Level.make()`: a static method of an enum.
+        if case .object(let type as Value.EnumCase.Enumeration) = base.storage,
+            let methods = enumMembers(of: type)?.staticMethods[name]
+        {
+            return try callStatic(narrowed(methods, overload), arguments)
+        }
+
+        // `P.make()`, `Int.make()`: a static method an extension adds to a type.
+        if let typeName = declaredTypeName(of: base),
+            let methods = typeExtensions[typeName]?.staticMethods[name]
+        {
+            return try callStatic(narrowed(methods, overload), arguments)
+        }
+
+        // `Result.failed(code: 2)`: a case with associated values.
+        if case .object(let type as Value.EnumCase.Enumeration) = base.storage {
+            return try makeCase(type, name, arguments)
+        }
+
+        // `Point.make(1)`: a static method.
+        if case .object(let type as StructType) = base.storage,
+            let methods = type.members.staticMethods[name]
+        {
+            return try callStatic(narrowed(methods, overload), arguments)
+        }
+        return nil
+    }
+
+    /// A method call on a value: an enum's, a struct's, one an extension adds, a sequence's.
+    private func callOnValue(
+        _ base: Value,
+        at baseExpr: Expr,
+        _ name: String,
+        _ arguments: [Argument],
+        overload: Int?
+    ) throws -> Value? {
+        // `direction.opposite()`: an enum's method, with the case as `self`.
+        if case .enumValue(let enumValue) = base.storage,
+            let methods = enumMembers(of: enumValue.type)?.methods[name]
+        {
+            return try callMethod(narrowed(methods, overload), of: base, at: baseExpr, arguments)
+        }
+
+        // `p.move(by: 1)`: a struct's method, with `p` as `self`.
+        if let record = base.record, record[name] == nil,
+            let type = structType(of: record),
+            let methods = type.members.methods[name]
+        {
+            return try callMethod(narrowed(methods, overload), of: base, at: baseExpr, arguments)
+        }
+
+        // `x.double()`: a method an extension adds, or a protocol's default, after the type's own.
+        if let methods = extensionMethods(name, of: base) {
+            return try callMethod(narrowed(methods, overload), of: base, at: baseExpr, arguments)
+        }
+
+        // `xs.sorted(by: "size")`: a sequence's method.
+        if let methods = sequenceMethods[name], let items = base.sequenceItems {
+            return try callSequenceMethod(narrowed(methods, overload), on: items, arguments)
+        }
+        return nil
+    }
+
+    /// `Point(x: 1, y: 2)`, `Dog(name: "Rex")`, `Level(rawValue: 2)`: the value a call makes when
+    /// its callee is a type. Nil when the callee is not one.
+    private func construct(
+        from value: Value,
+        _ arguments: [Argument],
+        overload: Int?
+    ) throws
+        -> Value?
+    {
+        switch value.storage {
+        case .object(let type as StructType):
+            return try construct(type, arguments, overload: overload)
+
+        case .object(let type as ClassType):
+            return try construct(type, arguments, overload: overload)
+
+        case .object(let type as Value.EnumCase.Enumeration):
+            // The case with that raw value, or nil.
             if !(arguments.count == 1 && arguments[0].label == "rawValue"),
                 let initializers = enumMembers(of: type)?.initializers
             {
@@ -234,44 +296,62 @@ extension Interpreter {
             }
             return type.case(rawValue: try evaluate(arguments[0].value)).map(Value.enumValue)
                 ?? .nothing
-        }
-        if case .object(let type as NativeTypeName) = value.storage {
+
+        case .object(let type as NativeTypeName):
             return try constructBridged(type, arguments)
+
+        default:
+            return nil
         }
+    }
+
+    /// A call to a function value: a function, an overload set or a key path.
+    private func invokeValue(
+        _ value: Value,
+        callee: Expr,
+        _ arguments: [Argument],
+        overload: Int?
+    ) throws -> Value {
         // A function's type has no argument labels: called through a variable, a function takes
         // its arguments in order, whatever it was declared with.
         var arguments = arguments
         if !isDeclaredFunctionName(callee) { arguments = unlabeled(arguments, for: value) }
         if let result = try callPlainly(value, arguments) { return result }
+
         // `.case` arguments wait for their parameter's type.
-        let values = try arguments.map { argument -> Argument in
-            if case .caseLiteral = argument.value { return argument }
-            return Argument(label: argument.label, value: .literal(try evaluate(argument.value)))
-        }
+        let values = try evaluatedArguments(arguments)
         switch value.storage {
         case .function(let set as OverloadSet):
             let (function, bindings) = try resolve(narrowed(set, overload)) {
                 try self.bind(values, to: $0)
             }
             return try invoke(function, with: bindings)
+
         case .function(let function as Function):
             return try invoke(function, with: try bind(values, to: function).bindings)
+
         case .function(let keyPath as KeyPathValue):
             guard values.count == 1 else { throw RuntimeError("a key path reads one value") }
             return try keyPath.read(from: try evaluate(values[0].value), in: self)
+
         default:
             throw RuntimeError("\(value.typeName) isn't a function")
         }
     }
-    // swiftlint:enable cyclomatic_complexity function_body_length
+
+    /// The arguments of a call, evaluated, except a `.case` literal, which waits for the type of
+    /// its parameter.
+    private func evaluatedArguments(_ arguments: [Argument]) throws -> [Argument] {
+        try arguments.map { argument in
+            if case .caseLiteral = argument.value { return argument }
+            return Argument(label: argument.label, value: .literal(try evaluate(argument.value)))
+        }
+    }
 
     /// `String(n)` in a body nothing has checked (a type a host declared): the checker chooses the
     /// initializer, for the values the call is given.
     private func constructBridged(_ type: NativeTypeName, _ arguments: [Argument]) throws -> Value {
-        let given = try arguments.map { argument -> Argument in
-            if case .caseLiteral = argument.value { return argument }
-            return Argument(label: argument.label, value: .literal(try evaluate(argument.value)))
-        }
+        let given = try evaluatedArguments(arguments)
         var call = Expr.call(.variable(type.name), given)
         do { _ = try TypeChecker(interpreter: self).typeOf(&call) } catch let error as TypeError {
             throw RuntimeError(error.message)
