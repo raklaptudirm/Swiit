@@ -146,6 +146,9 @@ extension Interpreter {
         return values
     }
 
+    /// The reference a type `check` reads has: the one reserved for it.
+    fileprivate func reservedRef(_ name: String) -> TypeRef { reservedRefs[name] ?? .declare(name) }
+
     func declaredSymbols(of name: String, _ symbol: TypeChecker.ScopeEntry) -> [Symbol] {
         switch symbol {
         case .functions(let signatures):
@@ -164,11 +167,13 @@ extension Interpreter {
             }
         // A type the source being checked declares: nothing is declared under its reference yet.
         case .structType:
-            return [.type(Symbol.Nominal(name: name, kind: .structure, typeRef: .declare(name)))]
+            return [.type(Symbol.Nominal(name: name, kind: .structure, typeRef: reservedRef(name)))]
         case .enumType:
-            return [.type(Symbol.Nominal(name: name, kind: .enumeration, typeRef: .declare(name)))]
+            return [
+                .type(Symbol.Nominal(name: name, kind: .enumeration, typeRef: reservedRef(name)))
+            ]
         case .protocolType:
-            return [.type(Symbol.Nominal(name: name, kind: .protocol, typeRef: .declare(name)))]
+            return [.type(Symbol.Nominal(name: name, kind: .protocol, typeRef: reservedRef(name)))]
         case .variable(let type, let mutable):
             return [
                 .variable(

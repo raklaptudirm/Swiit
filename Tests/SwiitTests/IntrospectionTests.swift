@@ -308,3 +308,34 @@ extension Symbol {
         if case .method(let method) = self { method } else { nil }
     }
 }
+
+@Test func theSymbolsOfCheckedSourceNameItsTypesByOneReference() throws {
+    let swiit = interpreter()
+    let declared = try swiit.check(
+        """
+        struct Point { var x = 0; func moved() -> Point { self } }
+        enum Kind { case a }
+        func f(_ p: Point, _ k: Kind) -> [Point] { [p] }
+        """
+    )
+    func reference(_ name: String) -> TypeRef? {
+        for case .type(let type) in declared.symbols where type.name == name { return type.typeRef }
+        return nil
+    }
+    let point = try #require(reference("Point"))
+    let kind = try #require(reference("Kind"))
+    guard case .function(let function)? = declared.symbols.first(where: { $0.name == "f" }) else {
+        Issue.record("f is not a function")
+        return
+    }
+    let parameters = function.signature.parameters.map(\.type)
+
+    #expect(parameters == [.named(point), .named(kind)])
+    #expect(function.signature.returns == .list(.named(point)))
+    guard case .method(let moved)? = declared.members["Point"]?.first(where: { $0.name == "moved" })
+    else {
+        Issue.record("moved is not a method")
+        return
+    }
+    #expect(moved.signature.returns == .named(point))
+}

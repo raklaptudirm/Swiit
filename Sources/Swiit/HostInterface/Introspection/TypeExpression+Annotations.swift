@@ -75,7 +75,9 @@ extension Interpreter {
     /// The type an annotation names, with the names of declared types as their declarations' IDs.
     func typeExpression(_ annotation: TypeAnnotation) -> TypeExpression {
         TypeExpression(annotation) { name in
-            guard case .object(let object)? = self.lookup(name)?.value.storage else { return nil }
+            guard case .object(let object)? = self.lookup(name)?.value.storage else {
+                return self.reservedRefs[name]
+            }
             return (object as? any DeclaredType)?.typeRef
         }
     }

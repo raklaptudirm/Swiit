@@ -40,6 +40,9 @@ public final class Interpreter: @unchecked Sendable {
     let pendingDeinits = Mutex<[ClassInstance]>([])
     // safe: a hint, set holding `pendingDeinits`; a stale read only delays a `deinit` by a statement
     nonisolated(unsafe) var hasPendingDeinits = false
+    /// While `check` reads a program, the reference each type it declares will have: the symbols
+    /// that name one share it, as they cannot share a declaration that does not exist yet.
+    var reservedRefs: [String: TypeRef] = [:]
     /// The Swift types scripts can use, by the name they are written with: the core's, and those
     /// this interpreter's host has registered. Another interpreter's registrations are not here.
     var bridged: [String: ImplementedType] = Bridge.core
