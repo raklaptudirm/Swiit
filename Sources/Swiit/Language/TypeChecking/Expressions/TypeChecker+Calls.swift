@@ -3,112 +3,217 @@ import Foundation
 extension TypeChecker {
     // MARK: Calls
 
-    // swiftlint:disable:next cyclomatic_complexity function_body_length - one branch for each case; a long walk over every case; splitting it is item 25 of Docs/agenda.md
     func callType(
         _ callee: inout Expr,
         _ arguments: inout [Argument],
         expected: TypeAnnotation?
     ) throws -> TypeAnnotation {
-        // A call typed before, which named the overload it chose (an argument is typed more than
-        // once, by each candidate of the call it is in): typed again as that one, so what choosing
-        // it asks of the call (an `await`, a `try`) is asked again.
+        if let result = try typeOfChosenCall(&callee, &arguments, expected: expected) {
+            return result
+        }
+
+        if case .variable(let name) = callee, let symbol = lookup(name),
+            let result = try typeOfNamedCall(name, symbol, &callee, &arguments, expected: expected)
+        {
+            return result
+        }
+
+        if let result = try typeOfStaticCall(&callee, &arguments) {
+            return result
+        }
+
+        // `x?.f()`: the method's result, or nil.
+        if case .optionalMember(var baseExpr, let name) = callee {
+            let wrapped = try optionalBase(&baseExpr)
+            var member = Expr.member(.annotated(.literal(.nothing), .optional(wrapped)), name)
+            let result = try methodCallType(wrapped, baseExpr: baseExpr, name, &member, &arguments)
+
+            // A bridged method on nil is nil (runBridged checks).
+            if case .bridged = member {
+                callee = member
+            } else {
+                callee = .optionalMember(baseExpr, name)
+            }
+            if case .optional = result { return result }
+            return result == .unknown || result == .void ? result : .optional(result)
+        }
+
+        if case .member(var baseExpr, let name) = callee {
+            // `Result.failed(code: 2)`: a case with associated values.
+            if case .variable(let typeName) = baseExpr, case .enumType(let info)? = lookup(typeName)
+            {
+                var payload: [Argument]? = arguments
+                var wanted = TypeAnnotation.named(info.name)
+                if case .generic(info.name, _)? = expected { wanted = expected! }
+                let type = try caseType(name, &payload, expected: wanted)
+                arguments = payload ?? []
+                return type
+            }
+
+            let base = try typeOf(&baseExpr)
+            callee = .member(baseExpr, name)
+            try actorSite(base, baseExpr, name)
+            return try methodCallType(base, baseExpr: baseExpr, name, &callee, &arguments)
+        }
+
+        // In a type's body, a call to a name that isn't bound may be to the type's own method.
+        if case .variable(let name) = callee, lookup(name) == nil,
+            case .variable(let selfType, _)? = lookup("self"),
+            hasMember(selfType, named: name)
+        {
+            callee = .member(.variable("self"), name)
+            return try callType(&callee, &arguments, expected: expected)
+        }
+
+        // `ls()` with no `ls`: a function that isn't there, not a variable.
+        if case .variable(let name) = callee, lookup(name) == nil {
+            throw TypeError("no function named '\(name)'")
+        }
+
+        let type = try typeOf(&callee)
+
+        // `f(x)` where f's type has `callAsFunction`: that method is called.
+        if case .named(let typeName) = type, let info = structInfo(named: typeName),
+            info.declared.methods["callAsFunction"] != nil
+        {
+            var method = Expr.member(callee, "callAsFunction")
+            let result = try callType(&method, &arguments, expected: expected)
+            callee = method
+            return result
+        }
+
+        if case .variable(let name) = callee { return try apply(type, &arguments, name: name) }
+        return try apply(type, &arguments, name: "the function")
+    }
+
+    /// A call typed before, which named the overload it chose (an argument is typed more than
+    /// once, by each candidate of the call it is in): typed again as that one, so what choosing it
+    /// asks of the call (an `await`, a `try`) is asked again. Nil for any other call.
+    private func typeOfChosenCall(
+        _ callee: inout Expr,
+        _ arguments: inout [Argument],
+        expected: TypeAnnotation?
+    ) throws -> TypeAnnotation? {
         var written = callee
         var types: [TypeArgument]?
         if case .specialized(let inner, let given) = written {
             written = inner
             types = given
         }
-        if case .chosen(let inner, let overload) = written, case .variable(let name) = inner,
+
+        guard case .chosen(let inner, let overload) = written, case .variable(let name) = inner,
             case .functions(let overloads)? = lookup(name)
-        {
-            let narrowed = overloads.filter { $0.index == overload }
-            if !narrowed.isEmpty {
-                var plain = inner
-                let result = try call(
-                    narrowed,
-                    callee: &plain,
-                    &arguments,
-                    name: name,
-                    expected: expected
-                )
-                if case .specialized(let named, let solved) = plain {
-                    callee = .specialized(.chosen(named, overload: overload), solved)
-                } else if let types {
-                    callee = .specialized(.chosen(plain, overload: overload), types)
-                } else {
-                    callee = .chosen(plain, overload: overload)
-                }
-                return result
+        else {
+            return nil
+        }
+        let narrowed = overloads.filter { $0.index == overload }
+        if narrowed.isEmpty { return nil }
+
+        var plain = inner
+        let result = try call(narrowed, callee: &plain, &arguments, name: name, expected: expected)
+        if case .specialized(let named, let solved) = plain {
+            callee = .specialized(.chosen(named, overload: overload), solved)
+        } else if let types {
+            callee = .specialized(.chosen(plain, overload: overload), types)
+        } else {
+            callee = .chosen(plain, overload: overload)
+        }
+        return result
+    }
+
+    /// `Point(x: 1)`, `Level(rawValue: 2)`, `f(x)`: a call to a name the scope binds. Nil when the
+    /// name is bound to something a call does not go through.
+    private func typeOfNamedCall(
+        _ name: String,
+        _ symbol: ScopeEntry,
+        _ callee: inout Expr,
+        _ arguments: inout [Argument],
+        expected: TypeAnnotation?
+    ) throws -> TypeAnnotation? {
+        switch symbol {
+        case .structType:
+            // What an extension adds goes after the type's own.
+            guard let description = describe(named: name) else { return nil }
+            let chosen = try resolve(description.initializers, &arguments, name: name)
+            if let chosen, description.namesItsInitializers {
+                callee = .chosen(callee, overload: chosen.index)
             }
+            if let chosen, chosen.isThrowing { try throwingSite("\(name).init") }
+            if let chosen { try effectSite(chosen.effect, "\(name).init") }
+            return chosen?.returns ?? .named(name)
+
+        case .enumType(let info):
+            return try typeOfEnumConstruction(info, &callee, &arguments)
+
+        case .functions(let overloads):
+            return try call(overloads, callee: &callee, &arguments, name: name, expected: expected)
+
+        case .swiftType(let typeName):
+            // `String(sub)`: an initializer.
+            let (type, bridgedExpr) = try bridgedCall(
+                typeName,
+                kind: .initializer,
+                isStatic: true,
+                receiver: nil,
+                bindings: [:],
+                name: "init",
+                &arguments
+            )
+            callee = bridgedExpr
+            return type
+
+        default:
+            return nil
         }
-        // `Point(x: 1)`, `Level(rawValue: 2)`, `f(x)`.
-        if case .variable(let name) = callee, let symbol = lookup(name) {
-            switch symbol {
-            case .structType:
-                // What an extension adds goes after the type's own.
-                guard let description = describe(named: name) else { break }
-                let chosen = try resolve(description.initializers, &arguments, name: name)
-                if let chosen, description.namesItsInitializers {
-                    callee = .chosen(callee, overload: chosen.index)
-                }
-                if let chosen, chosen.isThrowing { try throwingSite("\(name).init") }
-                if let chosen { try effectSite(chosen.effect, "\(name).init") }
-                return chosen?.returns ?? .named(name)
-            case .enumType(let info):
-                // An `init` the enum declares.
-                if !info.initializers.isEmpty,
-                    !(arguments.count == 1 && arguments[0].label == "rawValue")
-                {
-                    let chosen = try resolve(info.initializers, &arguments, name: name)
-                    if let chosen, info.initializers.count > 1 {
-                        callee = .chosen(callee, overload: chosen.index)
-                    }
-                    if let chosen, chosen.isThrowing { try throwingSite("\(name).init") }
-                    return chosen?.returns ?? .named(name)
-                }
-                guard arguments.count == 1, arguments[0].label == "rawValue" else {
-                    throw TypeError("\(name) is made from a raw value: \(name)(rawValue: …)")
-                }
-                guard let rawType = info.rawType else {
-                    throw TypeError("\(name) has no raw values")
-                }
-                try expect(&arguments[0].value, rawType, "the raw value")
-                return .optional(.named(name))
-            case .functions(let overloads):
-                return try call(
-                    overloads,
-                    callee: &callee,
-                    &arguments,
-                    name: name,
-                    expected: expected
-                )
-            case .swiftType(let typeName):
-                // `String(sub)`: an initializer.
-                let (type, bridgedExpr) = try bridgedCall(
-                    typeName,
-                    kind: .initializer,
-                    isStatic: true,
-                    receiver: nil,
-                    bindings: [:],
-                    name: "init",
-                    &arguments
-                )
-                callee = bridgedExpr
-                return type
-            default:
-                break
+    }
+
+    /// `Level(rawValue: 2)`, or an `init` the enum declares.
+    private func typeOfEnumConstruction(
+        _ info: TypeProfile,
+        _ callee: inout Expr,
+        _ arguments: inout [Argument]
+    ) throws -> TypeAnnotation {
+        let name = info.name
+
+        if !info.initializers.isEmpty,
+            !(arguments.count == 1 && arguments[0].label == "rawValue")
+        {
+            let chosen = try resolve(info.initializers, &arguments, name: name)
+            if let chosen, info.initializers.count > 1 {
+                callee = .chosen(callee, overload: chosen.index)
             }
+            if let chosen, chosen.isThrowing { try throwingSite("\(name).init") }
+            return chosen?.returns ?? .named(name)
         }
-        // `Int.make()`: a static method an extension adds to a type of Swift's.
-        if case .member(.variable(let typeName), let name) = callee,
-            case .swiftType? = lookup(typeName),
-            case .methods(let methods, _)? = describe(named: typeName)?.staticMember(name)
-        {
-            return try callMember(methods, name, callee: &callee, &arguments)
+
+        guard arguments.count == 1, arguments[0].label == "rawValue" else {
+            throw TypeError("\(name) is made from a raw value: \(name)(rawValue: …)")
         }
-        if case .member(.variable(let typeName), let name) = callee,
-            case .swiftType? = lookup(typeName)
-        {
+        guard let rawType = info.rawType else {
+            throw TypeError("\(name) has no raw values")
+        }
+        try expect(&arguments[0].value, rawType, "the raw value")
+        return .optional(.named(name))
+    }
+
+    /// `Int.make()`, `Point.make(1)`, `Level.make()`: a static method of a type, its own or one
+    /// an extension adds. Nil when the callee is not one.
+    private func typeOfStaticCall(
+        _ callee: inout Expr,
+        _ arguments: inout [Argument]
+    ) throws -> TypeAnnotation? {
+        guard case .member(.variable(let typeName), let name) = callee,
+            let symbol = lookup(typeName)
+        else {
+            return nil
+        }
+
+        if case .swiftType = symbol {
+            // A static method an extension adds to a type of Swift's.
+            if case .methods(let methods, _)? = describe(named: typeName)?.staticMember(name) {
+                return try callMember(methods, name, callee: &callee, &arguments)
+            }
+
             let (type, bridgedExpr) = try bridgedCall(
                 typeName,
                 kind: .method,
@@ -121,76 +226,18 @@ extension TypeChecker {
             callee = bridgedExpr
             return type
         }
-        // `Point.make(1)`, `Level.make()`: a static method of a struct or an enum, its own or one
-        // an extension adds.
-        if case .member(.variable(let typeName), let name) = callee, let symbol = lookup(typeName),
-            {
-                if case .structType = symbol {
-                    true
-                } else if case .enumType = symbol {
-                    true
-                } else {
-                    false
-                }
-            }(),
+
+        let isDeclaredType: Bool
+        switch symbol {
+        case .structType, .enumType: isDeclaredType = true
+        default: isDeclaredType = false
+        }
+        guard isDeclaredType,
             case .methods(let methods, _)? = describe(named: typeName)?.staticMember(name)
-        {
-            return try callMember(methods, name, callee: &callee, &arguments)
+        else {
+            return nil
         }
-        // `x?.f()`: the method's result, or nil.
-        if case .optionalMember(var baseExpr, let name) = callee {
-            let wrapped = try optionalBase(&baseExpr)
-            var member = Expr.member(.annotated(.literal(.nothing), .optional(wrapped)), name)
-            let result = try methodCallType(wrapped, baseExpr: baseExpr, name, &member, &arguments)
-            // A bridged method on nil is nil (runBridged checks).
-            if case .bridged = member {
-                callee = member
-            } else {
-                callee = .optionalMember(baseExpr, name)
-            }
-            if case .optional = result { return result }
-            return result == .unknown || result == .void ? result : .optional(result)
-        }
-        if case .member(var baseExpr, let name) = callee {
-            // `Result.failed(code: 2)`: a case with associated values.
-            if case .variable(let typeName) = baseExpr, case .enumType(let info)? = lookup(typeName)
-            {
-                var payload: [Argument]? = arguments
-                var wanted = TypeAnnotation.named(info.name)
-                if case .generic(info.name, _)? = expected { wanted = expected! }
-                let type = try caseType(name, &payload, expected: wanted)
-                arguments = payload ?? []
-                return type
-            }
-            let base = try typeOf(&baseExpr)
-            callee = .member(baseExpr, name)
-            try actorSite(base, baseExpr, name)
-            return try methodCallType(base, baseExpr: baseExpr, name, &callee, &arguments)
-        }
-        // In a type's body, a call to a name that isn't bound may be to the type's own method.
-        if case .variable(let name) = callee, lookup(name) == nil,
-            case .variable(let selfType, _)? = lookup("self"),
-            hasMember(selfType, named: name)
-        {
-            callee = .member(.variable("self"), name)
-            return try callType(&callee, &arguments, expected: expected)
-        }
-        // `ls()` with no `ls`: a function that isn't there, not a variable.
-        if case .variable(let name) = callee, lookup(name) == nil {
-            throw TypeError("no function named '\(name)'")
-        }
-        let type = try typeOf(&callee)
-        // `f(x)` where f's type has `callAsFunction`: that method is called.
-        if case .named(let typeName) = type, let info = structInfo(named: typeName),
-            info.declared.methods["callAsFunction"] != nil
-        {
-            var method = Expr.member(callee, "callAsFunction")
-            let result = try callType(&method, &arguments, expected: expected)
-            callee = method
-            return result
-        }
-        if case .variable(let name) = callee { return try apply(type, &arguments, name: name) }
-        return try apply(type, &arguments, name: "the function")
+        return try callMember(methods, name, callee: &callee, &arguments)
     }
 
     /// A call to a named function: the overload is chosen here.
