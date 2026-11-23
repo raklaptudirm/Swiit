@@ -223,10 +223,15 @@ extension Interpreter {
             return
         case .fallthroughStatement:
             throw ControlFlow.fallthroughCase
-        case .guardStatement(let condition, let otherwise):
+        case .guardStatement(let condition, let otherwise, let locals):
             if let bindings = try holds(condition) {
                 for (name, binding) in bindings {
-                    scopes[scopes.count - 1].bindings[name] = binding
+                    // What the guard binds lives in its slot, for a body given a frame.
+                    if let local = locals.first(where: { $0.name == name }) {
+                        task.frame!.bind(name, binding, at: local.slot)
+                    } else {
+                        scopes[scopes.count - 1].bindings[name] = binding
+                    }
                 }
                 return
             }

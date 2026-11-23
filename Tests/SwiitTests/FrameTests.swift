@@ -133,7 +133,7 @@ private final class OutputBox: @unchecked Sendable {
     #expect(try run(source) == "1\n")
 }
 
-@Test func aBodyWithAGuardOrALocalFunctionRunsByName() throws {
+@Test func aBodyWithALocalFunctionRunsByName() throws {
     let source = """
         func f(_ o: Int?) -> Int {
             guard let v = o else { return 0 }
@@ -193,4 +193,81 @@ private final class OutputBox: @unchecked Sendable {
         print(f())
         """
     #expect(try run(source) == "[11, 3, 3, 104, 10]\n")
+}
+
+// A guard's bindings live in slots too, so a body with one is still given a frame.
+
+@Test func aBodyWithAGuardIsGivenAFrame() throws {
+    let swiit = Interpreter()
+    let source = """
+        func f(_ o: Int?) -> Int {
+            guard let v = o else { return 0 }
+            while let w = Optional(v), w < 0 { break }
+            return v
+        }
+        """
+    guard case .success(let program) = swiit.parse(source),
+        case .function(let decl)? = FrameResolver.resolve(program: program).statements.first
+    else {
+        Issue.record("the source did not read as a function")
+        return
+    }
+    #expect(decl.body.frameSize != nil)
+}
+
+@Test func whatAGuardBindsLivesForTheRestOfItsBlock() throws {
+    let source = """
+        func f(_ o: Int?, _ p: Int?) -> Int {
+            guard let a = o else { return -1 }
+            guard let b = p, b > 0 else { return -2 }
+            return a + b
+        }
+        print(f(1, 2), f(nil, 2), f(1, nil), f(1, 0))
+        """
+    #expect(try run(source) == "3 -1 -2 -2\n")
+}
+
+@Test func aGuardMayShadowAnOuterNameAndItsElseCannotSeeTheNewOne() throws {
+    let source = """
+        func f(_ x: Int?) -> Int {
+            let y = 100
+            guard let y = x else { return y }
+            return y
+        }
+        print(f(5), f(nil))
+        """
+    #expect(try run(source) == "5 100\n")
+}
+
+@Test func eachIterationOfALoopBindsAGuardAfresh() throws {
+    let source = """
+        func f() -> [Int] {
+            var seen: [Int] = []
+            var made: [() -> Int] = []
+            for n in [1, nil, 3] {
+                guard let v = n else { continue }
+                seen.append(v)
+                made.append { v * 10 }
+            }
+            return seen + made.map { $0() }
+        }
+        print(f())
+        """
+    #expect(try run(source) == "[1, 3, 10, 30]\n")
+}
+
+@Test func aWhileLetAndAGuardCasePatternBindInSlots() throws {
+    let source = """
+        func f() -> Int {
+            var items: [Int?] = [1, 2, 3]
+            var total = 0
+            while let item = items.popLast() {
+                guard case let v? = item else { continue }
+                total += v
+            }
+            return total
+        }
+        print(f())
+        """
+    #expect(try run(source) == "6\n")
 }

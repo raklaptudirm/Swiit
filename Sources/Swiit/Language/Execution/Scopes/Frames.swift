@@ -152,9 +152,10 @@ struct FrameResolver {
             .operatorDeclaration:
             if !isProgram { placeable = false }
             return statement
-        case .guardStatement:
-            placeable = false
-            return statement
+        case .guardStatement(let condition, let otherwise, _):
+            // A program's own guard binds a global, which stays by name.
+            if isProgram { return statement }
+            return guardStatement(condition, otherwise: otherwise, locals: &locals)
         case .ifStatement(let node):
             return .ifStatement(ifStatement(node))
         case .forLoop(var loop):
@@ -206,6 +207,38 @@ struct FrameResolver {
         }
     }
 
+    /// A guard: its `else` is a block of its own, which cannot name what the condition binds, and
+    /// what it binds is a local of the block the guard is in from the next statement on.
+    private mutating func guardStatement(
+        _ condition: IfStatement.Condition,
+        otherwise: Program,
+        locals: inout [Program.Local]
+    ) -> Statement {
+        let resolved: IfStatement.Condition
+        let names: [String]
+        switch condition {
+        case .expression(let value):
+            resolved = .expression(expression(value))
+            names = []
+        case .binding(let name, let mutable, let value):
+            resolved = .binding(name: name, mutable: mutable, value: expression(value))
+            names = [name]
+        case .pattern(let pattern, let value):
+            resolved = .pattern(pattern, expression(value))
+            names = FrameResolver.names(in: pattern)
+        }
+        let leaving = block(otherwise, entering: [])
+
+        var introduced: [Program.Local] = []
+        for name in names where name != "_" && !introduced.contains(where: { $0.name == name }) {
+            let local = Program.Local(name: name, slot: slot())
+            introduced.append(local)
+            locals.append(local)
+            visible.append(local)
+        }
+        return .guardStatement(resolved, otherwise: leaving, locals: introduced)
+    }
+
     private mutating func ifStatement(_ node: IfStatement) -> IfStatement {
         var resolved = node
         let names: [String]
@@ -235,7 +268,9 @@ struct FrameResolver {
         resolved.body = block(node.body, entering: Array(names))
         return resolved
     }
+}
 
+extension FrameResolver {
     /// An expression with the locals it names read from their slots, and its closures each with
     /// a frame of its own. What is not looked into is left as it was, to be run by name: an `if`
     /// expression and a pattern, whose bindings are made by name as they run, among them.

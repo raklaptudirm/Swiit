@@ -162,7 +162,7 @@ extension TypeChecker {
         case .throwStatement(var value):
             try checkThrow(&value)
             statement = .throwStatement(value)
-        case .guardStatement(let condition, var otherwise):
+        case .guardStatement(let condition, var otherwise, _):
             var node = IfStatement(condition: condition, then: Program(statements: []))
             let bound = try checkCondition(&node)
             try checkBlock(&otherwise, newScope: true)

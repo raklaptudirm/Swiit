@@ -79,7 +79,7 @@ enum Statement: Equatable, Sendable {
     /// `guard let x = y else { return }`: unless the condition holds, runs
     /// the `else`, which must leave the block; what it binds stays bound
     /// for the rest of the block.
-    case guardStatement(IfStatement.Condition, otherwise: Program)
+    case guardStatement(IfStatement.Condition, otherwise: Program, locals: [Program.Local] = [])
     /// `break`, or `break outer` out of the loop labeled `outer:`.
     case breakStatement(label: String? = nil)
     case continueStatement(label: String? = nil)

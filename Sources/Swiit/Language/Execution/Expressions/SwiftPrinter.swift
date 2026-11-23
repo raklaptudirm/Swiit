@@ -115,7 +115,7 @@ struct SwiftPrinter {
             return ["\(p)fallthrough"]
         case .returnStatement(let value):
             return [value.map { "\(p)return \(expression($0))" } ?? "\(p)return"]
-        case .guardStatement(let condition, let otherwise):
+        case .guardStatement(let condition, let otherwise, _):
             return [
                 "\(p)guard \(conditionText(condition)) else \(block(otherwise, indent: indent))"
             ]
