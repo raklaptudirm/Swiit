@@ -38,6 +38,12 @@ A body may call the interpreter that is running it: ``Interpreter/call(_:with:)`
 does through those calls (a variable it changes) is there when the body returns. A script function that calls a body that calls a script
 function can go on as deep as ``Interpreter/Limits/maxCallDepth`` allows.
 
+A script function a body calls may wait: it may call a body that waits (a read, a child process), or be a task's code that another
+task's progress unblocks. The task is suspended inside the body for that time, other tasks run, and the body goes on when the script function
+returns. So what the body read from the interpreter before the call can have changed after it. A body keeps its thread for the whole of one
+call, a callback that waits included; a replacement evaluator that runs a task some other way, as a suspended frame and not a thread, still gives a task
+suspended inside a body a thread of its own to wait on.
+
 A body of a type's member need not hold an interpreter, and should not when the host registers the type on several (a reloaded
 script makes a new one): the member of one interpreter's type that held another would read the wrong state. Inside any body, ``Interpreter/running`` is the interpreter that called it, and the same calls are made on it. Outside a body, on
 a thread that runs no script code, it is nil.

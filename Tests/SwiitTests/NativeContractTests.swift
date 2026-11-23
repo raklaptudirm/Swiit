@@ -257,6 +257,71 @@ private struct Boom: Error, CustomStringConvertible {
     #expect(try swiit.evaluate("async let a = block(); async let b = release(); await a + b") == 3)
 }
 
+@Test func aScriptFunctionABodyCallsMayWaitAndOtherTasksRunMeanwhile() throws {
+    let swiit = interpreter()
+    nonisolated(unsafe) let running = swiit
+    let gate = DispatchSemaphore(value: 0)
+    swiit.register(
+        ImplementedSymbol.function(
+            name: "each",
+            parameters: [.init(label: nil, name: "f", type: .callable)],
+            returns: .int
+        ) { arguments in try running.call(arguments[0], with: []) }
+    )
+    swiit.register(
+        ImplementedSymbol.function(name: "block", returns: .int) { _ in
+            Interpreter.whileWaiting { gate.wait() }
+            return Value(1)
+        }
+    )
+    swiit.register(
+        ImplementedSymbol.function(name: "release", returns: .int) { _ in
+            gate.signal()
+            return Value(2)
+        }
+    )
+    // The callback waits inside `each`; the task that releases it runs meanwhile, and `each`
+    // carries on when the callback returns.
+    #expect(
+        try swiit.evaluate("async let a = each { block() }; async let b = release(); await a + b")
+            == 3
+    )
+}
+
+@Test func aBodyKeepsItsThreadForTheWholeOfACallIncludingACallbackThatWaits() throws {
+    let swiit = interpreter()
+    nonisolated(unsafe) let running = swiit
+    let gate = DispatchSemaphore(value: 0)
+    swiit.register(
+        ImplementedSymbol.function(
+            name: "around",
+            parameters: [.init(label: nil, name: "f", type: .callable)],
+            returns: .bool
+        ) { arguments in
+            let before = pthread_self()
+            _ = try running.call(arguments[0], with: [])
+            return Value(pthread_equal(before, pthread_self()) != 0)
+        }
+    )
+    swiit.register(
+        ImplementedSymbol.function(name: "block", returns: .int) { _ in
+            Interpreter.whileWaiting { gate.wait() }
+            return Value(1)
+        }
+    )
+    swiit.register(
+        ImplementedSymbol.function(name: "release", returns: .int) { _ in
+            gate.signal()
+            return Value(2)
+        }
+    )
+    #expect(
+        try swiit.evaluate(
+            "async let a = around { block() }; async let b = release(); let same = await a; _ = await b; same"
+        ) == true
+    )
+}
+
 // MARK: Values and receivers
 
 private struct ContractTally: Hashable, Sendable, BridgedValue {
