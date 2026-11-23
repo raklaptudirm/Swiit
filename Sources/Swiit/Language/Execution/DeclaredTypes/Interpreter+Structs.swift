@@ -24,7 +24,8 @@ extension Interpreter {
             conformances: decl.conformances,
             staticProperties: decl.staticProperties,
             staticComputed: statics.getters,
-            staticMethods: overloads(of: decl.staticMethods) { .swiit($0.body) }
+            staticMethods: overloads(of: decl.staticMethods) { .swiit($0.body) },
+            typeRef: takeReservedRef(decl.name)
         )
         type.members.staticSetters = statics.setters
         type.isDynamicMemberLookup = decl.isDynamicMemberLookup

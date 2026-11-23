@@ -41,10 +41,10 @@ extension Value.EnumCase {
         }
 
         /// An enum a program declares, which is a type of its own.
-        init(declaring name: String, cases: [Case]) {
+        init(declaring name: String, cases: [Case], typeRef: TypeRef? = nil) {
             self.name = name
             self.cases = cases
-            self.typeRef = .declare(name)
+            self.typeRef = typeRef ?? .declare(name)
             self.conformances = []
         }
 

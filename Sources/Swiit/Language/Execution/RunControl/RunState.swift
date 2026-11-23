@@ -12,6 +12,9 @@ final class RunState {
     /// checks.
     var stepsUntilCheck = 0
     var deadline: ContinuousClock.Instant?
+    /// The references reserved for the types the program being run declares at its top level, by
+    /// name, until each declaration takes its own (`Interpreter.takeReservedRef`).
+    var reservedRefs: [String: TypeRef] = [:]
     /// What the interpreter's output counter said as the run began: what the run has written is
     /// what the counter says beyond it.
     let outputAtStart: Int

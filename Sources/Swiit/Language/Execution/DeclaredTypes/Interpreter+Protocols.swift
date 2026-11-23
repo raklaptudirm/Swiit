@@ -16,12 +16,12 @@ final class ProtocolType: LanguageObject, DeclaredType, @unchecked Sendable {
     /// because extensions give them too.
     let symbol: Symbol.Nominal
 
-    init(_ source: ProtocolDecl) {
+    init(_ source: ProtocolDecl, typeRef: TypeRef? = nil) {
         self.name = source.name
-        self.typeRef = .declare(source.name)
+        self.typeRef = typeRef ?? .declare(source.name)
         self.inherited = source.inherited
         self.source = source
-        symbol = Symbol.Nominal(name: name, kind: .protocol, typeRef: typeRef)
+        symbol = Symbol.Nominal(name: name, kind: .protocol, typeRef: self.typeRef)
     }
 
     var typeName: String { "protocol" }
@@ -35,7 +35,7 @@ extension Interpreter {
 
     /// `protocol Shape { … }`: named, so a type can say it conforms and a value can be asked.
     func declare(_ decl: ProtocolDecl) throws {
-        let type = ProtocolType(decl)
+        let type = ProtocolType(decl, typeRef: takeReservedRef(decl.name))
         declaredTypes[type.typeRef] = type
         scopes[scopes.count - 1].bindings[decl.name] = Binding(
             value: .object(type),

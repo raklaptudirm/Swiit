@@ -30,18 +30,11 @@ extension Interpreter {
                                 ?? error.line.map { SourceRange(line: $0) }
                         )
                     }
-                    // The types it declares have no declaration yet, so each gets the reference the
-                    // symbols that name it share.
-                    reservedRefs = Dictionary(
-                        uniqueKeysWithValues: checker.scopes[0]
-                            .compactMap { name, entry -> (String, TypeRef)? in
-                                switch entry {
-                                case .structType, .enumType, .protocolType: (name, .declare(name))
-                                default: nil
-                                }
-                            }
-                    )
-                    defer { reservedRefs = [:] }
+                    // The types it declares have no declaration yet, so each has the reference
+                    // reserved for it, which the symbols that name it share.
+                    let outerReserved = reservedRefs
+                    reservedRefs = reservations(for: program)
+                    defer { reservedRefs = outerReserved }
                     // The doc comments of the functions it declares, in the order it declares them.
                     var docs: [String: [Documentation]] = [:]
                     for case .function(let decl) in program.statements {

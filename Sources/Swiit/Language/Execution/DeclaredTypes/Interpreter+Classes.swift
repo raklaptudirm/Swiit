@@ -30,16 +30,17 @@ final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {
         isActor: Bool,
         stored: [PropertyDecl],
         staticProperties: [PropertyDecl],
-        conformances: [String]
+        conformances: [String],
+        typeRef: TypeRef? = nil
     ) {
         self.name = name
-        self.typeRef = .declare(name)
+        self.typeRef = typeRef ?? .declare(name)
         self.superclass = superclass
         self.isActor = isActor
         self.stored = stored
         self.conformances = conformances
         members.staticProperties = staticProperties
-        symbol = Symbol.Nominal(name: name, kind: isActor ? .actor : .class, typeRef: typeRef)
+        symbol = Symbol.Nominal(name: name, kind: isActor ? .actor : .class, typeRef: self.typeRef)
     }
 
     /// This class and each it comes from, nearest first.

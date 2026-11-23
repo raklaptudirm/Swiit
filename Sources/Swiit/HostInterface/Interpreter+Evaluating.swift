@@ -141,6 +141,12 @@ extension Interpreter {
             )
         case .success(let parsed): program = parsed
         }
+
+        // The types the program declares are named by the references reserved here as it is
+        // checked, and take them as they are declared.
+        let outerReserved = reservedRefs
+        reservedRefs.merge(reservations(for: program)) { _, new in new }
+        defer { reservedRefs = outerReserved }
         do {
             let checker = TypeChecker(interpreter: self)
             let checked = try checker.check(program)

@@ -35,7 +35,8 @@ extension Interpreter {
             isActor: decl.isActor,
             stored: members.properties.filter { $0.getter == nil },
             staticProperties: members.staticProperties,
-            conformances: conformances
+            conformances: conformances,
+            typeRef: takeReservedRef(decl.name)
         )
         type.source = decl
         func adopt(_ function: Function) -> Function {

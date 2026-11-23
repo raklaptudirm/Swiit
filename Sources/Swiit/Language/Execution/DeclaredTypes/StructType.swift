@@ -49,11 +49,12 @@ final class StructType: LanguageObject, DeclaredType, @unchecked Sendable {
         conformances: [String] = [],
         staticProperties: [PropertyDecl] = [],
         staticComputed: [String: Function] = [:],
-        staticMethods: [String: OverloadSet] = [:]
+        staticMethods: [String: OverloadSet] = [:],
+        typeRef: TypeRef? = nil
     ) {
         self.name = name
-        self.typeRef = .declare(name)
-        symbol = Symbol.Nominal(name: name, kind: .structure, typeRef: typeRef)
+        self.typeRef = typeRef ?? .declare(name)
+        symbol = Symbol.Nominal(name: name, kind: .structure, typeRef: self.typeRef)
         self.conformances = conformances
         self.stored = stored
         self.memberwise = memberwise

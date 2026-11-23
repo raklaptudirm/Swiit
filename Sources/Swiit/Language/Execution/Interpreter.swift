@@ -40,9 +40,6 @@ public final class Interpreter: @unchecked Sendable {
     let pendingDeinits = Mutex<[ClassInstance]>([])
     // safe: a hint, set holding `pendingDeinits`; a stale read only delays a `deinit` by a statement
     nonisolated(unsafe) var hasPendingDeinits = false
-    /// While `check` reads a program, the reference each type it declares will have: the symbols
-    /// that name one share it, as they cannot share a declaration that does not exist yet.
-    var reservedRefs: [String: TypeRef] = [:]
     /// The Swift types scripts can use, by the name they are written with: the core's, and those
     /// this interpreter's host has registered. Another interpreter's registrations are not here.
     var bridged: [String: ImplementedType] = Bridge.core
@@ -78,6 +75,37 @@ public final class Interpreter: @unchecked Sendable {
 }
 
 extension Interpreter {
+    /// The reference each type the program being checked or run declares at its top level will have,
+    /// by name: the symbols that name one share it, as they cannot share a declaration that does not
+    /// exist yet, and the declaration takes it when it runs. Belongs to the run, as a type's name can
+    /// be another's in a run alongside.
+    var reservedRefs: [String: TypeRef] {
+        get { task.run.reservedRefs }
+        set { task.run.reservedRefs = newValue }
+    }
+
+    /// The references to reserve for a program: one for each struct, class, enum and protocol it
+    /// declares at its top level.
+    func reservations(for program: Program) -> [String: TypeRef] {
+        var reserved: [String: TypeRef] = [:]
+        for statement in program.statements {
+            switch statement {
+            case .structDecl(let decl): reserved[decl.name] = .declare(decl.name)
+            case .classDecl(let decl): reserved[decl.name] = .declare(decl.name)
+            case .enumDecl(let decl): reserved[decl.name] = .declare(decl.name)
+            case .protocolDecl(let decl): reserved[decl.name] = .declare(decl.name)
+            default: continue
+            }
+        }
+        return reserved
+    }
+
+    /// The reference a declaration of this name has: the one reserved for it, which it takes, or a
+    /// new one.
+    func takeReservedRef(_ name: String) -> TypeRef {
+        reservedRefs.removeValue(forKey: name) ?? .declare(name)
+    }
+
     /// Reports an error, to wherever standard error is redirected.
     func report(_ message: String) {
         // Bold red, as a terminal writes it, when the stream is styled.
