@@ -276,3 +276,56 @@ private func typeError(_ source: String) -> String? {
     )
     #expect(typeError("let x: Int = .nope")?.contains("nope") == true)
 }
+
+// Two runs on one interpreter take turns at their waits, and each keeps its own limits and its
+// own stop.
+
+@Test func aRunKeepsItsOwnTimeLimitWhileAnotherBegins() async throws {
+    let swiit = interpreter()
+    let start = ContinuousClock.now
+
+    // The first run has half a second, which it spends waiting in short turns. The second begins
+    // meanwhile and must not move the first's deadline.
+    let first = Task { () async throws -> Value in
+        try await swiit.evaluate(
+            "while true { try await Task.sleep(nanoseconds: 10_000_000) }",
+            limits: Interpreter.Limits(timeLimit: .milliseconds(500))
+        )
+    }
+    try await Task.sleep(nanoseconds: 250_000_000)
+    let second = Task { () async throws -> Value in
+        try await swiit.evaluate(
+            "try await Task.sleep(nanoseconds: 600_000_000); 1",
+            limits: Interpreter.Limits(timeLimit: .seconds(30))
+        )
+    }
+
+    let ended = await first.result
+    let elapsed = ContinuousClock.now - start
+    guard case .failure(let error) = ended else {
+        Issue.record("the first run was not stopped")
+        return
+    }
+    #expect((error as? Diagnostic)?.message.contains("time limit") == true)
+    #expect(elapsed < .seconds(10), "the first run ended after \(elapsed)")
+    _ = try await second.value
+}
+
+@Test func stoppingOneRunLeavesTheOtherGoing() async throws {
+    let swiit = interpreter()
+    let first = Task { () async throws -> Value in
+        try await swiit.evaluate("try await Task.sleep(nanoseconds: 400_000_000); 1")
+    }
+    try await Task.sleep(nanoseconds: 100_000_000)
+    let second = Task { () async throws -> Value in
+        try await swiit.evaluate("try await Task.sleep(nanoseconds: 5_000_000_000); 2")
+    }
+    try await Task.sleep(nanoseconds: 100_000_000)
+    second.cancel()
+
+    #expect(try await first.value == .int(1))
+    switch await second.result {
+    case .success: Issue.record("the cancelled run finished")
+    case .failure(let error): #expect((error as? Diagnostic)?.message.contains("cancelled") == true)
+    }
+}

@@ -11,7 +11,7 @@ extension Interpreter {
     /// the core's builtins. With `name`, only the symbols of that name. What a type has is read with
     /// `TypeExpression.members(named:in:)`.
     public func globals(named name: String? = nil) -> [Symbol] {
-        withMainTask { globalSymbols(named: name) }
+        inCurrentTask { globalSymbols(named: name) }
     }
 
     func members(of type: TypeExpression, named name: String?) -> [Symbol] {
@@ -27,7 +27,7 @@ extension Interpreter {
                     }
                 }
         }
-        return withMainTask {
+        return inCurrentTask {
             guard var annotation = self.annotation(type) else { return [] }
             // A generic Swift type by its bare name has members whatever it holds: `Array`, `Set`.
             if case .named(let typeName) = annotation,

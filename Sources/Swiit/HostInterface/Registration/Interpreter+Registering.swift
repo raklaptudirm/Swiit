@@ -11,7 +11,7 @@ extension Interpreter {
         guard function.function != nil else {
             preconditionFailure("\(function.name) is a member of a type: register it with its type")
         }
-        withMainTask {
+        inCurrentTask {
             for type in function.enums {
                 scopes[1].bindings[type.name] = Binding(value: .object(type), mutable: false)
             }

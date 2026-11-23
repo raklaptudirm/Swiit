@@ -24,8 +24,9 @@ extension Interpreter {
         receiver: Receiver? = nil
     ) throws -> Value {
         defer { task.lastCallee = function }
-        guard callDepth < limits.maxCallDepth else {
-            throw RuntimeError("maximum call depth (\(limits.maxCallDepth)) exceeded")
+        let maxCallDepth = task.run.limits.maxCallDepth
+        guard callDepth < maxCallDepth else {
+            throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
         }
         try checkInterrupt()
         switch function.body {
@@ -220,13 +221,7 @@ extension Interpreter {
     public func call(_ value: Value, with arguments: [Value]) throws -> Value {
         // Outside a run, the call is one: it holds the interpreter, and starts with the steps,
         // output and time of a run of its own and no stop asked for before.
-        if !lock.isHeldByCurrentThread {
-            return try withMainTask {
-                beginRun()
-                return try callFunctionValue(value, with: arguments)
-            }
-        }
-        return try callFunctionValue(value, with: arguments)
+        try inRun { try callFunctionValue(value, with: arguments) }
     }
 
     private func callFunctionValue(_ value: Value, with arguments: [Value]) throws -> Value {

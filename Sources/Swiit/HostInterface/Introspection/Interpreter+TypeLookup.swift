@@ -14,7 +14,7 @@ extension Interpreter {
     }
 
     func symbol(for typeRef: TypeRef) -> Symbol.Nominal? {
-        withMainTask {
+        inCurrentTask {
             switch typeRef.kind {
             case .declared:
                 declaredTypes[typeRef].map { typeSymbol(named: typeRef.name, $0) }
@@ -52,7 +52,7 @@ extension Interpreter {
     /// Every type a script can name, its members to be had from `TypeExpression.members(named:in:)`: those scripts and
     /// the host declare, and Swift's own that the core bridges (`String`, `Array`, `Date`).
     public var types: [Symbol.Nominal] {
-        withMainTask {
+        inCurrentTask {
             let declared = scopes[1].bindings.sorted { $0.key < $1.key }
                 .compactMap { name, binding -> Symbol.Nominal? in
                     if case .object(let type as any DeclaredType) = binding.value.storage {

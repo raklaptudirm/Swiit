@@ -5,7 +5,7 @@ extension Interpreter {
         type: TypeExpression,
         _ read: @escaping @Sendable () -> Value
     ) {
-        withMainTask {
+        inCurrentTask {
             scopes[0].bindings[name] = Binding(computed: read)
             checkerMemory.globalTypes[name] = TypeAnnotation(type)
         }

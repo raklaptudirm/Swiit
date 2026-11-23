@@ -140,10 +140,11 @@ extension Interpreter {
         priority: TaskPriority? = nil,
         _ body: @escaping () throws -> Value
     ) throws -> ScriptTask {
-        guard runningTasks < limits.maxTasks else {
-            throw RuntimeError("there are already \(limits.maxTasks) tasks running")
+        let maxTasks = task.run.limits.maxTasks
+        guard runningTasks < maxTasks else {
+            throw RuntimeError("there are already \(maxTasks) tasks running")
         }
-        let context = TaskContext(globals: Array(scopes.prefix(2)), host: taskHost)
+        let context = TaskContext(globals: Array(scopes.prefix(2)), host: taskHost, run: task.run)
         context.receivesInterrupts = false
         context.priority = priority ?? task.priority
         let handle = ScriptTask(context: context)

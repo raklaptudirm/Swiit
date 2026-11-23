@@ -112,7 +112,7 @@ extension Interpreter {
     public func typeExpression(ofExpression expression: String) throws(Diagnostic) -> TypeExpression
     {
         do {
-            return try withMainTask { () throws -> TypeExpression in
+            return try inCurrentTask { () throws -> TypeExpression in
                 switch parse(expression) {
                 case .failure(let error):
                     throw Diagnostic(

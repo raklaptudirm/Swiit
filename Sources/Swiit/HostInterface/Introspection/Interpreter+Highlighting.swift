@@ -8,7 +8,7 @@ extension Interpreter {
     /// How to color Swift source, in characters, which may be half typed: what it reads before a
     /// problem is colored as it reads it.
     public func highlighting(_ source: String) -> [Highlight] {
-        let bound = withMainTask { globalNames() }
+        let bound = inCurrentTask { globalNames() }
         return frontEnd.highlight(source, bound: bound)
             .map { span in
                 let kind: Highlight.Kind =

@@ -75,7 +75,7 @@ extension Interpreter {
     /// host's declarations name (`declare(_:bodies:)`) and nothing registered has yet.
     public func register<E: BridgedValue & CaseIterable & Hashable & Sendable>(_: E.Type) {
         let enumeration = Value.EnumCase.Enumeration.of(E.self)
-        withMainTask {
+        inCurrentTask {
             scopes[1].bindings[enumeration.name] = Binding(
                 value: .object(enumeration),
                 mutable: false
@@ -97,7 +97,7 @@ extension Interpreter {
                 )
             )
         }
-        withMainTask {
+        inCurrentTask {
             Bridge.register([lowered], in: &bridged)
             // The Swift enums its members take or give, as a function's are.
             for enumeration in type.members.flatMap(\.enums) {

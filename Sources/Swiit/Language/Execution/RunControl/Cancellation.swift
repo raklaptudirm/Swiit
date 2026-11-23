@@ -74,10 +74,31 @@ extension Interpreter {
 
 struct Cancelled: Error, Unwinding {}
 
-/// Whether the task running an `async` evaluation has been cancelled, which the thread asks as it
-/// starts.
+/// A request to stop one run, made before the run has begun or while it goes on: the task running
+/// an `async` evaluation is cancelled from outside, and the run is made on a thread of its own.
 final class CancelFlag: Sendable {
-    private let value = Mutex(false)
-    var isSet: Bool { value.withLock { $0 } }
-    func set() { value.withLock { $0 = true } }
+    private struct State {
+        var isSet = false
+        var target: Interpreter.Cancellation?
+    }
+
+    private let state = Mutex(State())
+
+    /// Asks the run to stop: now if it has begun, and as it begins if it has not.
+    func set() {
+        let target = state.withLock { state -> Interpreter.Cancellation? in
+            state.isSet = true
+            return state.target
+        }
+        target?.request()
+    }
+
+    /// Ties the flag to the run it asks to stop, which has begun.
+    func link(_ cancellation: Interpreter.Cancellation) {
+        let already = state.withLock { state -> Bool in
+            state.target = cancellation
+            return state.isSet
+        }
+        if already { cancellation.request() }
+    }
 }

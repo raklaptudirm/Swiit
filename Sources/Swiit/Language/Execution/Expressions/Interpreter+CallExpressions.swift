@@ -403,8 +403,9 @@ extension Interpreter {
             ?? (target as? Function)
         guard let only, let table = try bindPlainly(arguments, to: only) else { return nil }
         defer { task.lastCallee = only }
-        guard callDepth < limits.maxCallDepth else {
-            throw RuntimeError("maximum call depth (\(limits.maxCallDepth)) exceeded")
+        let maxCallDepth = task.run.limits.maxCallDepth
+        guard callDepth < maxCallDepth else {
+            throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
         }
         try checkInterrupt()
         return try runSwiit(only, with: table)

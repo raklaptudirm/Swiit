@@ -62,16 +62,13 @@ public final class Interpreter: @unchecked Sendable {
     /// Whether the host is told as statements finish; not while a `defer` cleans up.
     var observesStatements = true
 
-    /// What bounds a run (steps, depth, time, output), counted from the start
-    /// of each `eval`.
+    /// What bounds a run (steps, depth, time, output) unless the run is given limits of its own.
     var limits = Interpreter.Limits()
-    var steps = 0
-    /// Steps left before `checkLimits` runs again; nothing at the start of a run, so its first step
-    /// checks.
-    var stepsUntilCheck = 0
-    var deadline: ContinuousClock.Instant?
-    /// What a run has written, against `limits.maxOutputBytes`.
+    /// What the host's output and error have written, which a run measures against
+    /// `limits.maxOutputBytes` from where it began.
     let outputCounter: OutputCounter
+    /// How to ask each run in progress to stop, from any thread (`cancel()`).
+    let activeRuns = Mutex<[Cancellation]>([])
 
     init(host: Interpreter.Host, outputCounter: OutputCounter) {
         self.host = host

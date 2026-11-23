@@ -48,5 +48,4 @@ final class OutputCounter: Sendable {
 
     var written: Int { count.withLock { $0 } }
     func add(_ bytes: Int) { count.withLock { $0 += bytes } }
-    func reset() { count.withLock { $0 = 0 } }
 }

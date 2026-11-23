@@ -30,7 +30,7 @@ enum Waiting {
     private final class Box {
         // Not weak: a weak reference gives the interpreter a side table, which slows every retain
         // and release of it (the whole evaluator) to the slow path. The host outlives the thread's
-        // use of it: it is set for the span of its own call (`withMainTask`) or for a task its
+        // use of it: it is set for the span of its own call (`inCurrentTask`) or for a task its
         // interpreter waits for.
         unowned(unsafe) var host: WaitingHost?
         init(_ host: WaitingHost?) { self.host = host }

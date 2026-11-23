@@ -8,9 +8,9 @@ extension Interpreter {
     /// A global of the script: what `name` is bound to, if anything. Setting one makes it a
     /// constant for scripts to read.
     public subscript(name: String) -> Value? {
-        get { withMainTask { lookup(name)?.value } }
+        get { inCurrentTask { lookup(name)?.value } }
         set {
-            withMainTask {
+            inCurrentTask {
                 guard let newValue else {
                     scopes[1].bindings[name] = nil
                     return
@@ -24,7 +24,7 @@ extension Interpreter {
     /// `Type.columns`.
     public func value(forMember member: String, of value: Value) throws(Diagnostic) -> Value {
         do {
-            return try withMainTask { try self.member(member, of: value) }
+            return try inRun { try self.member(member, of: value) }
         } catch {
             throw Diagnostic.of(error)
         }
@@ -70,10 +70,8 @@ extension Interpreter {
         let written = arguments.map { Argument(label: $0.label, value: .literal($0.value)) }
         // Outside a run, the call is one: it starts with the steps, the time and the stop of a
         // run of its own.
-        let isRun = !lock.isHeldByCurrentThread
         do {
-            return try inCurrentTask { () throws -> Value in
-                if isRun { self.beginRun() }
+            return try inRun { () throws -> Value in
                 // A Swift type's method by that name, when arguments are given: `count { … }` is a
                 // method, not the property `count`. Where the prelude has a sequence method of the
                 // name too, Swift's wins if it takes these arguments, as it does when a script is

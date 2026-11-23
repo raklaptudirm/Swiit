@@ -33,6 +33,7 @@ extension Interpreter {
             outputCounter: counter
         )
         self.limits = limits
+        mainTask.run.limits = limits
         installBuiltinFunctions()
     }
 
@@ -88,7 +89,10 @@ extension Interpreter {
         scopes[0].declare(print, named: "print")
     }
 
-    /// Asks a run in progress to stop, from any thread. It ends with a
-    /// `.cancelled` diagnostic; the next `evaluate` starts afresh.
-    public func cancel() { cancellation.request() }
+    /// Asks the runs in progress to stop, from any thread. Each ends with a `.cancelled`
+    /// diagnostic; the next `evaluate` starts afresh.
+    public func cancel() {
+        let runs = activeRuns.withLock { $0 }
+        runs.forEach { $0.request() }
+    }
 }

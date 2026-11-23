@@ -37,20 +37,19 @@ extension Interpreter {
             onValue: onValue,
             onError: onError,
             completion: completion,
-            alreadyCancelled: { false }
+            stopFlag: nil
         )
     }
 
     // swiftlint:disable function_parameter_count - it threads one state through; splitting it is item 25 of Docs/agenda.md
-    /// `alreadyCancelled` is asked once the run has started afresh, so a request made before that
-    /// is not lost.
+    /// `stopFlag` ties the run to a request to stop it that may be made before the run begins.
     private func evaluate(
         _ source: String,
         limits: Limits?,
         onValue: ((_ value: Value, _ callee: Symbol?) throws -> Void)?,
         onError: ((Diagnostic) -> Bool)?,
         completion: (() -> Void)?,
-        alreadyCancelled: @escaping () -> Bool
+        stopFlag: CancelFlag?
     ) throws(Diagnostic) -> Value {
         // Nothing else runs on this interpreter meanwhile.
         nonisolated(unsafe) let interpreter = self  // safe: runs holding the interpreter lock
@@ -64,23 +63,19 @@ extension Interpreter {
             if interpreter.lock.isHeldByCurrentThread {
                 return try interpreter.runSource(
                     source,
-                    limits: limits,
                     observer: observer,
                     onError: onError,
                     finish: completion,
-                    nested: true,
-                    alreadyCancelled: alreadyCancelled
+                    nested: true
                 )
             }
             return try onLargeStack {
-                try interpreter.withMainTask {
+                try interpreter.withRun(limits: limits, stopFlag: stopFlag) {
                     try interpreter.runSource(
                         source,
-                        limits: limits,
                         observer: observer,
                         onError: onError,
-                        finish: completion,
-                        alreadyCancelled: alreadyCancelled
+                        finish: completion
                     )
                 }
             }
@@ -117,7 +112,7 @@ extension Interpreter {
                                 onValue: onValue,
                                 onError: onError,
                                 completion: completion,
-                                alreadyCancelled: { cancelled.isSet }
+                                stopFlag: cancelled
                             )
                         }
                     )
@@ -125,39 +120,17 @@ extension Interpreter {
             }
         } onCancel: {
             cancelled.set()
-            cancel()
         }
         return try outcome.get()
     }
 
-    /// What a run starts from: no steps taken, no output counted, the time limit counting from now
-    /// and no stop asked for (but one asked before it began, which `alreadyCancelled` says).
-    func beginRun(alreadyCancelled: () -> Bool = { false }) {
-        steps = 0
-        stepsUntilCheck = 0
-        outputCounter.reset()
-        deadline = limits.timeLimit.map { ContinuousClock.now + $0 }
-        cancellation.clear()
-        if alreadyCancelled() { cancellation.request() }
-    }
-
     private func runSource(
         _ source: String,
-        limits runLimits: Limits? = nil,
         observer: ValueObserver? = nil,
         onError: ((Diagnostic) -> Bool)? = nil,
         finish: (() -> Void)? = nil,
-        nested: Bool = false,
-        alreadyCancelled: () -> Bool
+        nested: Bool = false
     ) throws -> Value {
-        // A run begun from a host function inside one carries on under the limits and the stop of
-        // the one it is in.
-        let outerLimits = limits
-        defer { if !nested { limits = outerLimits } }
-        if !nested {
-            if let runLimits { limits = runLimits }
-            beginRun(alreadyCancelled: alreadyCancelled)
-        }
         let program: Program
         switch parse(source) {
         case .failure(let error):

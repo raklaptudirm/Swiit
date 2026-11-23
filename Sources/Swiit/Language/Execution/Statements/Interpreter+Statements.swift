@@ -430,13 +430,15 @@ extension Interpreter {
 
     func checkInterrupt() throws {
         if hasPendingDeinits { runPendingDeinits() }
-        steps += 1
+        let task = self.task
+        let run = task.run
+        run.steps += 1
         // A task that is cancelled stops at its next step, even before it has begun: that is every
         // step's.
-        if cancellation.isSet { throw Cancelled() }
+        if task.cancellation.isSet { throw Cancelled() }
         // The rest is asked every few steps, not every one: one count down is all most steps pay.
-        stepsUntilCheck -= 1
-        if stepsUntilCheck <= 0 { try checkLimits() }
+        run.stepsUntilCheck -= 1
+        if run.stepsUntilCheck <= 0 { try checkLimits() }
     }
 
     /// How many steps go by between asking the host whether to stop and checking the limits: few
@@ -446,19 +448,22 @@ extension Interpreter {
     /// Asks the host whether to stop, checks the limits, and says when to do so again: in a few
     /// steps, or at the step limit if that comes first, so a run stops at exactly its limit.
     func checkLimits() throws {
+        let run = task.run
         if task.receivesInterrupts, let reason = host.interrupt() {
             throw Interrupted(reason: reason)
         }
-        if let deadline, ContinuousClock.now > deadline {
+        if let deadline = run.deadline, ContinuousClock.now > deadline {
             throw LimitExceeded("time limit exceeded")
         }
-        if let maximum = limits.maxOutputBytes, outputCounter.written > maximum {
+        if let maximum = run.limits.maxOutputBytes,
+            outputCounter.written - run.outputAtStart > maximum
+        {
             throw LimitExceeded("output limit (\(maximum) bytes) exceeded")
         }
-        stepsUntilCheck = Interpreter.stepsBetweenChecks
-        if let maximum = limits.maxSteps {
-            if steps > maximum { throw LimitExceeded("step limit (\(maximum)) exceeded") }
-            stepsUntilCheck = min(stepsUntilCheck, maximum - steps + 1)
+        run.stepsUntilCheck = Interpreter.stepsBetweenChecks
+        if let maximum = run.limits.maxSteps {
+            if run.steps > maximum { throw LimitExceeded("step limit (\(maximum)) exceeded") }
+            run.stepsUntilCheck = min(run.stepsUntilCheck, maximum - run.steps + 1)
         }
     }
 }

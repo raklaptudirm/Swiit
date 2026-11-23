@@ -34,6 +34,9 @@ final class TaskContext {
     var calledSuperInit = false
     /// The function whose call finished last: after an expression that is a call, the one it made.
     var lastCallee: Function?
+    /// The run it belongs to: its limits and what it has spent of them, shared with the tasks it
+    /// starts.
+    var run: RunState
     /// What `Task.currentPriority` says: the priority it was started with.
     var priority = TaskPriority.medium
     /// Asks the task to stop, from any thread.
@@ -48,9 +51,10 @@ final class TaskContext {
     /// waits for it as it closes.
     var children: [(depth: Int, handle: ScriptTask)] = []
 
-    init(globals: [Scope], host: AnyObject? = nil) {
+    init(globals: [Scope], host: AnyObject? = nil, run: RunState = RunState(limits: .init())) {
         self.scopes = globals
         self.host = host
+        self.run = run
     }
 }
 
@@ -158,6 +162,51 @@ extension Interpreter {
             lock.release()
         }
         return try body()
+    }
+}
+
+extension Interpreter {
+    /// Runs `body` as the root task of a run of its own, holding the lock: how the host enters the
+    /// interpreter to run script code. The run has its own call stack, limits, step count and stop
+    /// request; what it shares with the other runs on this interpreter is what scripts declare.
+    /// `limits` replace the interpreter's own for this run. `stopFlag` links the run to a request to
+    /// stop it that may have been made, or may be made, from outside.
+    func withRun<T>(
+        limits runLimits: Limits? = nil,
+        stopFlag: CancelFlag? = nil,
+        _ body: () throws -> T
+    ) rethrows -> T {
+        lock.acquire()
+        let previous = task
+        let previousHost = Waiting.host
+
+        // The globals every task shares, and what the host keeps for the main task.
+        let run = RunState(limits: runLimits ?? limits, outputAtStart: outputCounter.written)
+        let root = TaskContext(
+            globals: Array(mainTask.scopes.prefix(2)),
+            host: mainTask.host,
+            run: run
+        )
+        task = root
+        Waiting.host = self
+        stopFlag?.link(root.cancellation)
+        activeRuns.withLock { $0.append(root.cancellation) }
+
+        defer {
+            activeRuns.withLock { runs in runs.removeAll { $0 === root.cancellation } }
+            // What the run started and did not join stays reachable, to be cancelled and joined by
+            // the host (`cancelAndJoinTasks`) as it would have been under the main task.
+            mainTask.children += root.children
+            task = previous
+            Waiting.host = previousHost
+            lock.release()
+        }
+        return try body()
+    }
+
+    /// Runs `body` in the task that is running, or, from outside a run, as a run of its own.
+    func inRun<T>(limits: Limits? = nil, _ body: () throws -> T) rethrows -> T {
+        lock.isHeldByCurrentThread ? try body() : try withRun(limits: limits, body)
     }
 }
 
