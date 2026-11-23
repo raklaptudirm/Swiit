@@ -339,3 +339,34 @@ extension Symbol {
     }
     #expect(moved.signature.returns == .named(point))
 }
+
+@Test func theSymbolsOfCheckedSourceSayWhatEachTypeIs() throws {
+    let swiit = interpreter()
+    let declared = try swiit.check(
+        """
+        protocol Shape {}
+        class Base {}
+        actor Counter {}
+        struct Box: Shape, Hashable { var item = 0 }
+        enum Mode: Int { case a = 1 }
+        enum Outcome<Success, Failure> { case done(Success), failed(Failure) }
+        """
+    )
+    func type(_ name: String) -> Symbol.Nominal? {
+        for case .type(let type) in declared.symbols where type.name == name { return type }
+        return nil
+    }
+    let shape = try #require(type("Shape"))
+
+    #expect(shape.kind == .protocol)
+    #expect(type("Base")?.kind == .class)
+    #expect(type("Counter")?.kind == .actor)
+    #expect(type("Mode")?.kind == .enumeration)
+
+    let box = try #require(type("Box"))
+    #expect(box.kind == .structure)
+    #expect(type("Outcome")?.genericParameters.map(\.name) == ["Success", "Failure"])
+    // A protocol of the program's own is named by its reference, and one of Swift's by its name.
+    #expect(box.conformances[shape.typeRef] != nil)
+    #expect(box.conformances[TypeRef(nativeType: "Hashable")] != nil)
+}

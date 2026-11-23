@@ -45,7 +45,7 @@ extension Interpreter {
                     }
                     var declarations = Declarations(
                         symbols: checker.scopes[0].sorted { $0.key < $1.key }
-                            .flatMap { declaredSymbols(of: $0.key, $0.value) }
+                            .flatMap { declaredSymbols(of: $0.key, $0.value, in: checker) }
                             .map { symbol in
                                 guard case .function(var function) = symbol,
                                     var queue = docs[symbol.name],
