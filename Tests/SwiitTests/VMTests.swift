@@ -7,80 +7,8 @@ import Testing
 // and compares everything observable, and checks that the function in question was compiled, so
 // that a program that quietly stays on the tree evaluator does not pass for the VM.
 
-private final class Log: @unchecked Sendable {
-    var text = ""
-}
-
-private struct Outcome: Equatable {
-    var value: String
-    var failure: Diagnostic?
-    var output: String
-}
-
-private func run(
-    _ source: String,
-    on engine: Engine,
-    limits: Interpreter.Limits = .init()
-)
-    -> (outcome: Outcome, swiit: Interpreter)
-{
-    let log = Log()
-    let swiit = Interpreter(
-        host: Interpreter.Host(
-            output: OutputSink({
-                log.text += $0
-                return true
-            }),
-            error: OutputSink({
-                log.text += "err: " + $0
-                return true
-            })
-        ),
-        limits: limits
-    )
-    swiit.engine = engine
-    do {
-        let value = try swiit.evaluate(source)
-        return (Outcome(value: value.description, failure: nil, output: log.text), swiit)
-    } catch {
-        return (Outcome(value: "", failure: error, output: log.text), swiit)
-    }
-}
-
-/// The functions of the program named, which the VM must have compiled.
-private func compiled(_ names: [String], in swiit: Interpreter) -> [String] {
-    names.filter { name in
-        guard case .function(let callable)? = swiit.lookup(name)?.value.storage else { return true }
-        let function = (callable as? Function) ?? (callable as? OverloadSet)?.candidates.first
-        if case .code? = function?.vmCode { return false }
-        return true
-    }
-}
-
-/// How many steps a program takes: the fewest that let it finish.
-private func steps(_ source: String, on engine: Engine) -> Int {
-    var low = 1
-    var high = 1 << 20
-    while low < high {
-        let middle = (low + high) / 2
-        if run(source, on: engine, limits: .init(maxSteps: middle)).outcome.failure == nil {
-            high = middle
-        } else {
-            low = middle + 1
-        }
-    }
-    return low
-}
-
-private struct Sample {
-    let name: String
-    let source: String
-    /// The functions in it the compiler is expected to take.
-    let compiles: [String]
-}
-
-private let programs: [Sample] = [
-    Sample(
+private let programs: [VMSample] = [
+    VMSample(
         name: "fib",
         source: """
             func fib(_ n: Int) -> Int { if n < 2 { return n }; return fib(n - 1) + fib(n - 2) }
@@ -88,7 +16,7 @@ private let programs: [Sample] = [
             """,
         compiles: ["fib"]
     ),
-    Sample(
+    VMSample(
         name: "a for over a range",
         source: """
             func sum(_ n: Int) -> Int { var s = 0; for i in 0..<n { s += i % 7 }; return s }
@@ -96,7 +24,7 @@ private let programs: [Sample] = [
             """,
         compiles: ["sum"]
     ),
-    Sample(
+    VMSample(
         name: "a closed range, and a wildcard",
         source: """
             func count(_ n: Int) -> Int { var c = 0; for _ in 1...n { c += 1 }; return c }
@@ -104,7 +32,7 @@ private let programs: [Sample] = [
             """,
         compiles: ["count"]
     ),
-    Sample(
+    VMSample(
         name: "while, break and continue",
         source: """
             func f(_ n: Int) -> Int {
@@ -122,7 +50,7 @@ private let programs: [Sample] = [
             """,
         compiles: ["f"]
     ),
-    Sample(
+    VMSample(
         name: "repeat while",
         source: """
             func g(_ n: Int) -> Int { var i = 0; repeat { i += 3 } while i < n; return i }
@@ -130,7 +58,7 @@ private let programs: [Sample] = [
             """,
         compiles: ["g"]
     ),
-    Sample(
+    VMSample(
         name: "labels",
         source: """
             func grid() -> Int {
@@ -148,7 +76,7 @@ private let programs: [Sample] = [
             """,
         compiles: ["grid"]
     ),
-    Sample(
+    VMSample(
         name: "doubles and mixed arithmetic",
         source: """
             func area(_ r: Double) -> Double { return 3.5 * r * r }
@@ -157,7 +85,7 @@ private let programs: [Sample] = [
             """,
         compiles: ["area"]
     ),
-    Sample(
+    VMSample(
         name: "boolean operators and a default",
         source: """
             func g(_ a: Int, _ b: Int) -> Bool { return a > 1 && b < 3 || a == b }
@@ -166,7 +94,7 @@ private let programs: [Sample] = [
             """,
         compiles: ["g", "pick"]
     ),
-    Sample(
+    VMSample(
         name: "a declared type",
         source: """
             func h() -> Double { let x: Double = 1; return x + 2.5 }
@@ -174,7 +102,7 @@ private let programs: [Sample] = [
             """,
         compiles: ["h"]
     ),
-    Sample(
+    VMSample(
         name: "blocks and shadowing",
         source: """
             func sh() -> Int { let x = 1; var r = 0; if x == 1 { let x = 5; r = x }; return r + x }
@@ -182,7 +110,7 @@ private let programs: [Sample] = [
             """,
         compiles: ["sh"]
     ),
-    Sample(
+    VMSample(
         name: "mutual recursion",
         source: """
             func even(_ n: Int) -> Bool { if n == 0 { return true }; return odd(n - 1) }
@@ -191,7 +119,7 @@ private let programs: [Sample] = [
             """,
         compiles: ["even", "odd"]
     ),
-    Sample(
+    VMSample(
         name: "labels that fit",
         source: """
             func lab(a x: Int, _ y: Int) -> Int { x * y }
@@ -199,7 +127,7 @@ private let programs: [Sample] = [
             """,
         compiles: ["lab"]
     ),
-    Sample(
+    VMSample(
         name: "calls the VM does not make itself",
         source: """
             func shout(_ s: String) -> String { return s + "!" }
@@ -210,7 +138,7 @@ private let programs: [Sample] = [
             """,
         compiles: ["shout", "twice"]
     ),
-    Sample(
+    VMSample(
         name: "a closure called by name",
         source: """
             let add = { (a: Int, b: Int) in a + b }
@@ -219,7 +147,7 @@ private let programs: [Sample] = [
             """,
         compiles: ["use"]
     ),
-    Sample(
+    VMSample(
         name: "output from a function that stays on the tree",
         source: """
             func noisy(_ n: Int) { print("n is \\(n)") }
@@ -230,25 +158,28 @@ private let programs: [Sample] = [
     ),
 ]
 
-@Test(arguments: programs)
-private func aProgramGivesTheSameOnBothEngines(_ program: Sample) {
-    let tree = run(program.source, on: .tree)
-    let vm = run(program.source, on: .vm)
+@Test(arguments: programs + vmControlFlow + vmMoreControlFlow)
+private func aProgramGivesTheSameOnBothEngines(_ program: VMSample) {
+    let tree = vmRun(program.source, on: .tree)
+    let vm = vmRun(program.source, on: .vm)
     #expect(vm.outcome == tree.outcome, "\(program.name)")
     #expect(
         tree.outcome.failure == nil,
         "\(program.name) failed: \(String(describing: tree.outcome.failure))"
     )
-    #expect(compiled(program.compiles, in: vm.swiit) == [], "\(program.name) was not compiled")
+    #expect(vmCompiled(program.compiles, in: vm.swiit) == [], "\(program.name) was not compiled")
 }
 
-@Test(arguments: programs)
-private func aProgramTakesTheSameStepsOnBothEngines(_ program: Sample) {
-    #expect(steps(program.source, on: .vm) == steps(program.source, on: .tree), "\(program.name)")
+@Test(arguments: programs + vmControlFlow + vmMoreControlFlow)
+private func aProgramTakesTheSameStepsOnBothEngines(_ program: VMSample) {
+    #expect(
+        vmSteps(program.source, on: .vm) == vmSteps(program.source, on: .tree),
+        "\(program.name)"
+    )
 }
 
-private let failing: [Sample] = [
-    Sample(
+private let failing: [VMSample] = [
+    VMSample(
         name: "an error two calls down",
         source: """
             func d(_ x: Int) -> Int { return 10 / x }
@@ -257,7 +188,7 @@ private let failing: [Sample] = [
             """,
         compiles: ["d", "e"]
     ),
-    Sample(
+    VMSample(
         name: "overflow",
         source: """
             func big(_ n: Int) -> Int { return n * 9223372036854775807 }
@@ -265,7 +196,7 @@ private let failing: [Sample] = [
             """,
         compiles: ["big"]
     ),
-    Sample(
+    VMSample(
         name: "runaway recursion",
         source: """
             func inf(_ n: Int) -> Int { return inf(n + 1) }
@@ -273,7 +204,7 @@ private let failing: [Sample] = [
             """,
         compiles: ["inf"]
     ),
-    Sample(
+    VMSample(
         name: "an error in a loop's condition",
         source: """
             func loop(_ n: Int) -> Int {
@@ -285,7 +216,7 @@ private let failing: [Sample] = [
             """,
         compiles: ["loop"]
     ),
-    Sample(
+    VMSample(
         name: "a failing call among several statements",
         source: """
             func unsafe(_ x: Int) -> Int { return 100 % x }
@@ -300,7 +231,7 @@ private let failing: [Sample] = [
             """,
         compiles: ["unsafe", "run"]
     ),
-    Sample(
+    VMSample(
         name: "a short body that fails",
         source: """
             func short(_ x: Int) -> Int { 10 / x }
@@ -311,13 +242,13 @@ private let failing: [Sample] = [
     ),
 ]
 
-@Test(arguments: failing)
-private func anErrorIsReportedAsOnTheTreeEvaluator(_ program: Sample) {
-    let tree = run(program.source, on: .tree)
-    let vm = run(program.source, on: .vm)
+@Test(arguments: failing + vmFailingControlFlow)
+private func anErrorIsReportedAsOnTheTreeEvaluator(_ program: VMSample) {
+    let tree = vmRun(program.source, on: .tree)
+    let vm = vmRun(program.source, on: .vm)
     #expect(tree.outcome.failure != nil, "\(program.name) did not fail on the tree evaluator")
     #expect(vm.outcome == tree.outcome, "\(program.name)")
-    #expect(compiled(program.compiles, in: vm.swiit) == [], "\(program.name) was not compiled")
+    #expect(vmCompiled(program.compiles, in: vm.swiit) == [], "\(program.name) was not compiled")
 }
 
 @Test func theVMNeedsNoSwiftStackForDepth() throws {
@@ -327,6 +258,6 @@ private func anErrorIsReportedAsOnTheTreeEvaluator(_ program: Sample) {
         func down(_ n: Int) -> Int { if n == 0 { return 0 }; return down(n - 1) + 1 }
         down(900)
         """
-    let vm = run(source, on: .vm)
+    let vm = vmRun(source, on: .vm)
     #expect(vm.outcome.value == "900")
 }

@@ -31,6 +31,8 @@ enum Instruction {
     case move(dst: Register, src: Register)
     /// A name looked up in the scopes: a global, a function, a type.
     case loadVariable(dst: Register, name: UInt32)
+    /// An expression that names only globals and types, evaluated by the tree evaluator: `Oops.bad`.
+    case evaluate(dst: Register, expression: UInt32)
     /// Sets `count` registers from `first` to nothing: the locals of a block that has ended.
     case clear(first: Register, count: Register)
     /// `dst` is `src` as the type says, or an error (`let x: Double = 1`).
@@ -63,6 +65,40 @@ enum Instruction {
     /// The next value of a range into `variable`, or a jump out of the loop.
     case rangeNext(counter: Register, variable: Register, exit: Int32)
 
+    // MARK: Patterns
+
+    /// Matches the value against the pattern `Code.patterns[pattern]`, as the tree evaluator does:
+    /// the names it binds go to their registers, or the code jumps by `fail`.
+    case match(pattern: UInt32, value: Register, fail: Int32)
+    /// A `case`'s `where`: jumps when it is false, and it must be a Bool.
+    case jumpIfWhereFalse(condition: Register, offset: Int32)
+    /// A switch whose cases none matched.
+    case noMatch(value: Register)
+    case jumpIfNil(register: Register, offset: Int32)
+
+    // MARK: Errors
+
+    /// `throw value`.
+    case throwValue(Register)
+    /// An error `Code.handlers` caught is dealt with: kept by the clause that took it, thrown again
+    /// when none did, thrown as a fatal one for `try!`, or told to the host for a `defer` that failed.
+    case caughtTaken
+    case rethrow
+    case fatalize
+    case reportDeferred
+    /// `guard`'s `else` did not leave.
+    case guardCarriedOn
+
+    // MARK: Deferred blocks
+
+    /// A block with `defer`s keeps in a register which of them it has reached: this one is.
+    case deferMark(register: Register, bit: UInt8)
+    /// Jumps over a `defer` the block has not reached.
+    case jumpIfNotDeferred(register: Register, bit: UInt8, offset: Int32)
+    /// Deferred blocks run without telling the host's observer each statement; these bracket them.
+    case quietBegin
+    case quietEnd
+
     // MARK: Calls
 
     /// Calls what `Code.callSites[site]` names with the arguments in the registers from `arguments`.
@@ -74,7 +110,8 @@ enum Instruction {
 
 /// A call as written: what it calls, and the labels of its arguments.
 final class CallSite {
-    let name: String
+    /// The global name it calls, when it calls one: only such a call can be made by the VM itself.
+    let name: String?
     /// The callee as the checker left it (`f`, or `f` with the overload chosen), which a call the VM
     /// does not make itself is evaluated with.
     let callee: Expr
@@ -84,11 +121,44 @@ final class CallSite {
     @exclusivity(unchecked) var lastFunction: Function?
     @exclusivity(unchecked) var lastFits = false
 
-    init(name: String, callee: Expr, labels: [String?]) {
+    init(name: String?, callee: Expr, labels: [String?]) {
         self.name = name
         self.callee = callee
         self.labels = labels
     }
+}
+
+/// A pattern and where each name it binds goes.
+final class PatternSite {
+    let pattern: Pattern
+    let slots: [(name: String, register: Register)]
+
+    init(pattern: Pattern, slots: [(name: String, register: Register)]) {
+        self.pattern = pattern
+        self.slots = slots
+    }
+}
+
+/// A stretch of code whose errors go somewhere else.
+struct Handler {
+    enum Catches {
+        /// What `catch` catches: errors a script's `catch` sees.
+        case runtimeErrors
+        /// Any error: a `defer` runs however its block ends.
+        case everything
+    }
+
+    var start: Int
+    var end: Int
+    var target: Int
+    var catches: Catches
+    /// Where the error's value (what `catch` binds) goes, if anywhere.
+    var register: Register?
+    /// Whether the error is kept for the code at `target` to throw again or hand on.
+    var keepsError: Bool
+    /// Whether it guards an expression (`try?`, `try!`) and not statements: the error has not left a
+    /// statement yet, so it has not been told which one.
+    var isExpression = false
 }
 
 /// A parameter's type, when the VM can check an argument against it without `conform`.
@@ -123,7 +193,11 @@ final class Code {
     var names: [String] = []
     var types: [TypeExpression] = []
     var statements: [Statement] = []
+    var expressions: [Expr] = []
     var callSites: [CallSite] = []
+    var patterns: [PatternSite] = []
+    /// Innermost last: those that start later are inside those that start earlier.
+    var handlers: [Handler] = []
     /// The source range of each statement a `step` or `at` names; nil where the program had none.
     var ranges: [SourceRange?] = []
     /// How many registers a run of it uses: the locals the frame resolver counted, then temporaries.

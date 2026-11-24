@@ -21,7 +21,8 @@ enum Engine: Sendable {
 enum VMCode {
     case untried
     case code(Code)
-    case unsupported
+    /// It stays on the tree evaluator, for this reason.
+    case unsupported(String)
 }
 
 extension Function {
@@ -67,6 +68,10 @@ final class VMStack {
     /// The first register no frame uses.
     @exclusivity(unchecked) var top = 0
     @exclusivity(unchecked) var callers: [VMCaller] = []
+    /// Errors a handler caught, kept for the code it jumped to: the last is the one it is about.
+    var caught: [Error] = []
+    /// What `observesStatements` was before each deferred block that is running began.
+    var quiet: [Bool] = []
 
     init() {
         capacity = 1 << 12
@@ -102,12 +107,14 @@ extension Interpreter {
         case .code(let code): return code
         case .unsupported: return nil
         case .untried:
-            guard let code = CodeCompiler.compile(function) else {
-                function.vmCode = .unsupported
+            switch CodeCompiler.compile(function) {
+            case .success(let code):
+                function.vmCode = .code(code)
+                return code
+            case .failure(let unsupported):
+                function.vmCode = .unsupported(unsupported.reason)
                 return nil
             }
-            function.vmCode = .code(code)
-            return code
         }
     }
 
@@ -228,6 +235,10 @@ extension Interpreter {
                         let value = try evaluate(.variable(code.names[Int(name)]))
                         regs = stack.base + base
                         regs[Int(dst)] = value
+                    case .evaluate(let dst, let expression):
+                        let value = try evaluate(code.expressions[Int(expression)])
+                        regs = stack.base + base
+                        regs[Int(dst)] = value
                     case .clear(let first, let count):
                         for index in Int(first)..<(Int(first) + Int(count)) {
                             regs[index] = .nothing
@@ -344,6 +355,68 @@ extension Interpreter {
                         }
                         regs[Int(variable)] = .int(next)
                         regs[Int(counter)] = .int(next + 1)
+                    case .match(let patternIndex, let value, let fail):
+                        let site = code.patterns[Int(patternIndex)]
+                        var bindings: [String: Binding] = [:]
+                        let matched = try match(site.pattern, regs[Int(value)], into: &bindings)
+                        regs = stack.base + base
+                        if matched {
+                            for (name, register) in site.slots {
+                                regs[Int(register)] = bindings[name]?.value ?? .nothing
+                            }
+                        } else {
+                            pc += Int(fail)
+                        }
+                    case .jumpIfWhereFalse(let condition, let offset):
+                        guard case .bool(let truth) = regs[Int(condition)].storage else {
+                            throw RuntimeError(
+                                "a case's where must be a Bool, not \(regs[Int(condition)].typeName)"
+                            )
+                        }
+                        if !truth { pc += Int(offset) }
+                    case .noMatch(let value):
+                        let subject = regs[Int(value)]
+                        let shown =
+                            subject.description.isEmpty ? subject.typeName : subject.description
+                        throw RuntimeError(
+                            "switch over \(shown) matched no case; add one, or a default"
+                        )
+                    case .jumpIfNil(let register, let offset):
+                        if regs[Int(register)] == .nothing { pc += Int(offset) }
+                    case .throwValue(let register):
+                        let value = regs[Int(register)]
+                        throw RuntimeError(
+                            (try? describing(value)) ?? value.description,
+                            thrown: value
+                        )
+                    case .caughtTaken:
+                        stack.caught.removeLast()
+                    case .rethrow:
+                        throw stack.caught.removeLast()
+                    case .fatalize:
+                        let error = stack.caught.removeLast()
+                        guard let runtime = error as? RuntimeError else { throw error }
+                        throw FatalError(error: runtime)
+                    case .reportDeferred:
+                        report("error: \(stack.caught.removeLast())")
+                    case .guardCarriedOn:
+                        throw RuntimeError("guard's else carried on")
+                    case .deferMark(let register, let bit):
+                        if case .int(let marks) = regs[Int(register)].storage {
+                            regs[Int(register)] = .int(marks | (1 << Int(bit)))
+                        }
+                    case .jumpIfNotDeferred(let register, let bit, let offset):
+                        if case .int(let marks) = regs[Int(register)].storage,
+                            marks & (1 << Int(bit)) != 0
+                        {
+                            continue
+                        }
+                        pc += Int(offset)
+                    case .quietBegin:
+                        stack.quiet.append(observesStatements)
+                        observesStatements = false
+                    case .quietEnd:
+                        observesStatements = stack.quiet.removeLast()
                     case .call(let dst, let siteIndex, let arguments):
                         let site = code.callSites[Int(siteIndex)]
                         let argumentBase = base + Int(arguments)
@@ -445,10 +518,15 @@ extension Interpreter {
                 }
             } catch {
                 // The frames the error leaves, innermost first, each reporting it as the tree
-                // evaluator does: the statement it was in, and the call it ended.
+                // evaluator does: the statement it was in, and the call it ended. A frame that has
+                // code for it (a `catch`, a `defer`, a `try?`) goes on there instead.
                 var error = error
-                while true {  // Each frame it leaves, until the entry frame's.
-                    if !code.isImplicitReturn, var runtime = error as? RuntimeError {
+                unwinding: while true {
+                    // An error caught inside an expression has not left the statement.
+                    let guarded = handler(in: code, at: pc - 1, for: error)
+                    if !code.isImplicitReturn, guarded?.isExpression != true,
+                        var runtime = error as? RuntimeError
+                    {
                         if statement >= 0, let range = code.ranges[Int(statement)] {
                             if runtime.range == nil {
                                 runtime.range = range
@@ -458,6 +536,18 @@ extension Interpreter {
                                 runtime.calls[last].site = range
                             }
                         }
+                        error = runtime
+                    }
+                    if let handler = guarded {
+                        if handler.keepsError { stack.caught.append(error) }
+                        if let register = handler.register, let runtime = error as? RuntimeError {
+                            stack.base[base + Int(register)] = runtime.value
+                        }
+                        pc = handler.target
+                        regs = stack.base + base
+                        break unwinding
+                    }
+                    if !code.isImplicitReturn, var runtime = error as? RuntimeError {
                         runtime.calls.append(
                             RuntimeError.Call(function: function.name ?? "a closure", site: nil)
                         )
@@ -478,6 +568,18 @@ extension Interpreter {
                 }
             }
         }
+    }
+
+    /// The code that deals with an error raised at instruction `pc` of `code`: the innermost handler
+    /// whose stretch has it and that catches this kind of error.
+    private func handler(in code: Code, at pc: Int, for error: Error) -> Handler? {
+        for handler in code.handlers.reversed() where handler.start <= pc && pc < handler.end {
+            switch handler.catches {
+            case .everything: return handler
+            case .runtimeErrors: if error is RuntimeError { return handler }
+            }
+        }
+        return nil
     }
 
     // swiftlint:enable cyclomatic_complexity function_body_length
@@ -512,7 +614,8 @@ extension Interpreter {
     /// The function a call site calls, when the VM can call it without leaving its loop: the one
     /// function the name is bound to, compiled, taking these arguments as written.
     private func vmTarget(of site: CallSite) -> (Function, Code)? {
-        guard let binding = lookup(site.name), case .function(let callable) = binding.value.storage
+        guard let name = site.name, let binding = lookup(name),
+            case .function(let callable) = binding.value.storage
         else { return nil }
         let only: Function
         if let function = callable as? Function {
