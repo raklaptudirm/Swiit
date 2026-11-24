@@ -16,27 +16,23 @@ extension TypeChecker {
     // MARK: Extensions
 
     /// What names a type extensions can add to: `Int`, `Array`, a struct's own name.
-    func extensionKey(of type: TypeAnnotation) -> String? {
+    func extensionKey(of type: TypeExpression) -> String? {
         if let name = ImplementedType.Representation(type)?.name { return name }
-        return switch type {
-        case .named(let name): name
-        case .generic(let name, _): name
-        default: nil
-        }
+        return type.swiftType?.name
     }
 
     /// The names a collection's members give its parts, bound to what `base` holds.
-    func elementBindings(for base: TypeAnnotation) -> [String: TypeAnnotation] {
-        switch base {
-        case .list(let element): ["Element": element]
-        case .dictionary(let key, let value): ["Key": key, "Value": value]
-        case .generic(_, let arguments) where arguments.count == 1: ["Element": arguments[0]]
-        default: [:]
+    func elementBindings(for base: TypeExpression) -> [String: TypeExpression] {
+        if let element = base.arrayElement { return ["Element": element] }
+        if let (key, value) = base.dictionaryTypes { return ["Key": key, "Value": value] }
+        if let (_, arguments) = base.genericParts, arguments.count == 1 {
+            return ["Element": arguments[0]]
         }
+        return [:]
     }
 
     /// What extensions (in this program, and in what ran before) add to `type`.
-    func extensionLayer(for type: TypeAnnotation) -> ExtensionLayer? {
+    func extensionLayer(for type: TypeExpression) -> ExtensionLayer? {
         extensionKey(of: type).flatMap(extensionLayer(forKey:))
     }
 
@@ -191,16 +187,14 @@ extension TypeChecker {
     }
 
     /// The type `self` is in an extension of the type named `key`, with its parts not yet known.
-    func selfType(ofExtensionOf key: String) throws -> TypeAnnotation {
-        if let annotation = interpreter.bridged[key]?.representation.annotation {
-            return annotation
-        }
+    func selfType(ofExtensionOf key: String) throws -> TypeExpression {
+        if let type = interpreter.bridged[key]?.representation.type { return type }
         if structInfo(named: key) != nil || enumInfo(named: key) != nil
             || protocolInfo(named: key) != nil
         {
             return .named(key)
         }
-        if interpreter.bridged[key] != nil { return .generic(key, [.unknown]) }
+        if interpreter.bridged[key] != nil { return .named(key, [.unknown]) }
         // A protocol of Swift's that collections share: `self` is whatever conforms, so what
         // is asked of it is looked up when it runs (see `hasMember`).
         if Bridge.sequenceProtocols.contains(key) { return .unknown }
@@ -211,7 +205,7 @@ extension TypeChecker {
     /// anything.
     private func erasingParameters(_ declaration: FunctionDecl) -> FunctionDecl {
         var copy = declaration
-        func erased(_ type: TypeAnnotation) -> TypeAnnotation { substitute(type, [:]) }
+        func erased(_ type: TypeExpression) -> TypeExpression { substitute(type, [:]) }
         for index in copy.parameters.indices {
             copy.parameters[index].type = erased(copy.parameters[index].type)
         }
@@ -301,12 +295,12 @@ extension TypeChecker {
     }
 
     /// Whether the type has a member by that name, for a bare name inside it to mean `self`'s.
-    func hasMember(_ type: TypeAnnotation, named name: String) -> Bool {
+    func hasMember(_ type: TypeExpression, named name: String) -> Bool {
         // A value of no type known yet (`self` in an extension of `Collection`) has the members the
         // collections share, which `Array` has all of.
         if type == .unknown { return hasMember(.list(.unknown), named: name) }
         if describe(type)?.instanceMember(name) != nil { return true }
-        if case .named = type { return false }
+        if type.plainName != nil { return false }
         if let (bridgedType, _) = bridged(type) {
             return bridgedType.lowered.contains { !$0.isStatic && $0.name == name }
         }

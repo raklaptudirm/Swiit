@@ -65,7 +65,7 @@ extension TypeChecker {
 
     func checkFunction(
         _ decl: inout FunctionDecl,
-        self selfType: TypeAnnotation? = nil,
+        self selfType: TypeExpression? = nil,
         mutating: Bool = false,
         initializing: Bool = false
     ) throws {
@@ -97,7 +97,7 @@ extension TypeChecker {
         }
         if let selfType { names["self"] = .variable(selfType, mutable: mutating || initializing) }
         // `super` is the class above, as `self`.
-        if case .named(let className)? = selfType, let info = structInfo(named: className),
+        if let className = selfType?.plainName, let info = structInfo(named: className),
             let parent = info.superclass
         {
             names["super"] = .variable(.named(parent), mutable: true)
@@ -106,7 +106,7 @@ extension TypeChecker {
         // `init?` may `return nil`.
         let result =
             decl.isFailable
-            ? TypeAnnotation.optional(.void) : substitute(decl.returnType ?? .void, [:])
+            ? TypeExpression.optional(.void) : substitute(decl.returnType ?? .void, [:])
         try checkBecomingAsync(decl)
         let topLevel = effectContexts.count == 1
         returns.append(ReturnContext(declared: result))

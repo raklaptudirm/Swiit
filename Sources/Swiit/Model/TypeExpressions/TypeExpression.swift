@@ -185,6 +185,7 @@ public indirect enum TypeExpression: Sendable, Hashable, CustomStringConvertible
                 + (function.isAsync ? " async" : "") + function.throwingText
                 + " -> \(function.returns)"
         case .metatype(let metatype): "\(metatype.instance).Type"
+        case .tuple(let tuple) where tuple.elements.isEmpty: "Void"
         case .tuple(let tuple):
             "("
                 + tuple.elements.map { ($0.label.map { "\($0): " } ?? "") + $0.type.description }
@@ -201,6 +202,9 @@ extension TypeExpression.Named: CustomStringConvertible {
         case "Array" where arguments.count == 1: "[\(arguments[0])]"
         case "Dictionary" where arguments.count == 2: "[\(arguments[0]): \(arguments[1])]"
         case "Optional" where arguments.count == 1: "\(arguments[0])?"
+        // `Sequence` takes no type argument in Swift: with one, it is what a parameter of
+        // `some Sequence<Element>` is.
+        case "Sequence" where arguments.count == 1: "some Sequence<\(arguments[0])>"
         default:
             arguments.isEmpty
                 ? reference.name

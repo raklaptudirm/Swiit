@@ -183,7 +183,11 @@ extension Interpreter {
                         Parameter(
                             label: nil,
                             name: "rest",
-                            type: .functionType([.parameter("T")], .parameter("R"), throws: true)
+                            type: .function(
+                                parameters: [.parameter("T")],
+                                returns: .parameter("R"),
+                                isThrowing: true
+                            )
                         ),
                     ],
                     returnType: .optional(.parameter("R")),

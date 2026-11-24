@@ -41,9 +41,8 @@ extension ImplementedType {
             self = found
         }
 
-        /// The annotation for the type, with what it holds not known, for the kinds the interpreter
-        /// stores itself.
-        var annotation: TypeAnnotation? {
+        /// The type, with what it holds not known, for the kinds the interpreter stores itself.
+        var type: TypeExpression? {
             switch self {
             case .bool: .bool
             case .int: .int
@@ -55,15 +54,15 @@ extension ImplementedType {
             }
         }
 
-        /// The representation of the type an annotation names, if the interpreter stores its values.
-        init?(_ annotation: TypeAnnotation) {
-            switch annotation {
+        /// The representation of a type, if the interpreter stores its values.
+        init?(_ type: TypeExpression) {
+            switch type {
             case .bool: self = .bool
             case .int: self = .int
             case .double: self = .double
             case .string: self = .string
-            case .list: self = .list
-            case .dictionary: self = .dictionary
+            case _ where type.arrayElement != nil: self = .list
+            case _ where type.dictionaryTypes != nil: self = .dictionary
             default: return nil
             }
         }

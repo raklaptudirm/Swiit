@@ -235,7 +235,7 @@ extension TypeChecker {
         if catchesAll { throwingSites = sitesBefore }
         // What the body throws is one type, if every call in it says so (`throws(E)`).
         let seen = Array(thrownSeen[seenBefore...])
-        var errorType = TypeAnnotation.named("Error")
+        var errorType = TypeExpression.named("Error")
         if let first = seen.first, let type = first, seen.allSatisfy({ $0 == type }) {
             errorType = type
         }
@@ -305,7 +305,7 @@ extension TypeChecker {
 
     /// `for try await x in s`: s must be an AsyncSequence, read where `await`
     /// may be written, and its reading throws (all of Swiit's do).
-    func checkAsyncLoop(_ loop: ForLoop, over sequence: TypeAnnotation) throws {
+    func checkAsyncLoop(_ loop: ForLoop, over sequence: TypeExpression) throws {
         try checkAwaitAllowed()
         effectContexts[effectContexts.count - 1].effect = .async
         if let (_, throwing) = iteratedElement(of: sequence, async: true) {
@@ -326,7 +326,7 @@ extension TypeChecker {
             }
         }
         // A task group that can't throw is read without `try`.
-        if case .generic("TaskGroup", _) = sequence, !loop.isTry { return }
+        if sequence.genericParts?.name == "TaskGroup", !loop.isTry { return }
         guard loop.isTry else {
             throw TypeError("reading a \(sequence) can throw: write 'for try await'")
         }
@@ -356,8 +356,8 @@ extension TypeChecker {
     /// elements, so `c ? 1 : nil` is an Int?.
     func ifExpressionType(
         _ node: inout IfStatement,
-        expected: TypeAnnotation?
-    ) throws -> TypeAnnotation {
+        expected: TypeExpression?
+    ) throws -> TypeExpression {
         let bound = try checkCondition(&node)
         guard var thenExpr = IfStatement.branchExpression(node.then),
             var elseExpr = IfStatement.branchExpression(node.otherwise ?? Program(statements: []))
@@ -393,7 +393,7 @@ extension TypeChecker {
             node.condition = .expression(condition)
         case .binding(let name, let mutable, var value):
             let type = try typeOf(&value)
-            if case .optional(let wrapped) = type {
+            if let wrapped = type.optionalWrapped {
                 bound[name] = .variable(wrapped, mutable: mutable)
             } else if type == .unknown {
                 bound[name] = .variable(.unknown, mutable: mutable)
@@ -431,7 +431,7 @@ extension TypeChecker {
     // swiftlint:disable:next cyclomatic_complexity function_body_length - one branch for each case; a long walk over every case; splitting it is item 25 of Docs/agenda.md
     func checkPattern(
         _ pattern: inout Pattern,
-        against written: TypeAnnotation,
+        against written: TypeExpression,
         binding bound: inout [String: ScopeEntry]
     ) throws {
         let type = erased(written)
@@ -445,7 +445,7 @@ extension TypeChecker {
             // `.none` and `.some(let x)` against an optional: as in `typeOf`, an optional's two
             // cases are not an enum's at run time, so they are matched as nil and as the value,
             // unless the held type has cases of those names.
-            if case .optional(let held) = subject, typeName == nil || typeName == "Optional",
+            if let held = subject.optionalWrapped, typeName == nil || typeName == "Optional",
                 name == "none" || name == "some",
                 !(erasedName(held).flatMap { enumInfo(named: $0)?.payload(of: name) } != nil)
             {
@@ -460,7 +460,7 @@ extension TypeChecker {
                     return
                 }
             }
-            if case .optional(let wrapped) = subject { subject = wrapped }
+            if let wrapped = subject.optionalWrapped { subject = wrapped }
             // `catch Bad.input`: an Error matched as the enum named, if it is one.
             if subject == .named("Error") {
                 guard let typeName else {
@@ -480,7 +480,7 @@ extension TypeChecker {
                 pattern = .enumCase(type: typeName, name: name, arguments: arguments)
                 return
             }
-            guard case .named(let enumName) = subject, let info = enumInfo(named: enumName) else {
+            guard let enumName = subject.plainName, let info = enumInfo(named: enumName) else {
                 throw TypeError("a case pattern like .\(name) matches an enum, not \(type)")
             }
             if let typeName, typeName != enumName {
@@ -507,7 +507,7 @@ extension TypeChecker {
             if case .binary(let op, var lower, var upper) = expr,
                 op == .closedRange || op == .halfOpenRange
             {
-                let boundType = type == .double ? TypeAnnotation.double : type
+                let boundType = type == .double ? TypeExpression.double : type
                 try expect(&lower, boundType, "a range's bound")
                 try expect(&upper, boundType, "a range's bound")
                 pattern = .expression(.binary(op, lower, upper))
@@ -524,8 +524,8 @@ extension TypeChecker {
         case .isType:
             break
         case .some(var inner):
-            var wrapped = TypeAnnotation.unknown
-            if case .optional(let held) = type {
+            var wrapped = TypeExpression.unknown
+            if let held = type.optionalWrapped {
                 wrapped = held
             } else if type != .unknown && type != .any {
                 throw TypeError("'?' in a pattern matches an optional, not \(type)")
@@ -533,13 +533,13 @@ extension TypeChecker {
             try checkPattern(&inner, against: wrapped, binding: &bound)
             pattern = .some(inner)
         case .partialRange(var lower, var upper, let closed):
-            let boundType = type == .double ? TypeAnnotation.double : type
+            let boundType = type == .double ? TypeExpression.double : type
             if lower != nil { try expect(&lower!, boundType, "a range's bound") }
             if upper != nil { try expect(&upper!, boundType, "a range's bound") }
             pattern = .partialRange(lower: lower, upper: upper, closed: closed)
         case .tuple(var patterns):
-            switch type {
-            case .tuple(let elements):
+            if case .tuple(let tuple) = type, !tuple.elements.isEmpty {
+                let elements = tuple.elements
                 guard elements.count == patterns.count else {
                     throw TypeError(
                         "a tuple pattern of \(patterns.count) can't match \(type), which has \(elements.count)"
@@ -552,11 +552,11 @@ extension TypeChecker {
                         binding: &bound
                     )
                 }
-            case .unknown, .any:
+            } else if type == .unknown || type == .any {
                 for index in patterns.indices {
                     try checkPattern(&patterns[index], against: .unknown, binding: &bound)
                 }
-            default:
+            } else {
                 throw TypeError("a tuple pattern matches a tuple, not \(type)")
             }
             pattern = .tuple(patterns)

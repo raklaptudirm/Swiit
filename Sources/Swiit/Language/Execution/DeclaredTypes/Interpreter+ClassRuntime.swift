@@ -112,7 +112,7 @@ extension Interpreter {
             }
             return wrapped(value, property)
         }
-        if property.mutable, case .optional? = property.type { return .nothing }
+        if property.mutable, property.type?.optionalWrapped != nil { return .nothing }
         return nil
     }
 
@@ -406,8 +406,8 @@ extension Interpreter {
         _ name: String,
         rest: ArraySlice<Assignment.Step>,
         initializing: Bool,
-        _ change: (Value, TypeAnnotation?) throws -> Value,
-        deeper: (Value, ArraySlice<Assignment.Step>, TypeAnnotation?) throws -> Value
+        _ change: (Value, TypeExpression?) throws -> Value,
+        deeper: (Value, ArraySlice<Assignment.Step>, TypeExpression?) throws -> Value
     ) throws {
         if let setter = instance.type.setter(name), rest.isEmpty {
             let current = try classMember(name, of: instance) ?? .nothing

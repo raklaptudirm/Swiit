@@ -28,15 +28,15 @@ extension Interpreter {
                 }
         }
         return inCurrentTask {
-            guard var annotation = self.annotation(type) else { return [] }
+            guard var checked = self.byName(type) else { return [] }
             // A generic Swift type by its bare name has members whatever it holds: `Array`, `Set`.
-            if case .named(let typeName) = annotation,
+            if let typeName = checked.plainName,
                 let generic = bridged[typeName]?.genericParameters,
                 !generic.isEmpty
             {
-                annotation = .generic(typeName, generic.map { _ in .unknown })
+                checked = .named(typeName, generic.map { _ in .unknown })
             }
-            return memberSymbols(named: name, of: annotation)
+            return memberSymbols(named: name, of: checked)
         }
     }
 
@@ -64,7 +64,7 @@ extension Interpreter {
                 .variable(
                     Symbol.Variable(
                         name: name,
-                        type: typeExpression(checker.type(of: binding.value)),
+                        type: byReference(checker.type(of: binding.value)),
                         isSettable: binding.mutable
                     )
                 )
@@ -111,7 +111,7 @@ extension Interpreter {
                         documentation: function.documentation?.parameters[$0.name]
                     )
                 },
-                returns: function.returnType.map(typeExpression) ?? .void,
+                returns: function.returnType.map(byReference) ?? .void,
                 isThrowing: function.isThrowing,
                 isAsync: function.effect != .sync,
                 generics: function.generics
@@ -159,7 +159,7 @@ extension Interpreter {
                         name: signature.name,
                         signature: Symbol.Signature(
                             parameters: signature.parameters.map { parameter($0) },
-                            returns: typeExpression(signature.returns),
+                            returns: byReference(signature.returns),
                             isThrowing: signature.isThrowing,
                             isAsync: signature.effect != .sync
                         )
@@ -172,7 +172,7 @@ extension Interpreter {
         case .variable(let type, let mutable):
             return [
                 .variable(
-                    Symbol.Variable(name: name, type: TypeExpression(type), isSettable: mutable)
+                    Symbol.Variable(name: name, type: type.byText, isSettable: mutable)
                 )
             ]
         case .swiftType, .asyncLet: return []

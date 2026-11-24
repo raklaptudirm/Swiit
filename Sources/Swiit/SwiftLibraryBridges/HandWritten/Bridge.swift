@@ -79,12 +79,12 @@ enum Bridge {
         }
     }
 
-    /// The bridged type Swiit's type annotation is, and its generic
+    /// The bridged type a checked type is, and its generic
     /// parameters' bindings: `[Int]` is `Array` with Element Int.
     static func type(
-        of annotation: TypeAnnotation,
+        of annotation: TypeExpression,
         in types: [String: ImplementedType]
-    ) -> (ImplementedType, [String: TypeAnnotation])? {
+    ) -> (ImplementedType, [String: TypeExpression])? {
         guard let (name, arguments) = annotation.swiftType, let type = types[name],
             type.genericParameterNames.count == arguments.count
         else { return nil }
@@ -116,7 +116,7 @@ struct BridgedMember: Sendable {
     let name: String
     let isStatic: Bool
     let parameters: [Parameter]
-    let returns: TypeAnnotation
+    let returns: TypeExpression
     let generics: [Symbol.GenericParameter]
     let isThrowing: Bool
     let isRethrowing: Bool
@@ -147,7 +147,7 @@ struct BridgedMember: Sendable {
         name: String,
         isStatic: Bool,
         parameters: [Parameter],
-        returns: TypeAnnotation,
+        returns: TypeExpression,
         generics: [Symbol.GenericParameter],
         isThrowing: Bool,
         isRethrowing: Bool,

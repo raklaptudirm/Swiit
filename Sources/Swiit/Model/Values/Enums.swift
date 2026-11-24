@@ -27,8 +27,8 @@ extension Value.EnumCase {
         /// the cases' order, as Swift's own does.
         var conformances: [String]
         /// The types of each case's associated values, by case, for checking them. The labels are on
-        /// the cases; the types are checker annotations, which only a program's enum has.
-        var payloadTypes: [String: [TypeAnnotation]] = [:]
+        /// the cases; the types are a program's own, so only a program's enum has them.
+        var payloadTypes: [String: [TypeExpression]] = [:]
         /// A generic enum's type parameters, `Element` in `enum Tree<Element>`.
         var typeParameters: [String] = []
 

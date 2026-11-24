@@ -355,7 +355,7 @@ extension Interpreter {
     }
 
     func checked(_ value: Value, for parameter: Parameter, of function: String) throws -> Value {
-        let type = parameter.variadic ? TypeAnnotation.list(parameter.type) : parameter.type
+        let type = parameter.variadic ? TypeExpression.list(parameter.type) : parameter.type
         guard let conforming = conform(value, to: type) else {
             throw RuntimeError(
                 "\(function): '\(parameter.name)' must be \(type), not \(value.typeName)"
@@ -444,7 +444,7 @@ extension Interpreter {
         return Function(
             name: name,
             parameters: parameters,
-            returnType: signature.returns == .void ? nil : TypeAnnotation(signature.returns),
+            returnType: signature.returns == .void ? nil : signature.returns.byText,
             body: .native { interpreter, arguments in
                 do {
                     return try call(arguments)
@@ -486,57 +486,6 @@ extension Interpreter {
         case .limit: return LimitExceeded(diagnostic.message)
         case .cancelled: return Cancelled()
         case .syntax, .type: return RuntimeError(diagnostic.message)
-        }
-    }
-}
-
-extension TypeAnnotation {
-    init(_ type: TypeExpression) {
-        switch type {
-        case .named("Any"): self = .any
-        case .named("Bool"): self = .bool
-        case .named("Int"): self = .int
-        case .named("Double"): self = .double
-        case .named("String"): self = .string
-        case .named("Function"): self = .function
-        case .named(let named):
-            let arguments = named.arguments
-            switch named.reference.name {
-            case "KeyPath" where arguments.count == 2:
-                self = .keyPath(TypeAnnotation(arguments[0]), TypeAnnotation(arguments[1]))
-            case "Array" where arguments.count == 1:
-                self = .list(TypeAnnotation(arguments[0]))
-            case "Optional" where arguments.count == 1:
-                self = .optional(TypeAnnotation(arguments[0]))
-            case "Sequence" where arguments.count == 1:
-                self = .someSequence(TypeAnnotation(arguments[0]))
-            case "Dictionary" where arguments.count == 2:
-                self = .dictionary(TypeAnnotation(arguments[0]), TypeAnnotation(arguments[1]))
-            default:
-                self =
-                    arguments.isEmpty
-                    ? .named(named.reference.name)
-                    : .generic(named.reference.name, arguments.map(TypeAnnotation.init))
-            }
-        case .parameter(let parameter):
-            self = .parameter(parameter.name)
-        case .function(let function):
-            self = .functionType(
-                function.parameters.map { parameter in
-                    parameter.isInout
-                        ? .inOut(TypeAnnotation(parameter.type)) : TypeAnnotation(parameter.type)
-                },
-                TypeAnnotation(function.returns),
-                throws: function.isThrowing,
-                async: function.isAsync ? .async : .sync
-            )
-        // `()` is what `Void` is.
-        case .tuple(let tuple) where tuple.elements.isEmpty: self = .void
-        case .tuple(let tuple):
-            self = .tuple(
-                tuple.elements.map { TupleElement(label: $0.label, type: TypeAnnotation($0.type)) }
-            )
-        case .metatype(let metatype): self = .metatype(TypeAnnotation(metatype.instance))
         }
     }
 }
@@ -595,7 +544,7 @@ extension Parameter {
         self.init(
             label: parameter.label,
             name: parameter.name,
-            type: TypeAnnotation(parameter.type),
+            type: parameter.type.byText,
             isInout: parameter.isInout
         )
         switch parameter.arity {

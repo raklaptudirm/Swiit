@@ -7,7 +7,7 @@ extension Interpreter {
     ) {
         inCurrentTask {
             scopes[0].bindings[name] = Binding(computed: read)
-            checkerMemory.globalTypes[name] = TypeAnnotation(type)
+            checkerMemory.globalTypes[name] = type.byText
         }
     }
 

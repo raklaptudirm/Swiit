@@ -79,7 +79,7 @@ extension TypeChecker {
             }
         }
         // Its members, with the case as `self`.
-        let selfType = TypeAnnotation.named(decl.name)
+        let selfType = TypeExpression.named(decl.name)
         for index in decl.properties.indices {
             let property = decl.properties[index]
             guard let getter = property.getter else { continue }

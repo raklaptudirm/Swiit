@@ -92,7 +92,7 @@ extension Interpreter {
         {
             lowered = lowered.adding(
                 itemMembers(
-                    of: TypeAnnotation(element),
+                    of: element.byText,
                     excluding: Set(type.members.map(\.name))
                 )
             )
@@ -118,7 +118,7 @@ extension Interpreter {
 extension Interpreter {
     /// A list's members, which read their receiver without changing it, made members of a sequence:
     /// they take its items as the list they work on.
-    func itemMembers(of element: TypeAnnotation, excluding own: Set<String>) -> [BridgedMember] {
+    func itemMembers(of element: TypeExpression, excluding own: Set<String>) -> [BridgedMember] {
         guard let array = bridged["Array"] else { return [] }
         let checker = TypeChecker(interpreter: self)
         let bindings = ["Element": element]

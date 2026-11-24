@@ -84,7 +84,7 @@ extension TypeChecker {
     }
 
     /// Whether a value of `type` may be used as the protocol: it conforms.
-    func conformsToProtocol(_ type: TypeAnnotation, _ name: String) -> Bool {
+    func conformsToProtocol(_ type: TypeExpression, _ name: String) -> Bool {
         guard protocolInfo(named: name) != nil else { return false }
         return conforms(type, to: name)
     }

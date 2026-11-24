@@ -171,7 +171,11 @@ private func typeError(_ source: String) -> String? {
     let twice = Function(
         name: "twice",
         parameters: [
-            Parameter(label: nil, name: "f", type: .functionType([.int], .int, async: .async))
+            Parameter(
+                label: nil,
+                name: "f",
+                type: .function(parameters: [.int], returns: .int, isAsync: true)
+            )
         ],
         returnType: .int,
         body: .native { swiit, args in

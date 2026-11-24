@@ -3,21 +3,21 @@ import Foundation
 extension TypeChecker {
     // MARK: Closures
 
-    func functionType(_ signature: Signature) -> TypeAnnotation {
-        .functionType(
-            signature.parameters.map { $0.variadic ? .list($0.type) : $0.type },
-            signature.returns,
-            throws: signature.isThrowing,
-            async: signature.effect
+    func functionType(_ signature: Signature) -> TypeExpression {
+        .function(
+            parameters: signature.parameters.map { $0.variadic ? .list($0.type) : $0.type },
+            returns: signature.returns,
+            isThrowing: signature.isThrowing,
+            isAsync: signature.effect == .async
         )
     }
 
     /// `async let`'s operation: what it gives, and whether it throws.
-    func childTaskType(_ closure: inout ClosureLiteral) throws -> (TypeAnnotation, Bool) {
+    func childTaskType(_ closure: inout ClosureLiteral) throws -> (TypeExpression, Bool) {
         // Its initializer is implicitly `try await`, as in Swift: what it
         // waits for and throws, reading the variable does.
         guard
-            case .functionType(_, let result, let throwing, _) = try closureType(
+            case .function(let function) = try closureType(
                 &closure,
                 expecting: nil,
                 implicitTryAwait: true
@@ -25,7 +25,7 @@ extension TypeChecker {
         else {
             return (.unknown, true)
         }
-        return (result, throwing)
+        return (function.returns, function.isThrowing)
     }
 
     /// A closure's type. Parameters without a type take the ones the context
@@ -34,23 +34,25 @@ extension TypeChecker {
     /// `return`s give; it throws if its body can.
     func closureType(
         _ closure: inout ClosureLiteral,
-        expecting expected: TypeAnnotation?,
+        expecting expected: TypeExpression?,
         implicitTryAwait: Bool = false
-    ) throws -> TypeAnnotation {
+    ) throws -> TypeExpression {
         // `{ () }` where a function of one value is wanted: Swift takes the value and leaves it
         // unused.
-        if closure.parameters.isEmpty, case .functionType(let wanted, _, _, _)? = expected,
-            !wanted.isEmpty
+        if closure.parameters.isEmpty, case .function(let wanted)? = expected,
+            !wanted.parameters.isEmpty
         {
-            closure.parameters = wanted.indices.map { Parameter(name: "$ignored\($0)") }
+            closure.parameters = wanted.parameters.indices.map {
+                Parameter(name: "$ignored\($0)")
+            }
         }
-        var expectedParameters: [TypeAnnotation]?
-        var expectedResult: TypeAnnotation?
-        if case .functionType(let parameters, let result, _, _)? = expected,
-            parameters.count == closure.parameters.count
+        var expectedParameters: [TypeExpression.FunctionType.Parameter]?
+        var expectedResult: TypeExpression?
+        if case .function(let function)? = expected,
+            function.parameters.count == closure.parameters.count
         {
-            expectedParameters = parameters
-            expectedResult = result
+            expectedParameters = function.parameters
+            expectedResult = function.returns
         }
         var names: [String: ScopeEntry] = [:]
         // `[weak self]`: what is taken, which is an optional if it is weak.
@@ -61,14 +63,13 @@ extension TypeChecker {
                 mutable: false
             )
         }
-        var parameterTypes: [TypeAnnotation] = []
+        var parameterTypes: [TypeExpression.FunctionType.Parameter] = []
         for (index, parameter) in closure.parameters.enumerated() {
-            var type =
-                parameter.type == .any ? expectedParameters?[index] ?? .unknown : parameter.type
+            let wanted = parameter.type == .any ? expectedParameters?[index] : nil
+            let type = parameter.type == .any ? wanted?.type ?? .unknown : parameter.type
             // `(inout R, E) -> Void` is wanted: the closure changes its first.
-            var changes = false
-            if case .inOut(let inner) = type { changes = true; type = inner }
-            parameterTypes.append(changes ? .inOut(type) : type)
+            let changes = wanted?.isInout == true
+            parameterTypes.append(.init(type, isInout: changes))
             if changes { closure.parameters[index].isInout = true }
             names[parameter.name] = .variable(type, mutable: changes)
         }
@@ -91,7 +92,7 @@ extension TypeChecker {
 
         // A closure may `await`, which makes it async, as in Swift; one that
         // waits only through the host's constructs is implicitly async.
-        let (result, effects) = try withEffects(allowsAwait: true) { () throws -> TypeAnnotation in
+        let (result, effects) = try withEffects(allowsAwait: true) { () throws -> TypeExpression in
             if implicitTryAwait { awaitDepth = 1 }
             if var expr = implicitReturn(closure.body) {
                 let type = try typeOf(&expr, expecting: declared)
@@ -106,11 +107,13 @@ extension TypeChecker {
             try checkBlock(&closure.body)
             return declared ?? commonType(context.seen) ?? (context.seen.isEmpty ? .void : .unknown)
         }
-        return .functionType(
-            parameterTypes,
-            result,
-            throws: throwingSites > sitesBefore,
-            async: effects.effect
+        return .function(
+            .init(
+                parameters: parameterTypes,
+                returns: result,
+                throwing: throwingSites > sitesBefore ? .any : .no,
+                isAsync: effects.effect == .async
+            )
         )
     }
 }

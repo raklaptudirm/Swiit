@@ -64,7 +64,7 @@ struct Lowering {
     /// each takes `$0`, `$1`, … (one without named parameters does).
     var anonymous: [Bool] = []
     /// `typealias Name = Type`, which a type written as `Name` stands for.
-    var aliases: [String: TypeAnnotation] = [:]
+    var aliases: [String: TypeExpression] = [:]
     /// The functions around the code being lowered, innermost last, as `#function` names them.
     var functionNames: [String] = []
     /// `o?.a.b`: the name the chain's `o?` is read by inside the closure that runs the rest of it.

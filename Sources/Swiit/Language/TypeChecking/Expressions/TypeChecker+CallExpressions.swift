@@ -7,8 +7,8 @@ extension TypeChecker {
     /// Calls, bridged members, and member access.
     func typeOfCall(
         _ expr: inout Expr,
-        expecting expected: TypeAnnotation?
-    ) throws -> TypeAnnotation {
+        expecting expected: TypeExpression?
+    ) throws -> TypeExpression {
         switch expr {
         case .call(var callee, var arguments):
             let type = try callType(&callee, &arguments, expected: expected)
@@ -26,7 +26,7 @@ extension TypeChecker {
             guard let member = interpreter.bridged[typeName]?.lowered[index] else {
                 return .unknown
             }
-            var bindings: [String: TypeAnnotation] = [:]
+            var bindings: [String: TypeExpression] = [:]
             if var base = receiver {
                 // `async let x`'s reads: `x` itself is the task.
                 if case .variable(let name) = base, case .asyncLet(let task)? = lookup(name) {
@@ -89,7 +89,7 @@ extension TypeChecker {
             // run time: nil is `.nothing` and a present value is itself, so these two cases are
             // rewritten here to that representation (and in `checkPattern`, for patterns), not
             // declared like an enum's.
-            if case .optional(let wrapped)? = expected {
+            if let wrapped = expected?.optionalWrapped {
                 if name == "none", arguments == nil {
                     expr = .literal(.nothing)
                     return .optional(wrapped)
@@ -107,10 +107,7 @@ extension TypeChecker {
             }
             let type = try caseType(name, &arguments, expected: expected)
             // Written out with its enum, so running it needs no context.
-            var enumTypeName: String?
-            if case .named(let enumName) = type { enumTypeName = enumName }
-            if case .generic(let enumName, _) = type { enumTypeName = enumName }
-            if let enumName = enumTypeName, enumInfo(named: enumName) != nil {
+            if let enumName = type.swiftType?.name, enumInfo(named: enumName) != nil {
                 let member = Expr.member(.variable(enumName), name)
                 expr = arguments.map { .call(member, $0) } ?? member
             } else {
@@ -126,15 +123,10 @@ extension TypeChecker {
 extension TypeChecker {
     /// The name of the struct, class or Swift type that `expected` is, when a leading-dot
     /// expression of it names a static member and not an enum's case.
-    func staticMemberOwner(_ expected: TypeAnnotation?) -> String? {
+    func staticMemberOwner(_ expected: TypeExpression?) -> String? {
         var wanted = expected
-        if case .optional(let wrapped)? = wanted { wanted = wrapped }
-        let name: String
-        switch wanted {
-        case .named(let named)?: name = named
-        case .generic(let named, _)?: name = named
-        default: return nil
-        }
+        if let wrapped = wanted?.optionalWrapped { wanted = wrapped }
+        guard let name = wanted?.swiftType?.name else { return nil }
         switch lookup(name) {
         case .structType?, .swiftType?: return name
         default: return nil
@@ -147,8 +139,8 @@ extension TypeChecker {
         _ name: String,
         _ arguments: [Argument]?,
         _ expr: inout Expr,
-        expecting expected: TypeAnnotation?
-    ) throws -> TypeAnnotation {
+        expecting expected: TypeExpression?
+    ) throws -> TypeExpression {
         let member = Expr.member(.variable(owner), name)
         var written = arguments.map { Expr.call(member, $0) } ?? member
         let type = try typeOf(&written, expecting: expected)
@@ -162,7 +154,7 @@ extension TypeChecker {
         _ typeName: String,
         _ name: String,
         _ expr: inout Expr
-    ) throws -> TypeAnnotation {
+    ) throws -> TypeExpression {
         if case .property(let property)? = describe(named: typeName)?.staticMember(name) {
             return property.type
         }

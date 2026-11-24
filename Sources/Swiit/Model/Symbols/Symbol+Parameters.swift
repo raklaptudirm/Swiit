@@ -41,9 +41,6 @@ extension Symbol {
         public var isInout: Bool
         /// Whether a call must give it, may leave it out, or may give any number.
         public var arity: Arity
-        /// The type as the checker has it, which tells a type parameter from a type of the same
-        /// name.
-        var annotation: TypeAnnotation?
         /// The text of the `- Parameter name:` line in the function's documentation.
         public var documentation: String?
         /// What is given is shown as interpolation shows a value (`print`).

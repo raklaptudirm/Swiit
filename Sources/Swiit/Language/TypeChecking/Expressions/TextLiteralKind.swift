@@ -30,7 +30,7 @@ enum TextLiteralKind: CaseIterable {
 
     /// The value an initializer for this kind takes for `text`, given the type of its parameter: a
     /// string, a `Character` or a `Unicode.Scalar`, which are the types Swift writes a literal as.
-    func argument(_ text: String, for parameter: TypeAnnotation) -> Value? {
+    func argument(_ text: String, for parameter: TypeExpression) -> Value? {
         switch parameter {
         case .string:
             return .string(text)

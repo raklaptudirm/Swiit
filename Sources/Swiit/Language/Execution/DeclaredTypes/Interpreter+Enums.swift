@@ -7,7 +7,7 @@ extension Interpreter {
     /// its name.
     func declare(_ decl: EnumDecl) throws {
         var cases: [Value.EnumCase.Enumeration.Case] = []
-        var payloadTypes: [String: [TypeAnnotation]] = [:]
+        var payloadTypes: [String: [TypeExpression]] = [:]
         var nextInt = 0
         var rawSeen: Set<Value> = []
         for enumCase in decl.cases {
@@ -158,14 +158,11 @@ extension Interpreter {
         return members.staticMethods[name].map(Value.function)
     }
 
-    /// The enum a type annotation names, looking through optionals.
-    func enumType(for type: TypeAnnotation?) -> Value.EnumCase.Enumeration? {
-        switch type {
-        case .named(let name)?: enumType(named: name)
-        case .generic(let name, _)?: enumType(named: name)
-        case .optional(let wrapped)?: enumType(for: wrapped)
-        default: nil
-        }
+    /// The enum a type names, looking through optionals.
+    func enumType(for type: TypeExpression?) -> Value.EnumCase.Enumeration? {
+        guard let type else { return nil }
+        if let wrapped = type.optionalWrapped { return enumType(for: wrapped) }
+        return type.swiftType.flatMap { enumType(named: $0.name) }
     }
 
     func enumType(named name: String) -> Value.EnumCase.Enumeration? {
@@ -225,7 +222,7 @@ extension Interpreter {
 
     /// An expression whose type is known from context: a `.case` literal
     /// becomes a case of the expected enum.
-    func evaluate(_ expr: Expr, expecting type: TypeAnnotation?) throws -> Value {
+    func evaluate(_ expr: Expr, expecting type: TypeExpression?) throws -> Value {
         if case .caseLiteral(let name, let arguments) = expr, let enumType = enumType(for: type) {
             return try makeCase(enumType, name, arguments)
         }
@@ -233,67 +230,26 @@ extension Interpreter {
     }
 
     /// `value` as `type`, knowing the enums in scope; nil if it doesn't fit.
-    func conform(_ value: Value, to type: TypeAnnotation) -> Value? {
+    func conform(_ value: Value, to type: TypeExpression) -> Value? {
         // A value already of a plain type, which is nearly every argument and result.
         switch (type, value.storage) {
         case (.int, .int), (.double, .double), (.string, .string), (.bool, .bool), (.any, _):
             return value
         default: break
         }
-        switch type {
-        case .named, .generic, .someSequence:
-            return conformNamed(value, to: type)
-        default:
-            return conformStructured(value, to: type)
+        if type.sequenceElement != nil {
+            // Any sequence; the glue takes its items.
+            return value
         }
+        if type.isNominal, !type.isPrimitive, type.plainName != nil || type.genericParts != nil {
+            return conformNamed(value, to: type)
+        }
+        return conformStructured(value, to: type)
     }
 
     /// A value of a named type: a class, a protocol, a struct, an enum, a Swift value.
-    private func conformNamed(_ value: Value, to type: TypeAnnotation) -> Value? {
-        switch type {
-        case .named(let name) where name.contains(" & "):
-            // `A & B`: a value that is each.
-            var held = value
-            for part in name.components(separatedBy: " & ") {
-                guard let conforming = conform(held, to: .named(part)) else { return nil }
-                held = conforming
-            }
-            return held
-        case .named(let name):
-            // A class of the program's: an instance of it or of a subclass.
-            if let type = classType(named: name) {
-                guard case .object(let instance as ClassInstance) = value.storage,
-                    instance.type.isSubclass(of: type)
-                else {
-                    return nil
-                }
-                return value
-            }
-            // A protocol of the program's: any value whose type conforms.
-            if protocolType(named: name) != nil {
-                return self.value(value, conformsTo: name) ? value : nil
-            }
-            // A Swift value, boxed, is of its Swift type.
-            if case .object(let box as SwiftValue) = value.storage, box.typeName == name {
-                return value
-            }
-            // A Character is held as the one-letter String it is.
-            if name == "Character", case .string(let text) = value.storage, text.count == 1 {
-                return value
-            }
-            if let record = value.record, record.typeName == name,
-                structType(named: name) != nil
-            {
-                return value
-            }
-            // An Error is any value whose type conforms to it.
-            if name == "Error", isError(value) { return value }
-            guard case .enumValue(let enumValue) = value.storage,
-                let expected = enumType(named: name),
-                enumValue.type === expected
-            else { return nil }
-            return value
-        case .generic(let name, _):
+    private func conformNamed(_ value: Value, to type: TypeExpression) -> Value? {
+        if let (name, _) = type.genericParts {
             // A Swift value, boxed, is of its Swift type.
             if case .object(let box as SwiftValue) = value.storage, box.typeName == name {
                 return value
@@ -305,24 +261,64 @@ extension Interpreter {
             // holds is the checker's to say, since a value does not carry it.
             if protocolType(named: name) != nil { return conform(value, to: .named(name)) }
             return nil
-        case .someSequence:
-            // Any sequence; the glue takes its items.
-            return value
-        default:
+        }
+        guard let name = type.plainName else {
             preconditionFailure("this was sent to the wrong group")
         }
+        if name.contains(" & ") {
+            // `A & B`: a value that is each.
+            var held = value
+            for part in name.components(separatedBy: " & ") {
+                guard let conforming = conform(held, to: .named(part)) else { return nil }
+                held = conforming
+            }
+            return held
+        }
+        // A class of the program's: an instance of it or of a subclass.
+        if let type = classType(named: name) {
+            guard case .object(let instance as ClassInstance) = value.storage,
+                instance.type.isSubclass(of: type)
+            else {
+                return nil
+            }
+            return value
+        }
+        // A protocol of the program's: any value whose type conforms.
+        if protocolType(named: name) != nil {
+            return self.value(value, conformsTo: name) ? value : nil
+        }
+        // A Swift value, boxed, is of its Swift type.
+        if case .object(let box as SwiftValue) = value.storage, box.typeName == name {
+            return value
+        }
+        // A Character is held as the one-letter String it is.
+        if name == "Character", case .string(let text) = value.storage, text.count == 1 {
+            return value
+        }
+        if let record = value.record, record.typeName == name,
+            structType(named: name) != nil
+        {
+            return value
+        }
+        // An Error is any value whose type conforms to it.
+        if name == "Error", isError(value) { return value }
+        guard case .enumValue(let enumValue) = value.storage,
+            let expected = enumType(named: name),
+            enumValue.type === expected
+        else { return nil }
+        return value
     }
 
     /// A value of a type made of others: a collection, a tuple, an optional, a type parameter.
-    private func conformStructured(_ value: Value, to type: TypeAnnotation) -> Value? {
-        switch type {
-        case .metatype(let wrapped):
+    private func conformStructured(_ value: Value, to type: TypeExpression) -> Value? {
+        if case .metatype(let metatype) = type {
             // A type, of the kind the type parameter or class says (a subclass's type is its
             // superclass's too).
-            guard let held = annotation(ofTypeValue: value) else { return nil }
-            switch wrapped {
-            case .any, .parameter, .unknown: return value
-            case .named(let name):
+            let wrapped = metatype.instance
+            guard let held = representedType(ofTypeValue: value) else { return nil }
+            if wrapped == .any || wrapped == .unknown { return value }
+            if case .parameter = wrapped { return value }
+            if let name = wrapped.plainName {
                 if case .object(let object as ClassType) = value.storage,
                     let above = classType(named: name)
                 {
@@ -331,19 +327,21 @@ extension Interpreter {
                 if protocolType(named: name) != nil || name == "Error" {
                     return typeValue(value, conformsTo: name) ? value : nil
                 }
-                return held == wrapped ? value : nil
-            default: return held == wrapped ? value : nil
             }
-        case .parameter(let name):
+            return held == wrapped ? value : nil
+        }
+        if case .parameter(let parameter) = type {
             // A type parameter is what the call bound it to, if the body names it; otherwise any
             // type.
-            guard let bound = lookup(Interpreter.typeArgumentPrefix + name)?.value,
-                let annotation = annotation(ofTypeValue: bound)
+            guard let bound = lookup(Interpreter.typeArgumentPrefix + parameter.name)?.value,
+                let represented = representedType(ofTypeValue: bound)
             else { return value }
-            return conform(value, to: annotation)
-        case .optional(let wrapped):
+            return conform(value, to: represented)
+        }
+        if let wrapped = type.optionalWrapped {
             return value == .nothing ? value : conform(value, to: wrapped)
-        case .list(let element):
+        }
+        if let element = type.arrayElement {
             guard case .list(let items) = value.storage else { return value.conforming(to: type) }
             var converted: [Value] = []
             for item in items {
@@ -351,19 +349,22 @@ extension Interpreter {
                 converted.append(conforming)
             }
             return .list(converted)
-        case .dictionary(let keyType, let typeExpression):
+        }
+        if let (keyType, valueType) = type.dictionaryTypes {
             guard case .dictionary(let dictionary) = value.storage else {
                 return value.conforming(to: type)
             }
             var made: [Value: Value] = [:]
             for (key, entry) in dictionary {
                 guard let conformingKey = conform(key, to: keyType),
-                    let conformingValue = conform(entry, to: typeExpression)
+                    let conformingValue = conform(entry, to: valueType)
                 else { return nil }
                 made[conformingKey] = conformingValue
             }
             return .dictionary(made)
-        case .tuple(let elements):
+        }
+        if case .tuple(let tuple) = type, !tuple.elements.isEmpty {
+            let elements = tuple.elements
             // Each element as its own type, which may be a protocol of the program's.
             guard let record = value.record, record.typeName == nil,
                 record.count == elements.count
@@ -376,9 +377,8 @@ extension Interpreter {
                 made[element.label ?? field.key] = conforming
             }
             return Value(record: made)
-        default:
-            return value.conforming(to: type)
         }
+        return value.conforming(to: type)
     }
 
     // MARK: Matching

@@ -24,7 +24,7 @@ extension TypeChecker {
     /// What `left op right` is, if a bridged type of one of them declares an
     /// operator they fit: the one whose parameters are exactly their types,
     /// else the first they fit.
-    func bridgedOperatorType(_ symbol: String, _ operands: [TypeAnnotation]) -> TypeAnnotation? {
+    func bridgedOperatorType(_ symbol: String, _ operands: [TypeExpression]) -> TypeExpression? {
         let candidates = Bridge.operators(
             symbol,
             arity: operands.count,

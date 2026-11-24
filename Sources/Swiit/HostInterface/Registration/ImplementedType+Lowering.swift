@@ -29,8 +29,8 @@ extension ImplementedType {
     }
 
     /// The associated types as the checker writes them.
-    var annotatedAssociatedTypes: [String: TypeAnnotation] {
-        associatedTypes.mapValues(TypeAnnotation.init)
+    var checkedAssociatedTypes: [String: TypeExpression] {
+        associatedTypes.mapValues(\.byText)
     }
 
     /// It, with its members lowered. A type of the core is bridged: its members are not a host's own,
@@ -132,7 +132,7 @@ extension BridgedMember {
             isStatic: Bool = false,
             name: String? = nil,
             parameters: [Parameter] = [],
-            returns: TypeAnnotation,
+            returns: TypeExpression,
             function: Symbol.Signature? = nil,
             isMutating: Bool = false,
             call: @escaping @Sendable (Arguments) throws -> Value
@@ -189,7 +189,7 @@ extension BridgedMember {
                 make(
                     .method,
                     parameters: parameters(function),
-                    returns: TypeAnnotation(function.returns),
+                    returns: function.returns.byText,
                     function: function
                 ) { try body($0["self"] ?? .nothing, order($0)) }
             ]
@@ -199,7 +199,7 @@ extension BridgedMember {
                 make(
                     .method,
                     parameters: parameters(function),
-                    returns: TypeAnnotation(function.returns),
+                    returns: function.returns.byText,
                     function: function,
                     isMutating: true
                 ) { arguments in
@@ -213,7 +213,7 @@ extension BridgedMember {
                     .method,
                     isStatic: true,
                     parameters: parameters(function),
-                    returns: TypeAnnotation(function.returns),
+                    returns: function.returns.byText,
                     function: function
                 ) { try body(order($0)) }
             ]
@@ -221,7 +221,7 @@ extension BridgedMember {
             return [
                 make(
                     .property,
-                    returns: TypeAnnotation(property.type),
+                    returns: property.type.byText,
                     function: Symbol.Signature(
                         returns: property.type,
                         throwing: property.throwing,
@@ -232,11 +232,11 @@ extension BridgedMember {
         case (.property(let property), .settableProperty(let get, let set)):
             let type = property.type
             return [
-                make(.property, returns: TypeAnnotation(type)) { try get($0["self"] ?? .nothing) },
+                make(.property, returns: type.byText) { try get($0["self"] ?? .nothing) },
                 make(
                     .setter,
                     parameters: [
-                        Parameter(label: nil, name: "newValue", type: TypeAnnotation(type))
+                        Parameter(label: nil, name: "newValue", type: type.byText)
                     ],
                     returns: .void,
                     isMutating: true
@@ -252,7 +252,7 @@ extension BridgedMember {
                 make(
                     .property,
                     isStatic: true,
-                    returns: TypeAnnotation(property.type)
+                    returns: property.type.byText
                 ) { _ in try get() }
             ]
         case (.initializer(let initializer), .initializer(let body)):
@@ -263,7 +263,7 @@ extension BridgedMember {
                     isStatic: true,
                     name: "init",
                     parameters: parameters(function),
-                    returns: TypeAnnotation(function.returns),
+                    returns: function.returns.byText,
                     function: function
                 ) { try body(order($0)) }
             ]

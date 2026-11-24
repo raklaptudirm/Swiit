@@ -23,7 +23,7 @@ extension Interpreter {
     /// A place that can be changed where it is: its steps, and the type it is meant to hold.
     struct Place {
         var steps: [PlaceStep]
-        var type: TypeAnnotation?
+        var type: TypeExpression?
         /// What a value put there must be, if the place is a property with a type: it may be
         /// changed to fit.
         var validate: ((Value) throws -> Value)?
@@ -62,7 +62,7 @@ extension Interpreter {
             }
         }
         var steps: [PlaceStep] = []
-        var type: TypeAnnotation?
+        var type: TypeExpression?
         var validate: ((Value) throws -> Value)?
         var current = binding.value
         for step in path {

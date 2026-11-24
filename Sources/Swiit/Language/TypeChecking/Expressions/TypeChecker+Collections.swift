@@ -7,20 +7,15 @@ extension TypeChecker {
     /// Lists, records and tuples.
     func typeOfCollection(
         _ expr: inout Expr,
-        expecting expected: TypeAnnotation?
-    ) throws -> TypeAnnotation {
+        expecting expected: TypeExpression?
+    ) throws -> TypeExpression {
         switch expr {
         case .list(var items):
             // `let s: Set<Int> = [1, 2]`: a Swift collection written as a literal is made from its
             // items.
             if var wanted = expected {
-                if case .optional(let wrapped) = wanted { wanted = wrapped }
-                var typeName: String?
-                switch wanted {
-                case .named(let name): typeName = name
-                case .generic(let name, _): typeName = name
-                default: break
-                }
+                if let wrapped = wanted.optionalWrapped { wanted = wrapped }
+                let typeName = wanted.plainName ?? wanted.genericParts?.name
                 if let typeName, typeName != "Array",
                     interpreter.bridged[typeName]?.conformance(named: "ExpressibleByArrayLiteral")
                         != nil
@@ -28,7 +23,7 @@ extension TypeChecker {
                 {
                     expr = .call(.variable(typeName), [Argument(value: .list(items))])
                     let made = try typeOf(&expr, expecting: nil)
-                    if case .named = wanted { return made }
+                    if wanted.plainName != nil { return made }
                     return wanted
                 }
             }
@@ -41,8 +36,9 @@ extension TypeChecker {
             return type
         case .tuple(var elements):
             if elements.isEmpty { return .void }
-            var wanted: [TypeAnnotation.TupleElement]?
-            if case .tuple(let elementTypes)? = expected, elementTypes.count == elements.count {
+            var wanted: [TypeExpression.Tuple.Element]?
+            if case .tuple(let tuple)? = expected, tuple.elements.count == elements.count {
+                let elementTypes = tuple.elements
                 wanted = elementTypes
                 // `(hi: 2, lo: 1)` where `(lo:, hi:)` is wanted: Swift reorders by the labels.
                 let written = elements.map(\.label), labels = elementTypes.map(\.label)
@@ -52,7 +48,7 @@ extension TypeChecker {
                     elements = labels.compactMap { label in elements.first { $0.label == label } }
                 }
             }
-            var types: [TypeAnnotation.TupleElement] = []
+            var types: [TypeExpression.Tuple.Element] = []
             for index in elements.indices {
                 types.append(
                     .init(
@@ -66,14 +62,14 @@ extension TypeChecker {
                 )
             }
             expr = .tuple(elements)
-            return .tuple(types)
+            return .tuple(.init(types))
         default:
             preconditionFailure("typeOfExpression sent this to the wrong group")
         }
     }
 
-    func listType(_ items: inout [Expr], expected: TypeAnnotation?) throws -> TypeAnnotation {
-        if case .list(let element)? = expected {
+    func listType(_ items: inout [Expr], expected: TypeExpression?) throws -> TypeExpression {
+        if let element = expected?.arrayElement {
             for index in items.indices { try expect(&items[index], element, "a list element") }
             return .list(element)
         }
@@ -93,7 +89,7 @@ extension TypeChecker {
         // `[1, 2.5]` is a [Double], as in Swift.
         let natural = try elementTypes(&items)
         let wantsDouble = natural.contains(.double)
-        var types: [TypeAnnotation] = []
+        var types: [TypeExpression] = []
         for index in items.indices {
             types.append(
                 wantsDouble ? try typeOf(&items[index], expecting: .double) : natural[index]
@@ -109,8 +105,8 @@ extension TypeChecker {
 
     /// The elements' own types; a `.case` or `nil` takes its type from the
     /// others, as in `[Level.high, .low]`.
-    func elementTypes(_ items: inout [Expr]) throws -> [TypeAnnotation] {
-        var types = [TypeAnnotation?](repeating: nil, count: items.count)
+    func elementTypes(_ items: inout [Expr]) throws -> [TypeExpression] {
+        var types = [TypeExpression?](repeating: nil, count: items.count)
         for index in items.indices
         where TypeChecker.hasNaturalType(items[index]) || !TypeChecker.isContextual(items[index]) {
             if case .literal(.nothing) = items[index] { continue }
@@ -127,9 +123,9 @@ extension TypeChecker {
 
     func dictionaryType(
         _ entries: inout [RecordEntry],
-        expected: TypeAnnotation?
-    ) throws -> TypeAnnotation {
-        if case .dictionary(let key, let value)? = expected {
+        expected: TypeExpression?
+    ) throws -> TypeExpression {
+        if let (key, value) = expected?.dictionaryTypes {
             for index in entries.indices {
                 try expect(&entries[index].key, key, "a key")
                 try expect(&entries[index].value, value, "a value")
@@ -139,8 +135,8 @@ extension TypeChecker {
         guard !entries.isEmpty else {
             throw TypeError("an empty dictionary needs a type: let d: [String: Int] = [:]")
         }
-        var keys: [TypeAnnotation] = []
-        var values: [TypeAnnotation] = []
+        var keys: [TypeExpression] = []
+        var values: [TypeExpression] = []
         for index in entries.indices {
             keys.append(try typeOf(&entries[index].key))
             values.append(try typeOf(&entries[index].value))
@@ -157,7 +153,7 @@ extension TypeChecker {
     }
 
     /// The one type all of `types` fit, if there is one.
-    func commonType(_ types: [TypeAnnotation]) -> TypeAnnotation? {
+    func commonType(_ types: [TypeExpression]) -> TypeExpression? {
         guard var common = types.first else { return nil }
         for type in types.dropFirst() {
             if fits(type, common) { continue }

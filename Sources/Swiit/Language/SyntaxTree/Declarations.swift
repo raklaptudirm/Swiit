@@ -21,7 +21,7 @@ extension FunctionDecl {
         return copy
     }
 
-    func withThrown(_ type: TypeAnnotation?) -> FunctionDecl {
+    func withThrown(_ type: TypeExpression?) -> FunctionDecl {
         var copy = self
         copy.thrownType = type
         return copy
@@ -38,7 +38,7 @@ extension FunctionDecl {
 struct FunctionDecl: Equatable, Sendable {
     var name: String
     var parameters: [Parameter]
-    var returnType: TypeAnnotation?
+    var returnType: TypeExpression?
     var body: Program
     var documentation: Documentation?
     /// A struct's `mutating func`, which may change `self`.
@@ -46,7 +46,7 @@ struct FunctionDecl: Equatable, Sendable {
     /// `throws`: calling it needs `try`.
     var isThrowing = false
     /// `throws(E)`: the one type of error it throws.
-    var thrownType: TypeAnnotation?
+    var thrownType: TypeExpression?
     /// Declared `async`.
     var isAsync = false
     /// `async` if declared so.
@@ -75,7 +75,7 @@ struct FunctionDecl: Equatable, Sendable {
     init(
         name: String,
         parameters: [Parameter],
-        returnType: TypeAnnotation? = nil,
+        returnType: TypeExpression? = nil,
         body: Program,
         documentation: Documentation? = nil,
         isMutating: Bool = false,
@@ -193,7 +193,7 @@ struct ProtocolDecl: Equatable, Sendable {
 /// `var area: Double { get }`, `var name: String { get set }`.
 struct ProtocolProperty: Equatable, Sendable {
     var name: String
-    var type: TypeAnnotation
+    var type: TypeExpression
     var settable: Bool
 }
 
@@ -210,7 +210,7 @@ struct ExtensionDecl: Equatable, Sendable {
 /// `subscript(row: Int, column: Int) -> Double { get { … } set { … } }`.
 struct SubscriptDecl: Equatable, Sendable {
     var parameters: [Parameter]
-    var returnType: TypeAnnotation
+    var returnType: TypeExpression
     var getter: Program
     var getterNames = NamesUsed()
     var setter: Program?
@@ -221,7 +221,7 @@ struct SubscriptDecl: Equatable, Sendable {
 struct PropertyDecl: Equatable, Sendable {
     var name: String
     var mutable: Bool
-    var type: TypeAnnotation?
+    var type: TypeExpression?
     var defaultValue: Expr?
     /// A computed property's body; nil for a stored one.
     var getter: Program?
@@ -248,7 +248,7 @@ struct PropertyDecl: Equatable, Sendable {
     init(
         name: String,
         mutable: Bool,
-        type: TypeAnnotation? = nil,
+        type: TypeExpression? = nil,
         defaultValue: Expr? = nil,
         getter: Program? = nil,
         getterNames: NamesUsed = NamesUsed()
@@ -277,7 +277,7 @@ struct Documentation: Equatable, Sendable {
 struct ClosureLiteral: Equatable, Sendable {
     /// For `{ $0 * 2 }`, the implicit `$0`, `$1`, … parameters.
     var parameters: [Parameter]
-    var returnType: TypeAnnotation?
+    var returnType: TypeExpression?
     var body: Program
     var names = NamesUsed()
     /// The result builder whose `buildBlock` the body was made into, once it has been.
@@ -296,7 +296,7 @@ struct ClosureLiteral: Equatable, Sendable {
 
     init(
         parameters: [Parameter],
-        returnType: TypeAnnotation? = nil,
+        returnType: TypeExpression? = nil,
         body: Program,
         names: NamesUsed = NamesUsed()
     ) {
@@ -325,7 +325,7 @@ struct Parameter: Equatable, Sendable {
     /// The argument label; nil for `_`.
     var label: String?
     var name: String
-    var type: TypeAnnotation = .any
+    var type: TypeExpression = .any
     var variadic = false
     var defaultValue: Expr?
     /// `@Builder content: () -> V`: a closure given for it is made by the result builder.
@@ -348,7 +348,7 @@ struct Parameter: Equatable, Sendable {
     init(
         label: String? = nil,
         name: String,
-        type: TypeAnnotation = .any,
+        type: TypeExpression = .any,
         variadic: Bool = false,
         defaultValue: Expr? = nil,
         externalDefault: String? = nil,

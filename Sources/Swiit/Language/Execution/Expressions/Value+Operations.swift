@@ -55,21 +55,25 @@ extension Value {
 
     /// This value as `type`, or nil if it doesn't fit. An Int passes as a
     /// Double, as an integer literal would in Swift.
-    func conforming(to type: TypeAnnotation) -> Value? {
+    func conforming(to type: TypeExpression) -> Value? {
+        // A key path is a function of one value, as in Swift, and no other kind. A closure is not
+        // a key path: only one is the path of fields it names.
+        if case .function(is KeyPathValue) = storage {
+            if case .function(let function) = type {
+                return function.parameters.count == 1 ? self : nil
+            }
+            if type.keyPathTypes != nil { return self }
+        }
         switch (type, self.storage) {
-        // A key path is a function of one value, as in Swift, and no other kind.
-        case (.functionType(let parameters, _, _, _), .function(is KeyPathValue)):
-            return parameters.count == 1 ? self : nil
-        // A closure is not a key path: only one is the path of fields it names.
-        case (.keyPath, .function(is KeyPathValue)):
-            return self
         case (.any, _), (.unknown, _), (.bool, .bool), (.int, .int), (.double, .double),
             (.string, .string),
-            (.function, .function), (.functionType, .function), (.parameter, _),
+            (.callable, .function), (.function, .function), (.parameter, _),
             (.record, .tuple), (.record, .structure), (.void, .nothing):
             return self
-        case (.tuple(let elements), .tuple), (.tuple(let elements), .structure):
-            guard let record = record, record.count == elements.count else { return nil }
+        case (.tuple(let tuple), .tuple), (.tuple(let tuple), .structure):
+            let elements = tuple.elements
+            guard !elements.isEmpty, let record = record, record.count == elements.count
+            else { return nil }
             var converted = Value.Record(typeRef: record.typeRef)
             for (index, (element, field)) in zip(elements, record).enumerated() {
                 guard
@@ -80,31 +84,36 @@ extension Value {
                 converted[element.label ?? field.key] = value
             }
             return Value(record: converted)
-        case (.dictionary(let keyType, let typeExpression), .dictionary(let dictionary)):
+        case (.double, .int(let n)):
+            return .double(Double(n))
+        default:
+            break
+        }
+        if let (keyType, valueType) = type.dictionaryTypes,
+            case .dictionary(let dictionary) = storage
+        {
             var converted: [Value: Value] = [:]
             for (key, value) in dictionary {
                 guard let k = key.conforming(to: keyType),
-                    let v = value.conforming(to: typeExpression)
+                    let v = value.conforming(to: valueType)
                 else { return nil }
                 converted[k] = v
             }
             return .dictionary(converted)
-        case (.double, .int(let n)):
-            return .double(Double(n))
-        case (.optional, .nothing):
-            return self
-        case (.optional(let wrapped), _):
+        }
+        if let wrapped = type.optionalWrapped {
+            if case .nothing = storage { return self }
             return conforming(to: wrapped)
-        case (.list(let element), .list(let values)):
+        }
+        if let element = type.arrayElement, case .list(let values) = storage {
             var converted: [Value] = []
             for value in values {
                 guard let conforming = value.conforming(to: element) else { return nil }
                 converted.append(conforming)
             }
             return .list(converted)
-        default:
-            return nil
         }
+        return nil
     }
 }
 

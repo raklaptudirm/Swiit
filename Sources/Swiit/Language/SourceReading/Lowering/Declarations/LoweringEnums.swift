@@ -10,11 +10,11 @@ extension Lowering {
                 .map(\.name)
         )
         defer { typeParameters = outerParameters }
-        var rawType: TypeAnnotation?
+        var rawType: TypeExpression?
         var conformances: [String] = []
         for inherited in node.inheritanceClause?.inheritedTypes ?? [] {
             let name = inherited.type.trimmedDescription
-            if rawType == nil, conformances.isEmpty, let spelled = TypeAnnotation.spelled(name),
+            if rawType == nil, conformances.isEmpty, let spelled = TypeExpression.spelled(name),
                 [.int, .string, .double].contains(spelled)
             {
                 rawType = spelled

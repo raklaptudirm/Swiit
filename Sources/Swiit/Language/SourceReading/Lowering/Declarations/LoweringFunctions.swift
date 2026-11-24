@@ -70,7 +70,7 @@ extension Lowering {
             }
             let first = parameter.firstName.text
             let name = parameter.secondName?.text ?? first
-            var type = TypeAnnotation.any
+            var type = TypeExpression.any
             var variadic = false
             if let written = Optional(parameter.type) {
                 type = try self.type(written)

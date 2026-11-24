@@ -7,8 +7,8 @@ extension TypeChecker {
     /// Operators and indexing.
     func typeOfOperation(
         _ expr: inout Expr,
-        expecting expected: TypeAnnotation?
-    ) throws -> TypeAnnotation {
+        expecting expected: TypeExpression?
+    ) throws -> TypeExpression {
         switch expr {
         case .unary(let op, var operand):
             let type = try typeOf(&operand, expecting: op == .not ? .bool : expected)
@@ -18,7 +18,7 @@ extension TypeChecker {
             case (.negate, .int), (.negate, .double), (.negate, .unknown): return type
             case (.bitNot, .int), (.bitNot, .unknown): return .int
             default:
-                if case .named = type,
+                if type.plainName != nil,
                     let result = userOperatorType("prefix " + op.rawValue, [type])
                 {
                     return result
@@ -74,7 +74,7 @@ extension TypeChecker {
                 expr = .subscripted(base, arguments)
                 return type
             }
-            guard case .named(let structName) = baseType, let info = structInfo(named: structName)
+            guard let structName = baseType.plainName, let info = structInfo(named: structName)
             else {
                 throw TypeError("\(baseType) can't be indexed by several values")
             }
@@ -83,7 +83,7 @@ extension TypeChecker {
             return type
         case .indexDefault(var base, var key, var fallback):
             let baseType = try typeOf(&base)
-            guard case .dictionary(let keyType, let typeExpression) = baseType else {
+            guard let (keyType, typeExpression) = baseType.dictionaryTypes else {
                 throw TypeError("'default:' goes with a dictionary's key, not \(baseType)'s index")
             }
             try expect(&key, keyType, "the key")
@@ -98,8 +98,8 @@ extension TypeChecker {
     /// An expression around another: an annotation, an unwrap, a cast, what the checker added.
     func typeOfWrapper(
         _ expr: inout Expr,
-        expecting expected: TypeAnnotation?
-    ) throws -> TypeAnnotation {
+        expecting expected: TypeExpression?
+    ) throws -> TypeExpression {
         switch expr {
         case .annotated(var inner, let type):
             let written = inner
@@ -112,12 +112,12 @@ extension TypeChecker {
             expr = .annotated(inner, type)
             // `let s: Set = [1, 2]`: a generic type written without its arguments takes them from
             // the value.
-            if case .named(let name) = type, case .generic(name, _) = actual { return actual }
+            if let name = type.plainName, actual.genericParts?.name == name { return actual }
             return type
         case .forceUnwrap(var inner):
             let type = try typeOf(&inner)
             expr = .forceUnwrap(inner)
-            if case .optional(let wrapped) = type { return wrapped }
+            if let wrapped = type.optionalWrapped { return wrapped }
             if type == .unknown { return .unknown }
             throw TypeError("'!' unwraps an optional, but this is \(type)")
         case .optionalMember(var base, let name):
@@ -131,34 +131,34 @@ extension TypeChecker {
                 )
             {
                 expr = bridgedExpr
-                if case .optional = type { return type }
+                if type.optionalWrapped != nil { return type }
                 return .optional(type)
             }
             if let (arguments, type) = try dynamicMember(of: wrapped, name) {
                 expr = .optionalSubscripted(base, arguments)
-                if case .optional = type { return type }
+                if type.optionalWrapped != nil { return type }
                 return type == .unknown ? .unknown : .optional(type)
             }
             expr = .optionalMember(base, name)
             let member = try memberType(of: wrapped, name)
-            if case .optional = member { return member }
+            if member.optionalWrapped != nil { return member }
             return member == .unknown ? .unknown : .optional(member)
         case .optionalSubscripted(var base, var arguments):
             let wrapped = try optionalBase(&base)
-            guard case .named(let structName) = wrapped, let info = structInfo(named: structName)
+            guard let structName = wrapped.plainName, let info = structInfo(named: structName)
             else {
                 throw TypeError("\(wrapped) can't be indexed by several values")
             }
             let element = try structSubscript(info, &arguments).type
             expr = .optionalSubscripted(base, arguments)
-            if case .optional = element { return element }
+            if element.optionalWrapped != nil { return element }
             return element == .unknown ? .unknown : .optional(element)
         case .optionalIndex(var base, var index):
             let wrapped = try optionalBase(&base)
             // Typed as `base![index]` would be, then made optional.
             let element = try indexType(of: wrapped, &index)
             expr = .optionalIndex(base, index)
-            if case .optional = element { return element }
+            if element.optionalWrapped != nil { return element }
             return element == .unknown ? .unknown : .optional(element)
         case .chosen(var inner, let overload):
             let type = try typeOf(&inner, expecting: expected)
@@ -193,7 +193,7 @@ extension TypeChecker {
                 }
                 return type
             case .conditional:
-                if case .optional = type { return type }
+                if type.optionalWrapped != nil { return type }
                 return .optional(type)
             case .forced:
                 return type
@@ -206,9 +206,9 @@ extension TypeChecker {
     }
 
     /// What `x` in `x?.name` is when it isn't nil.
-    func optionalBase(_ base: inout Expr) throws -> TypeAnnotation {
+    func optionalBase(_ base: inout Expr) throws -> TypeExpression {
         let type = try typeOf(&base)
-        if case .optional(let wrapped) = type { return wrapped }
+        if let wrapped = type.optionalWrapped { return wrapped }
         if type == .unknown { return .unknown }
         throw TypeError("'?.' is for optionals; \(type) isn't one: use '.'")
     }

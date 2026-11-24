@@ -12,7 +12,7 @@ extension TypeChecker {
     }
 
     /// The type of what an assignment's root names, and how many path steps the root consumed.
-    private func assignmentRoot(_ assignment: Assignment) throws -> (TypeAnnotation, Int) {
+    private func assignmentRoot(_ assignment: Assignment) throws -> (TypeExpression, Int) {
         guard let symbol = lookup(assignment.root) else {
             throw TypeError("no variable named '\(assignment.root)'")
         }
@@ -39,7 +39,7 @@ extension TypeChecker {
 
         // A class instance is a reference: a `let` of one still has its members assigned.
         let isReference: Bool = {
-            if case .named(let name) = rootType, structInfo(named: name)?.isClass == true {
+            if let name = rootType.plainName, structInfo(named: name)?.isClass == true {
                 true
             } else {
                 false
@@ -60,8 +60,8 @@ extension TypeChecker {
     private func assignmentStep(
         _ assignment: inout Assignment,
         at index: Int,
-        from type: TypeAnnotation
-    ) throws -> TypeAnnotation {
+        from type: TypeExpression
+    ) throws -> TypeExpression {
         switch assignment.path[index] {
         case .member(let name):
             return try assignedMember(name, of: type, in: &assignment, at: index)
@@ -76,7 +76,7 @@ extension TypeChecker {
             return result
 
         case .subscripted(var arguments):
-            guard case .named(let structName) = type, let info = structInfo(named: structName)
+            guard let structName = type.plainName, let info = structInfo(named: structName)
             else {
                 throw TypeError("cannot assign into \(type) by several indexes")
             }
@@ -88,7 +88,7 @@ extension TypeChecker {
             return result
 
         case .optionalChain:
-            guard case .optional(let wrapped) = type else {
+            guard let wrapped = type.optionalWrapped else {
                 throw TypeError("'?' needs an optional, not \(type)")
             }
             return wrapped
@@ -96,7 +96,7 @@ extension TypeChecker {
         case .unwrap:
             // A dictionary's entry is written as the value, but read as an optional:
             // `d[k]![0] = 1`.
-            if case .optional(let wrapped) = type {
+            if let wrapped = type.optionalWrapped {
                 return wrapped
             }
             guard index > 0, case .index = assignment.path[index - 1] else {
@@ -105,7 +105,7 @@ extension TypeChecker {
             return type
 
         case .indexDefault(var key, var fallback):
-            guard case .dictionary(let keyType, let valueType) = type else {
+            guard let (keyType, valueType) = type.dictionaryTypes else {
                 throw TypeError("'default:' goes with a dictionary's key, not \(type)'s index")
             }
             try expect(&key, keyType, "the key")
@@ -118,11 +118,11 @@ extension TypeChecker {
     /// The type of `type.name` as the target of an assignment.
     private func assignedMember(
         _ name: String,
-        of type: TypeAnnotation,
+        of type: TypeExpression,
         in assignment: inout Assignment,
         at index: Int
-    ) throws -> TypeAnnotation {
-        if case .named(let structName) = type,
+    ) throws -> TypeExpression {
+        if let structName = type.plainName,
             let description = describe(type),
             [.structure, .class, .actor].contains(description.kind)
         {
@@ -168,8 +168,8 @@ extension TypeChecker {
             return property.type
         }
 
-        if case .tuple(let elements) = type {
-            guard let element = tupleElement(name, of: elements) else {
+        if case .tuple(let tuple) = type {
+            guard let element = tupleElement(name, of: tuple.elements) else {
                 throw TypeError("\(type) has no element '\(name)'")
             }
             return element
@@ -201,39 +201,38 @@ extension TypeChecker {
     /// The type of `type[index]` as the target of an assignment.
     private func assignedIndex(
         _ indexExpr: inout Expr,
-        of type: TypeAnnotation,
+        of type: TypeExpression,
         isLast last: Bool
-    ) throws -> TypeAnnotation {
-        switch type {
-        case .named(let structName) where structInfo(named: structName)?.subscripts.isEmpty == false:
+    ) throws -> TypeExpression {
+        if let structName = type.plainName,
+            let info = structInfo(named: structName), !info.subscripts.isEmpty
+        {
             var arguments = [Argument(value: indexExpr)]
-            let (result, settable) = try structSubscript(structInfo(named: structName)!, &arguments)
+            let (result, settable) = try structSubscript(info, &arguments)
             guard settable else {
                 throw TypeError("cannot assign through \(structName)'s subscript: it's get-only")
             }
             indexExpr = arguments[0].value
             return result
-
-        case .list(let element):
+        }
+        if let element = type.arrayElement {
             try expect(&indexExpr, .int, "a list's index")
             return element
-
-        case .dictionary(let key, let value):
+        }
+        if let (key, value) = type.dictionaryTypes {
             try expect(&indexExpr, key, "the key")
             // Assigning nil removes the entry.
             return last ? .optional(value) : value
-
-        case .unknown, .record, .any:
+        }
+        if type == .unknown || type == .record || type == .any {
             _ = try typeOf(&indexExpr)
             return .unknown
-
-        default:
-            throw TypeError("cannot assign into \(type) by index")
         }
+        throw TypeError("cannot assign into \(type) by index")
     }
 
     /// Checks the value an assignment stores against the type of its target.
-    private func checkAssignedValue(_ assignment: inout Assignment, to type: TypeAnnotation) throws
+    private func checkAssignedValue(_ assignment: inout Assignment, to type: TypeExpression) throws
     {
         guard let op = assignment.op else {
             try expect(&assignment.value, type, "the value assigned")
@@ -243,7 +242,7 @@ extension TypeChecker {
         let valueType = try typeOf(&assignment.value, expecting: type)
 
         // `a += b` through a `+=` the type defines.
-        if case .named(let typeName) = type,
+        if let typeName = type.plainName,
             describe(named: typeName)?.staticMethods(named: "\(op.rawValue)=").isEmpty == false
         {
             return

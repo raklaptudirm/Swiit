@@ -34,7 +34,7 @@ extension Interpreter {
     func describing(
         _ value: Value,
         debug: Bool = false,
-        type: TypeAnnotation? = nil
+        type: TypeExpression? = nil
     ) throws -> String {
         if let text = try describing(value, asTyped: type) { return text }
         switch value.storage {
@@ -80,30 +80,32 @@ extension Interpreter {
 
     /// A value shown as the type it is declared with says, which an optional, a collection and a
     /// tuple need; nil for any other.
-    private func describing(_ value: Value, asTyped type: TypeAnnotation?) throws -> String? {
+    private func describing(_ value: Value, asTyped type: TypeExpression?) throws -> String? {
         // What the type knows: an optional is `Optional(…)` or `nil`, and so is one inside a
         // collection.
-        switch type {
-        case .optional(let wrapped)?:
+        guard let type else { return nil }
+        if let wrapped = type.optionalWrapped {
             if value == .nothing { return "nil" }
             return "Optional(" + (try describing(value, debug: true, type: wrapped)) + ")"
-        case .list(let element)?:
+        }
+        if let element = type.arrayElement {
             if case .list(let items) = value.storage {
                 return "["
                     + (try items.map { try describing($0, debug: true, type: element) })
                     .joined(separator: ", ")
                     + "]"
             }
-        case .dictionary(let keyType, let typeExpression)?:
+        } else if let (keyType, valueType) = type.dictionaryTypes {
             if case .dictionary(let dictionary) = value.storage {
                 guard !dictionary.isEmpty else { return "[:]" }
                 return "["
                     + (try dictionary.sortedForDisplay.map {
-                        "\(try describing($0.key, debug: true, type: keyType)): \(try describing($0.value, debug: true, type: typeExpression))"
+                        "\(try describing($0.key, debug: true, type: keyType)): \(try describing($0.value, debug: true, type: valueType))"
                     })
                     .joined(separator: ", ") + "]"
             }
-        case .tuple(let elements)?:
+        } else if case .tuple(let tuple) = type, !tuple.elements.isEmpty {
+            let elements = tuple.elements
             if let record = value.record, record.typeName == nil,
                 record.count == elements.count
             {
@@ -115,8 +117,6 @@ extension Interpreter {
                     })
                     .joined(separator: ", ") + ")"
             }
-        default:
-            break
         }
         return nil
     }

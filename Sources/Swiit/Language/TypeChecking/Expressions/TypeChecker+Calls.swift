@@ -6,8 +6,8 @@ extension TypeChecker {
     func callType(
         _ callee: inout Expr,
         _ arguments: inout [Argument],
-        expected: TypeAnnotation?
-    ) throws -> TypeAnnotation {
+        expected: TypeExpression?
+    ) throws -> TypeExpression {
         if let result = try typeOfChosenCall(&callee, &arguments, expected: expected) {
             return result
         }
@@ -34,7 +34,7 @@ extension TypeChecker {
             } else {
                 callee = .optionalMember(baseExpr, name)
             }
-            if case .optional = result { return result }
+            if result.optionalWrapped != nil { return result }
             return result == .unknown || result == .void ? result : .optional(result)
         }
 
@@ -43,8 +43,8 @@ extension TypeChecker {
             if case .variable(let typeName) = baseExpr, case .enumType(let info)? = lookup(typeName)
             {
                 var payload: [Argument]? = arguments
-                var wanted = TypeAnnotation.named(info.name)
-                if case .generic(info.name, _)? = expected { wanted = expected! }
+                var wanted = TypeExpression.named(info.name)
+                if expected?.genericParts?.name == info.name { wanted = expected! }
                 let type = try caseType(name, &payload, expected: wanted)
                 arguments = payload ?? []
                 return type
@@ -73,7 +73,7 @@ extension TypeChecker {
         let type = try typeOf(&callee)
 
         // `f(x)` where f's type has `callAsFunction`: that method is called.
-        if case .named(let typeName) = type, let info = structInfo(named: typeName),
+        if let typeName = type.plainName, let info = structInfo(named: typeName),
             info.declared.methods["callAsFunction"] != nil
         {
             var method = Expr.member(callee, "callAsFunction")
@@ -92,8 +92,8 @@ extension TypeChecker {
     private func typeOfChosenCall(
         _ callee: inout Expr,
         _ arguments: inout [Argument],
-        expected: TypeAnnotation?
-    ) throws -> TypeAnnotation? {
+        expected: TypeExpression?
+    ) throws -> TypeExpression? {
         var written = callee
         var types: [TypeArgument]?
         if case .specialized(let inner, let given) = written {
@@ -128,8 +128,8 @@ extension TypeChecker {
         _ symbol: ScopeEntry,
         _ callee: inout Expr,
         _ arguments: inout [Argument],
-        expected: TypeAnnotation?
-    ) throws -> TypeAnnotation? {
+        expected: TypeExpression?
+    ) throws -> TypeExpression? {
         switch symbol {
         case .structType:
             // What an extension adds goes after the type's own.
@@ -172,7 +172,7 @@ extension TypeChecker {
         _ info: TypeProfile,
         _ callee: inout Expr,
         _ arguments: inout [Argument]
-    ) throws -> TypeAnnotation {
+    ) throws -> TypeExpression {
         let name = info.name
 
         if !info.initializers.isEmpty,
@@ -201,7 +201,7 @@ extension TypeChecker {
     private func typeOfStaticCall(
         _ callee: inout Expr,
         _ arguments: inout [Argument]
-    ) throws -> TypeAnnotation? {
+    ) throws -> TypeExpression? {
         guard case .member(.variable(let typeName), let name) = callee,
             let symbol = lookup(typeName)
         else {
@@ -246,8 +246,8 @@ extension TypeChecker {
         callee: inout Expr,
         _ arguments: inout [Argument],
         name: String,
-        expected: TypeAnnotation? = nil
-    ) throws -> TypeAnnotation {
+        expected: TypeExpression? = nil
+    ) throws -> TypeExpression {
         calledByName(name)
         guard let chosen = try resolve(overloads, &arguments, name: name) else {
             // Which one isn't known until it runs (an argument isn't typed yet).
@@ -274,7 +274,7 @@ extension TypeChecker {
         try effectSite(chosen.effect, "'\(name)'")
         // An optional chain's result is an optional, whatever the last link gives (`o?.a` of an
         // `Int?` is an `Int?`).
-        if chosen.flattensResult, case .optional(.optional(let inner)) = chosen.returns {
+        if chosen.flattensResult, let inner = chosen.returns.optionalWrapped?.optionalWrapped {
             return .optional(inner)
         }
         return returns
@@ -286,12 +286,12 @@ extension TypeChecker {
     func callMember(
         _ methods: [Signature],
         _ name: String,
-        bindings: [String: TypeAnnotation] = [:],
+        bindings: [String: TypeExpression] = [:],
         callee: inout Expr,
         _ arguments: inout [Argument],
         narrowing: Bool = true,
         mutating receiver: Expr? = nil
-    ) throws -> TypeAnnotation {
+    ) throws -> TypeExpression {
         guard let chosen = try resolve(methods, &arguments, name: name, bindings: bindings) else {
             return commonReturn(methods)
         }
@@ -302,7 +302,7 @@ extension TypeChecker {
         return chosen.returns
     }
 
-    func commonReturn(_ overloads: [Signature]) -> TypeAnnotation {
+    func commonReturn(_ overloads: [Signature]) -> TypeExpression {
         overloads.allSatisfy { $0.returns == overloads[0].returns }
             ? overloads[0].returns : .unknown
     }
@@ -310,12 +310,12 @@ extension TypeChecker {
     /// `base.name(arguments)` for a receiver of type `base`; `baseExpr` is
     /// where it came from, if it can be changed by a mutating method.
     func methodCallType(
-        _ written: TypeAnnotation,
+        _ written: TypeExpression,
         baseExpr: Expr?,
         _ name: String,
         _ callee: inout Expr,
         _ arguments: inout [Argument]
-    ) throws -> TypeAnnotation {
+    ) throws -> TypeExpression {
         let base = erased(written)
         // `t.init()`, `t.make()` for a type held in a value (`T.Type`): what it is isn't known
         // here, so not what it makes.
@@ -323,10 +323,10 @@ extension TypeChecker {
             for index in arguments.indices {
                 _ = try typeOf(&arguments[index].value, expecting: .unknown)
             }
-            return name == "init" ? made : .unknown
+            return name == "init" ? made.instance : .unknown
         }
         // `self.init(x: 1)` in an initializer: another initializer makes the value.
-        if name == "init", case .named(let structName) = base, structInfo(named: structName) != nil,
+        if name == "init", let structName = base.plainName, structInfo(named: structName) != nil,
             let description = describe(base),
             lookup(InternalName.initializing) != nil
         {
@@ -402,29 +402,27 @@ extension TypeChecker {
 
     /// Calling a value of type `type`.
     func apply(
-        _ type: TypeAnnotation,
+        _ type: TypeExpression,
         _ arguments: inout [Argument],
         name: String
-    ) throws -> TypeAnnotation {
+    ) throws -> TypeExpression {
         switch type {
-        case .functionType(let parameters, let result, let throwing, let effect):
+        case .function(let function):
+            let effect: Effect = function.isAsync ? .async : .sync
             let signature = Signature(
                 name: name,
-                parameters: parameters.map { type -> Parameter in
-                    if case .inOut(let inner) = type {
-                        return Parameter(label: nil, name: "_", type: inner, isInout: true)
-                    }
-                    return Parameter(label: nil, name: "_", type: type)
+                parameters: function.parameters.map {
+                    Parameter(label: nil, name: "_", type: $0.type, isInout: $0.isInout)
                 },
-                returns: result,
-                isThrowing: throwing,
+                returns: function.returns,
+                isThrowing: function.isThrowing,
                 effect: effect
             )
             _ = try resolve([signature], &arguments, name: name)
-            if throwing { try throwingSite(name) }
+            if function.isThrowing { try throwingSite(name) }
             try effectSite(effect, name)
-            return result
-        case .function, .unknown:
+            return function.returns
+        case .callable, .unknown:
             for index in arguments.indices {
                 _ = try typeOf(&arguments[index].value, expecting: .unknown)
             }
@@ -457,8 +455,8 @@ extension TypeChecker {
                 root = root.subscriptPlace(in: interpreter.bridged)!.receiver
             case .variable(let name):
                 // A member of a class instance is changed on the instance, whatever holds it.
-                if throughMember, case .variable(.named(let typeName), _)? = lookup(name),
-                    structInfo(named: typeName)?.isClass == true
+                if throughMember, case .variable(let type, _)? = lookup(name),
+                    let typeName = type.plainName, structInfo(named: typeName)?.isClass == true
                 {
                     return
                 }
@@ -485,8 +483,8 @@ extension TypeChecker {
                 root = root.subscriptPlace(in: interpreter.bridged)!.receiver
             case .forceUnwrap(let inner), .optionalMember(let inner, _): root = inner
             case .variable(let name):
-                if throughMember, case .variable(.named(let typeName), _)? = lookup(name),
-                    structInfo(named: typeName)?.isClass == true
+                if throughMember, case .variable(let type, _)? = lookup(name),
+                    let typeName = type.plainName, structInfo(named: typeName)?.isClass == true
                 {
                     return
                 }

@@ -42,21 +42,22 @@ extension Interpreter {
 
     /// The value that stands for a type (`Int.self`), if one does: a type parameter's is whatever
     /// it is bound to here.
-    func typeValue(of annotation: TypeAnnotation) -> Value? {
+    func typeValue(of type: TypeExpression) -> Value? {
         let name: String
-        switch annotation {
-        case _ where ImplementedType.Representation(annotation) != nil:
-            name = ImplementedType.Representation(annotation)!.name!
-        case .named(let named): name = named
-        case .generic(let named, _): name = named
-        case .parameter(let parameter): return lookup(parameter)?.value
-        default: return nil
+        if let representation = ImplementedType.Representation(type) {
+            name = representation.name!
+        } else if case .named(let named) = type {
+            name = named.reference.name
+        } else if case .parameter(let parameter) = type {
+            return lookup(parameter.name)?.value
+        } else {
+            return nil
         }
         return lookup(name)?.value
     }
 
-    /// The annotation a type value stands for, to test a value against.
-    func annotation(ofTypeValue value: Value) -> TypeAnnotation? {
+    /// The type a type value stands for, to test a value against.
+    func representedType(ofTypeValue value: Value) -> TypeExpression? {
         guard case .object(let object) = value.storage else { return nil }
         let name: String
         switch object {
@@ -67,6 +68,6 @@ extension Interpreter {
         case let type as NativeTypeName: name = type.name
         default: return nil
         }
-        return TypeAnnotation.spelled(name) ?? .named(name)
+        return TypeExpression.spelled(name) ?? .named(name)
     }
 }

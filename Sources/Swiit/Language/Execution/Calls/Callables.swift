@@ -50,18 +50,12 @@ final class KeyPathValue: Callable, @unchecked Sendable {
     }
 }
 
-extension TypeAnnotation {
-    var isList: Bool {
-        if case .list = self { true } else { false }
-    }
-
+extension TypeExpression {
     /// Whether a closure can be passed for it.
     var acceptsFunction: Bool {
-        switch self {
-        case .function, .functionType, .any: true
-        case .optional(let wrapped): wrapped.acceptsFunction
-        default: false
-        }
+        if case .function = self { return true }
+        if self == .callable || self == .any { return true }
+        return optionalWrapped?.acceptsFunction ?? false
     }
 }
 

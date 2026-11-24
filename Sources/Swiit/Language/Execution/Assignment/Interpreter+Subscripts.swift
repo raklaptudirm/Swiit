@@ -27,7 +27,7 @@ extension Interpreter {
         _ instance: ClassInstance,
         _ arguments: [Argument],
         _ rest: ArraySlice<Assignment.Step>,
-        _ change: (Value, TypeAnnotation?) throws -> Value
+        _ change: (Value, TypeExpression?) throws -> Value
     ) throws -> Value {
         guard let owner = instance.type.subscriptOwner else {
             throw RuntimeError("\(instance.type.name) has no subscript")
@@ -86,7 +86,7 @@ extension Interpreter {
         _ type: StructType,
         _ arguments: [Argument],
         _ rest: ArraySlice<Assignment.Step>,
-        _ change: (Value, TypeAnnotation?) throws -> Value
+        _ change: (Value, TypeExpression?) throws -> Value
     ) throws -> Value {
         let values = try arguments.map {
             Argument(label: $0.label, value: .literal(try evaluate($0.value)))

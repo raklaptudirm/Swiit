@@ -156,7 +156,7 @@ struct IfStatement: Equatable, Sendable {
 /// `enum Name: RawType { case a, b(label: Type) = raw }`
 struct EnumDecl: Equatable, Sendable {
     var name: String
-    var rawType: TypeAnnotation?
+    var rawType: TypeExpression?
     var cases: [EnumCaseDecl]
     /// `enum Level: Int, Comparable`: the protocols after any raw type.
     var conformances: [String] = []
@@ -172,7 +172,7 @@ struct EnumDecl: Equatable, Sendable {
 
     init(
         name: String,
-        rawType: TypeAnnotation? = nil,
+        rawType: TypeExpression? = nil,
         cases: [EnumCaseDecl],
         conformances: [String] = []
     ) {
@@ -197,9 +197,9 @@ struct EnumCaseDecl: Equatable, Sendable {
 
 struct AssociatedValue: Equatable, Sendable {
     var label: String?
-    var type: TypeAnnotation
+    var type: TypeExpression
 
-    init(label: String? = nil, type: TypeAnnotation) {
+    init(label: String? = nil, type: TypeExpression) {
         self.label = label
         self.type = type
     }
@@ -240,9 +240,9 @@ indirect enum Pattern: Equatable, Sendable {
     /// A value to compare with, or a range to be in: `3`, `"a"`, `1...9`.
     case expression(Expr)
     /// `let e as Oops`, `_ as Int`: a value of that type, matched as one.
-    case cast(Pattern, TypeAnnotation)
+    case cast(Pattern, TypeExpression)
     /// `is Oops`: a value of that type.
-    case isType(TypeAnnotation)
+    case isType(TypeExpression)
     /// `(a, _)`, `(1, let b)`: a tuple, element by element.
     case tuple([Pattern])
     /// `5...`, `..<3`, `...9`: what is at least, below, or at most a bound.

@@ -12,7 +12,7 @@ enum FunctionBody: Sendable {
 final class Function: Callable, @unchecked Sendable {
     let name: String?
     let parameters: [Parameter]
-    let returnType: TypeAnnotation?
+    let returnType: TypeExpression?
     let body: FunctionBody
     let captured: [Scope]
     let documentation: Documentation?
@@ -45,7 +45,7 @@ final class Function: Callable, @unchecked Sendable {
     init(
         name: String?,
         parameters: [Parameter],
-        returnType: TypeAnnotation?,
+        returnType: TypeExpression?,
         body: FunctionBody,
         captured: [Scope] = [],
         documentation: Documentation? = nil,

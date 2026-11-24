@@ -123,7 +123,7 @@ extension Interpreter {
                         )
                     }
                     do {
-                        return typeExpression(try TypeChecker(interpreter: self).typeOf(&expr))
+                        return byReference(try TypeChecker(interpreter: self).typeOf(&expr))
                     } catch let error as TypeError {
                         throw Diagnostic(
                             kind: .type,

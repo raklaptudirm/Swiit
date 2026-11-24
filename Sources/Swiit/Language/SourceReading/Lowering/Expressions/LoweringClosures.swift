@@ -5,7 +5,7 @@ import SwiftSyntax
 extension Lowering {
     mutating func closure(_ node: ClosureExprSyntax) throws -> ClosureLiteral {
         var parameters: [Parameter] = []
-        var returnType: TypeAnnotation?
+        var returnType: TypeExpression?
         var captures: [ClosureLiteral.Capture] = []
         if let signature = node.signature {
             guard signature.attributes.isEmpty else {

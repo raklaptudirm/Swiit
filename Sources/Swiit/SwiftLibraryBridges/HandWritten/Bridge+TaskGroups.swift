@@ -180,11 +180,11 @@ extension Bridge {
                 Parameter(
                     label: nil,
                     name: "body",
-                    type: .functionType(
-                        [.generic(typeName, [.unknown])],
-                        .parameter("Result"),
-                        throws: isThrowing,
-                        async: .async
+                    type: .function(
+                        parameters: [.named(typeName, [.unknown])],
+                        returns: .parameter("Result"),
+                        isThrowing: isThrowing,
+                        isAsync: true
                     )
                 ),
             ],

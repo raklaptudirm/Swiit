@@ -6,9 +6,9 @@ import Foundation
 struct OverloadMatch {
     var cost: Int
     var uncertain: Bool
-    var returns: TypeAnnotation
+    var returns: TypeExpression
     var throwing: Bool
-    var solved: [String: TypeAnnotation]
+    var solved: [String: TypeExpression]
 }
 
 /// An overload the arguments fit, with the arguments as checked against it and how many throwing
@@ -32,7 +32,7 @@ extension TypeChecker {
         _ candidates: [Signature],
         _ arguments: inout [Argument],
         name: String,
-        bindings: [String: TypeAnnotation] = [:]
+        bindings: [String: TypeExpression] = [:]
     ) throws -> Signature? {
         var fitting: [FittingOverload] = []
         var firstError: TypeError?
@@ -100,17 +100,14 @@ extension TypeChecker {
     /// constraints that refine the others' (`T: P3` over `T: P1` when P3 takes in P1).
     func mostSpecific(_ candidates: [Signature]) -> Signature? {
         func genericCount(_ signature: Signature) -> Int {
-            func count(_ type: TypeAnnotation) -> Int {
-                switch type {
-                case .parameter: 1
-                case .list(let e), .optional(let e), .someSequence(let e), .inOut(let e): count(e)
-                case .dictionary(let k, let v): count(k) + count(v)
-                case .generic(_, let arguments): arguments.map(count).reduce(0, +)
-                case .functionType(let parameters, let result, _, _):
-                    parameters.map(count).reduce(0, +) + count(result)
-                case .tuple(let elements): elements.map { count($0.type) }.reduce(0, +)
-                default: 0
+            func count(_ type: TypeExpression) -> Int {
+                if case .parameter = type { return 1 }
+                var total = 0
+                _ = type.mapping { part in
+                    total += count(part)
+                    return part
                 }
+                return total
             }
             return signature.parameters.map { count($0.type) }.reduce(0, +)
         }
@@ -146,7 +143,7 @@ extension TypeChecker {
     func match(
         _ arguments: inout [Argument],
         to signature: Signature,
-        bindings initial: [String: TypeAnnotation]
+        bindings initial: [String: TypeExpression]
     ) throws -> OverloadMatch {
         let name = signature.name
         var cost = 0
@@ -187,7 +184,7 @@ extension TypeChecker {
             if parameter.showsByType, TypeChecker.isShownByType(actual) {
                 arguments[index].value = .described(arguments[index].value, actual)
             }
-            if case .functionType(_, _, true, _) = actual { argumentsThrow = true }
+            if case .function(let function) = actual, function.isThrowing { argumentsThrow = true }
             let (extra, isUncertain) = conversionCost(
                 natural: natural,
                 wanted: wanted,
@@ -244,8 +241,8 @@ extension TypeChecker {
     private func prepare(_ argument: inout Argument, for parameter: Parameter) throws {
         // `@autoclosure`: the argument is the closure's result, and is made a closure.
         if parameter.isAutoclosure,
-            case .functionType(let closureParameters, _, _, _) = parameter.type,
-            closureParameters.isEmpty
+            case .function(let function) = parameter.type,
+            function.parameters.isEmpty
         {
             if case .closure = argument.value {
             } else {
@@ -271,37 +268,37 @@ extension TypeChecker {
     /// What it costs for an argument of type `actual` to fill a parameter of type `wanted`, and
     /// whether the argument's own type was not known.
     private func conversionCost(
-        natural: TypeAnnotation?,
-        wanted: TypeAnnotation,
-        actual: TypeAnnotation,
+        natural: TypeExpression?,
+        wanted: TypeExpression,
+        actual: TypeExpression,
         isLiteral: Bool
     ) -> (cost: Int, uncertain: Bool) {
         var cost = 0
         switch (natural, wanted) {
         case (.unknown?, _): break
-        case (_, .any), (_, .unknown), (_, .function), (_, .record): cost += 3
+        case (_, .any), (_, .unknown), (_, .callable), (_, .record): cost += 3
         // A literal made into another type than its own (`"x"` as a
         // Character) ranks below one taken as it is, as in Swift:
         // `String("x")` takes the String.
         case (let type?, _) where isLiteral && actual != type: cost += 2
         // A generic sequence is less specific than a concrete type, as
         // Swift ranks them: `merging([:])` takes the dictionary one.
-        case (_, .someSequence): cost += 1
+        case (_, _) where wanted.sequenceElement != nil: cost += 1
         case (let type?, let wanted) where type != wanted: cost += 1
         default:
             // A closure that doesn't throw takes the overload whose
             // parameter doesn't either, as Swift ranks them: `Task { 1 }`
             // is a `Task<Int, Never>`.
-            if case .functionType(_, _, false, _) = actual,
-                case .functionType(_, _, true, _) = wanted
+            if case .function(let given) = actual, !given.isThrowing,
+                case .function(let accepted) = wanted, accepted.isThrowing
             {
                 cost += 1
             }
             // A closure that gives a value takes the overload that wants one over the one that
             // drops it.
-            if case .functionType(_, let given, _, _) = actual,
-                case .functionType(_, .void, _, _) = wanted,
-                given != .void, given != .unknown
+            if case .function(let given) = actual,
+                case .function(let accepted) = wanted, accepted.returns == .void,
+                given.returns != .void, given.returns != .unknown
             {
                 cost += 1
             }
@@ -312,7 +309,7 @@ extension TypeChecker {
     /// A type parameter bound to what an argument shows must meet what the signature asks of it.
     private func checkConstraints(
         of signature: Signature,
-        bindings: [String: TypeAnnotation]
+        bindings: [String: TypeExpression]
     ) throws {
         let name = signature.name
         for parameter in signature.generics {

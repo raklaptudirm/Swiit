@@ -155,7 +155,7 @@ extension Lowering {
         if let nested = nestedNames[name] { return .variable(nested) }
         // A type alias, used where the type is (`BChar()`): the type it stands for.
         if let alias = aliases[name] {
-            if case .named(let target) = alias { return .variable(target) }
+            if let target = alias.plainName { return .variable(target) }
             if let (target, _) = alias.swiftType { return .variable(target) }
         }
         // A computed variable is read by its getter.

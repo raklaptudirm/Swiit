@@ -33,8 +33,9 @@ extension Interpreter {
         return (object as? any DeclaredType)?.typeRef == typeRef
     }
 
-    /// A type as the checker reads it, or nil when it names a declared type that has gone stale.
-    func annotation(_ type: TypeExpression) -> TypeAnnotation? {
+    /// A type as the checker reads it, each type named by its text, or nil when it names a declared
+    /// type that has gone stale.
+    func byName(_ type: TypeExpression) -> TypeExpression? {
         func current(_ type: TypeExpression) -> Bool {
             switch type {
             case .named(let named):
@@ -46,7 +47,7 @@ extension Interpreter {
             case .metatype(let metatype): current(metatype.instance)
             }
         }
-        return current(type) ? TypeAnnotation(type) : nil
+        return current(type) ? type.byText : nil
     }
 
     /// Every type a script can name, its members to be had from `TypeExpression.members(named:in:)`: those scripts and
@@ -78,8 +79,8 @@ extension Interpreter {
 
     func conforms(_ type: TypeExpression, to proto: TypeRef) -> Bool {
         inCurrentTask {
-            guard isCurrent(proto), let annotation = annotation(type) else { return false }
-            return TypeChecker(interpreter: self).conforms(annotation, to: proto.name)
+            guard isCurrent(proto), let checked = byName(type) else { return false }
+            return TypeChecker(interpreter: self).conforms(checked, to: proto.name)
         }
     }
 }

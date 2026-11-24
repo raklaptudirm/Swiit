@@ -29,10 +29,10 @@ extension Interpreter {
                 else { return nil }
                 let parameter = parameters[index]
                 // A function of a signature not known fits where any function is wanted.
-                guard var actual = annotation(argument.type),
-                    let expected = parameter.annotation ?? annotation(parameter.type)
+                guard var actual = byName(argument.type),
+                    let expected = byName(parameter.type)
                 else { return nil }
-                if actual == .function { actual = .unknown }
+                if actual == .callable { actual = .unknown }
                 guard checker.fits(actual, expected) else { return nil }
                 if expected == .any || expected == .unknown { cost += 1 }
                 given.insert(parameter.name)

@@ -20,18 +20,19 @@ extension TypeChecker {
 
     /// Whether showing a value of this type needs the type: one holding an
     /// optional, whose `nil` and `Optional(5)` the value alone doesn't tell.
-    static func isShownByType(_ type: TypeAnnotation) -> Bool {
-        switch type {
-        case .optional: true
-        case .list(let element): isShownByType(element)
-        case .dictionary(let key, let value): isShownByType(key) || isShownByType(value)
-        case .tuple(let elements): elements.contains { isShownByType($0.type) }
-        case .named: true
-        default: false
+    static func isShownByType(_ type: TypeExpression) -> Bool {
+        if type.optionalWrapped != nil { return true }
+        if let element = type.arrayElement { return isShownByType(element) }
+        if let (key, value) = type.dictionaryTypes {
+            return isShownByType(key) || isShownByType(value)
         }
+        if case .tuple(let tuple) = type {
+            return tuple.elements.contains { isShownByType($0.type) }
+        }
+        return type.isNominal && !type.isPrimitive && type.plainName != nil
     }
 
-    func expect(_ expr: inout Expr, _ expected: TypeAnnotation, _ what: String) throws {
+    func expect(_ expr: inout Expr, _ expected: TypeExpression, _ what: String) throws {
         let original = expr
         let type = try typeOf(&expr, expecting: expected)
         guard fits(type, expected) else {
@@ -51,8 +52,8 @@ extension TypeChecker {
     /// checker decided.
     func typeOf(
         _ expr: inout Expr,
-        expecting expected: TypeAnnotation? = nil
-    ) throws -> TypeAnnotation {
+        expecting expected: TypeExpression? = nil
+    ) throws -> TypeExpression {
         let original = expr
         do {
             return try typeOfExpression(&expr, expecting: expected)
@@ -65,8 +66,8 @@ extension TypeChecker {
 
     private func typeOfExpression(
         _ expr: inout Expr,
-        expecting expected: TypeAnnotation?
-    ) throws -> TypeAnnotation {
+        expecting expected: TypeExpression?
+    ) throws -> TypeExpression {
         switch expr {
         case .local(let local):
             // Given a slot after it was checked; typed as the variable it is.
@@ -94,8 +95,8 @@ extension TypeChecker {
     /// Literals, names, and what stands for a value by itself.
     private func typeOfName(
         _ expr: inout Expr,
-        expecting expected: TypeAnnotation?
-    ) throws -> TypeAnnotation {
+        expecting expected: TypeExpression?
+    ) throws -> TypeExpression {
         switch expr {
         case .literal(let value):
             switch value.storage {
@@ -109,7 +110,7 @@ extension TypeChecker {
                 expr = .literal(made)
                 return .named(name)
             case .nothing:
-                if let expected, case .optional = expected { return expected }
+                if let expected, expected.optionalWrapped != nil { return expected }
                 return .optional(.unknown)
             default:
                 return type(of: value)
@@ -141,7 +142,7 @@ extension TypeChecker {
             case .protocolType(let info):
                 return .metatype(.named(info.name))
             case .swiftType(let typeName):
-                return .metatype(TypeAnnotation.spelled(typeName) ?? .named(typeName))
+                return .metatype(TypeExpression.spelled(typeName) ?? .named(typeName))
             case .asyncLet:
                 // Its task's value, which waits for it (and throws what it threw).
                 let value = interpreter.bridged["Task"]!.lowered
@@ -170,14 +171,14 @@ extension TypeChecker {
     /// What changes how the rest is run: `try`, `await`, a child task, a closure.
     private func typeOfEffect(
         _ expr: inout Expr,
-        expecting expected: TypeAnnotation?
-    ) throws -> TypeAnnotation {
+        expecting expected: TypeExpression?
+    ) throws -> TypeExpression {
         switch expr {
         case .attempt(var inner, let kind):
             let sitesBefore = throwingSites
             tryDepth += 1
             let wanted = expected.flatMap {
-                if case .optional(let wrapped) = $0 { wrapped } else { $0 }
+                if let wrapped = ($0).optionalWrapped { wrapped } else { $0 }
             }
             let type = try typeOf(&inner, expecting: kind == .optional ? wanted : expected)
             tryDepth -= 1
@@ -191,7 +192,7 @@ extension TypeChecker {
                 return type
             case .optional:
                 throwingSites = sitesBefore
-                if case .optional = type { return type }
+                if type.optionalWrapped != nil { return type }
                 if type == .void {
                     // Success is `()`, not nil, as in Swift.
                     expr = .attempt(.voidValue(inner), kind)
@@ -213,7 +214,7 @@ extension TypeChecker {
         case .childTask(var closure):
             let (result, throwing) = try childTaskType(&closure)
             expr = .childTask(closure)
-            return .generic("Task", [result, .named(throwing ? "Error" : "Never")])
+            return .named("Task", [result, .named(throwing ? "Error" : "Never")])
         case .closure(var closure):
             let type = try closureType(&closure, expecting: expected)
             expr = .closure(closure)
@@ -229,22 +230,22 @@ extension TypeChecker {
     func keyPathType(
         root rootName: String?,
         _ path: [String],
-        expected: TypeAnnotation?
-    ) throws -> TypeAnnotation {
-        var root: TypeAnnotation?
+        expected: TypeExpression?
+    ) throws -> TypeExpression {
+        var root: TypeExpression?
         if let rootName {
             guard lookup(rootName) != nil else { throw TypeError("no type named '\(rootName)'") }
             root = .named(rootName)
         } else {
-            if case .functionType(let parameters, _, _, _)? = expected, parameters.count == 1 {
-                root = parameters[0]
+            if case .function(let function)? = expected, function.parameters.count == 1 {
+                root = function.parameters[0].type
             }
-            if case .keyPath(let wanted, _)? = expected { root = wanted }
+            if let (wanted, _) = expected?.keyPathTypes { root = wanted }
         }
-        if case .functionType(let parameters, _, _, _)? = expected, parameters.count != 1 {
+        if case .function(let function)? = expected, function.parameters.count != 1 {
             // A key path reads one value; it can't be a function of more.
             var error = TypeError(
-                "\\.\(path.joined(separator: ".")) can't be a function of \(parameters.count) values"
+                "\\.\(path.joined(separator: ".")) can't be a function of \(function.parameters.count) values"
             )
             error.isArity = true
             throw error
@@ -259,7 +260,9 @@ extension TypeChecker {
         }
         let start = type
         for name in path { type = try memberType(of: type, name) }
-        if case .functionType? = expected { return .functionType([start], type) }
+        if case .function? = expected {
+            return .function(parameters: [start], returns: type)
+        }
         return .keyPath(start, type)
     }
 
@@ -268,18 +271,18 @@ extension TypeChecker {
     func functionValue(
         _ name: String,
         _ overloads: [Signature],
-        expected: TypeAnnotation?,
+        expected: TypeExpression?,
         expr: inout Expr
-    ) -> TypeAnnotation {
+    ) -> TypeExpression {
         if overloads.count == 1 { return functionType(overloads[0]) }
-        guard let expected, case .functionType = expected else { return .function }
+        guard let expected, case .function = expected else { return .callable }
         let matching = overloads.filter { fits(functionType($0), expected) }
-        guard matching.count == 1 else { return .function }
+        guard matching.count == 1 else { return .callable }
         expr = .chosen(expr, overload: matching[0].index)
         return functionType(matching[0])
     }
 
-    func type(of value: Value) -> TypeAnnotation {
+    func type(of value: Value) -> TypeExpression {
         switch value.storage {
         case .nothing: .optional(.unknown)
         case .bool: .bool
@@ -296,24 +299,26 @@ extension TypeChecker {
             structInfo(named: structure.typeName) != nil ? .named(structure.typeName) : .record
         case .tuple(let tuple):
             .tuple(
-                tuple.map {
-                    .init(
-                        label: Value.Record.isPosition($0.key) ? nil : $0.key,
-                        type: type(of: $0.value)
-                    )
-                }
+                .init(
+                    tuple.map {
+                        .init(
+                            label: Value.Record.isPosition($0.key) ? nil : $0.key,
+                            type: type(of: $0.value)
+                        )
+                    }
+                )
             )
         case .enumValue(let value): .named(value.type.name)
         case .object(let box as SwiftValue):
             if let parameters = interpreter.bridged[box.typeName]?.genericParameters,
                 !parameters.isEmpty
             {
-                .generic(box.typeName, parameters.map { _ in .unknown })
+                .named(box.typeName, parameters.map { _ in .unknown })
             } else {
                 .named(box.typeName)
             }
         case .object: .unknown
-        case .function: .function
+        case .function: .callable
         @unknown default: .unknown
         }
     }

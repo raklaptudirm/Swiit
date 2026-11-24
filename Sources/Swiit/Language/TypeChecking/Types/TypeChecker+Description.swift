@@ -8,7 +8,7 @@ import Foundation
 
 /// A property of a type: stored or computed.
 struct MemberProperty {
-    var type: TypeAnnotation
+    var type: TypeExpression
     /// A `var` or a computed property with a setter; a protocol's `{ get set }`.
     var isSettable: Bool
     /// The declaration, if it is a stored property.
@@ -88,7 +88,7 @@ struct TypeProfile {
     var associatedTypes: [String] = []
     /// An enum's cases, and the type of its raw values.
     var cases: [(name: String, payload: [AssociatedValue])] = []
-    var rawType: TypeAnnotation?
+    var rawType: TypeExpression?
     var typeParameters: [String] = []
     /// What the type declares itself (for a class, with what its superclass gives), and what
     /// extensions add: those of the type, of the protocols it conforms to, and of its superclasses.
@@ -183,7 +183,7 @@ struct TypeProfile {
 extension TypeChecker {
     /// What is known of `type`, if it names a type with members of its own or ones an extension
     /// adds.
-    func describe(_ type: TypeAnnotation) -> TypeProfile? {
+    func describe(_ type: TypeExpression) -> TypeProfile? {
         guard let key = extensionKey(of: type) else { return nil }
         return describe(named: key)
     }

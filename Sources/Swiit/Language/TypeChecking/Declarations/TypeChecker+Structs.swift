@@ -110,7 +110,7 @@ extension TypeChecker {
     }
 
     func checkStruct(_ decl: inout StructDecl, isClass: Bool = false) throws {
-        let selfType = TypeAnnotation.named(decl.name)
+        let selfType = TypeExpression.named(decl.name)
 
         try checkConformances(of: decl, isClass: isClass)
         try checkProperties(of: &decl, self: selfType)
@@ -166,7 +166,7 @@ extension TypeChecker {
     }
 
     /// Checks the observers, accessors and defaults of a type's properties.
-    private func checkProperties(of decl: inout StructDecl, self selfType: TypeAnnotation) throws {
+    private func checkProperties(of decl: inout StructDecl, self selfType: TypeExpression) throws {
         for index in decl.properties.indices {
             let property = decl.properties[index]
             // Observers see the property's value, and may change the rest of the struct.
@@ -224,7 +224,7 @@ extension TypeChecker {
         }
     }
 
-    private func checkSubscripts(of decl: inout StructDecl, self selfType: TypeAnnotation) throws {
+    private func checkSubscripts(of decl: inout StructDecl, self selfType: TypeExpression) throws {
         for index in decl.subscripts.indices {
             let declared = decl.subscripts[index]
             var getter = FunctionDecl(

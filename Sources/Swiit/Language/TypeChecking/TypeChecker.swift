@@ -36,11 +36,11 @@ final class TypeChecker {
     struct Signature {
         var name: String
         var parameters: [Parameter]
-        var returns: TypeAnnotation
+        var returns: TypeExpression
         var isMutating = false
         var isThrowing = false
         /// `throws(E)`: the type of error it throws.
-        var thrownType: TypeAnnotation?
+        var thrownType: TypeExpression?
         /// `rethrows`: a call throws if a closure passed to it does.
         var isRethrowing = false
         /// What it waits on: a call to an `async` one needs `await`.
@@ -54,7 +54,7 @@ final class TypeChecker {
         /// of.
         var typeParameters: Set<String> = []
         /// What the type parameters were in the call this was matched to.
-        var solved: [String: TypeAnnotation] = [:]
+        var solved: [String: TypeExpression] = [:]
         /// Its result is flattened if it is an optional of an optional (see
         /// `Function.flattensResult`).
         var flattensResult = false
@@ -66,7 +66,7 @@ final class TypeChecker {
         init(
             name: String,
             parameters: [Parameter],
-            returns: TypeAnnotation,
+            returns: TypeExpression,
             isMutating: Bool = false,
             isThrowing: Bool = false,
             isRethrowing: Bool = false,
@@ -89,7 +89,7 @@ final class TypeChecker {
     /// What a name means in a scope: a variable, functions, a type.
     enum ScopeEntry {
         case protocolType(TypeProfile)
-        case variable(TypeAnnotation, mutable: Bool)
+        case variable(TypeExpression, mutable: Bool)
         case functions([Signature])
         case structType(TypeProfile)
         case enumType(TypeProfile)
@@ -97,16 +97,16 @@ final class TypeChecker {
         case swiftType(String)
         /// `async let x = …`: a `Task` the scope owns, whose value reading
         /// `x` awaits.
-        case asyncLet(TypeAnnotation)
+        case asyncLet(TypeExpression)
     }
 
     /// Where `return` goes: the declared result, or, for a closure that
     /// didn't say, the types its `return`s give.
     final class ReturnContext {
-        let declared: TypeAnnotation?
-        var seen: [TypeAnnotation] = []
+        let declared: TypeExpression?
+        var seen: [TypeExpression] = []
 
-        init(declared: TypeAnnotation?) {
+        init(declared: TypeExpression?) {
             self.declared = declared
         }
     }
@@ -118,7 +118,7 @@ final class TypeChecker {
         /// What an error would have to leave, for messages.
         var boundary: Boundary = .topLevel
         /// The one type a `throws(E)` function throws, which a `throw` is checked against.
-        var thrown: TypeAnnotation?
+        var thrown: TypeExpression?
 
         enum Boundary {
             case topLevel, function(String), deferBlock
@@ -134,7 +134,7 @@ final class TypeChecker {
             }
         }
 
-        init(handled: Bool, boundary: Boundary = .topLevel, thrown: TypeAnnotation? = nil) {
+        init(handled: Bool, boundary: Boundary = .topLevel, thrown: TypeExpression? = nil) {
             self.handled = handled
             self.boundary = boundary
             self.thrown = thrown
@@ -153,10 +153,10 @@ final class TypeChecker {
     var returns: [ReturnContext] = []
     var errorContexts = [ErrorContext(handled: true)]
     /// The type of error the last call resolved throws, for the throwing site that follows it.
-    var lastThrown: TypeAnnotation?
+    var lastThrown: TypeExpression?
     /// What each throwing site seen throws: its type if the function it calls says (`throws(E)`),
     /// else nil (any Error).
-    var thrownSeen: [TypeAnnotation?] = []
+    var thrownSeen: [TypeExpression?] = []
     /// Above zero while checking what a `try` covers.
     var tryDepth = 0
     /// Places that can throw, so far: how a `try` or a closure knows it
@@ -206,7 +206,7 @@ final class TypeChecker {
 
     /// The types of the globals a checked program declared, for the next
     /// entry at the prompt.
-    var declaredGlobals: [String: TypeAnnotation] {
+    var declaredGlobals: [String: TypeExpression] {
         scopes[0].compactMapValues { if case .variable(let type, _) = $0 { type } else { nil } }
     }
 }

@@ -7,10 +7,10 @@ extension TypeChecker {
     /// with `Element` the receiver's items' type.
     func sequenceMethodType(
         _ name: String,
-        on base: TypeAnnotation,
+        on base: TypeExpression,
         _ callee: inout Expr,
         _ arguments: inout [Argument]
-    ) throws -> TypeAnnotation? {
+    ) throws -> TypeExpression? {
         guard let methods = interpreter.sequenceMethods[name], let element = sequenceElement(base)
         else { return nil }
         let candidates = sequenceSignatures(methods)
@@ -42,18 +42,15 @@ extension TypeChecker {
     }
 
     /// The type of a sequence's items, for its methods; nil if it isn't one.
-    func sequenceElement(_ type: TypeAnnotation) -> TypeAnnotation? {
-        if case .named(let name) = type,
-            let element = interpreter.bridged[name]?.annotatedAssociatedTypes["Element"]
+    func sequenceElement(_ type: TypeExpression) -> TypeExpression? {
+        if let name = type.plainName,
+            let element = interpreter.bridged[name]?.checkedAssociatedTypes["Element"]
         {
             return element
         }
-        if case .generic = type { return bridgedElement(type) }
-        return switch type {
-        case .list(let element): element
-        case .unknown: .unknown
-        default: nil
-        }
+        if type.genericParts != nil { return bridgedElement(type) }
+        if let element = type.arrayElement { return element }
+        return type == .unknown ? .unknown : nil
     }
 }
 
@@ -62,7 +59,7 @@ extension TypeChecker {
 
     /// The Swift type a Swiit type is, with its generic parameters bound:
     /// `[Int]` is Array with Element Int.
-    func bridged(_ type: TypeAnnotation) -> (ImplementedType, [String: TypeAnnotation])? {
+    func bridged(_ type: TypeExpression) -> (ImplementedType, [String: TypeExpression])? {
         Bridge.type(of: type, in: interpreter.bridged)
     }
 
@@ -71,7 +68,7 @@ extension TypeChecker {
     /// isn't.
     func bridgedConforms(
         _ bridgedType: ImplementedType,
-        _ bindings: [String: TypeAnnotation],
+        _ bindings: [String: TypeExpression],
         to proto: String
     ) -> Bool {
         guard let needs = bridgedType.conformance(named: proto) else {
@@ -86,14 +83,14 @@ extension TypeChecker {
 
     /// The Element of a bridged Swift type that's a Sequence: Int for a
     /// ClosedRange<Int>, Character for a Substring; nil if it isn't one.
-    func bridgedElement(_ type: TypeAnnotation) -> TypeAnnotation? {
+    func bridgedElement(_ type: TypeExpression) -> TypeExpression? {
         guard let (bridgedType, bindings) = bridged(type),
             bridgedConforms(bridgedType, bindings, to: "Sequence")
         else {
             return nil
         }
         guard
-            let element = bridgedType.annotatedAssociatedTypes["Element"]
+            let element = bridgedType.checkedAssociatedTypes["Element"]
                 ?? (bridgedType.genericParameterNames.contains("Element")
                     ? .parameter("Element") : nil)
         else { return nil }
@@ -102,7 +99,7 @@ extension TypeChecker {
 
     /// What a Swift parameter taking any sequence gets from a value of
     /// `type`: a String's Characters, a dictionary's (key, value) pairs.
-    func anySequenceElement(_ type: TypeAnnotation) -> TypeAnnotation? {
+    func anySequenceElement(_ type: TypeExpression) -> TypeExpression? {
         type == .unknown ? .unknown : bridgedElement(type) ?? (try? elementType(of: type)) ?? nil
     }
 
@@ -111,9 +108,9 @@ extension TypeChecker {
     func bridgedProperty(
         _ typeName: String,
         receiver: Expr?,
-        bindings: [String: TypeAnnotation],
+        bindings: [String: TypeExpression],
         _ name: String
-    ) throws -> (TypeAnnotation, Expr)? {
+    ) throws -> (TypeExpression, Expr)? {
         guard let bridgedType = interpreter.bridged[typeName],
             let index = bridgedType.lowered.firstIndex(where: {
                 $0.kind == .property && $0.name == name && $0.isStatic == (receiver == nil)
@@ -133,10 +130,10 @@ extension TypeChecker {
         kind: BridgedMember.Kind,
         isStatic: Bool,
         receiver: Expr?,
-        bindings: [String: TypeAnnotation],
+        bindings: [String: TypeExpression],
         name: String,
         _ arguments: inout [Argument]
-    ) throws -> (TypeAnnotation, Expr) {
+    ) throws -> (TypeExpression, Expr) {
         guard let bridgedType = interpreter.bridged[typeName] else {
             throw TypeError("no Swift type named \(typeName)")
         }
@@ -201,7 +198,7 @@ extension TypeChecker {
     /// it's `async`.
     func bridgedEffects(
         _ member: BridgedMember,
-        bindings: [String: TypeAnnotation],
+        bindings: [String: TypeExpression],
         throwing: Bool,
         _ what: String
     ) throws {
@@ -215,38 +212,37 @@ extension TypeChecker {
     /// specific of those kinds it has takes it (`init(unicodeScalarLiteral:)`,
     /// `init(extendedGraphemeClusterLiteral:)` or `init(stringLiteral:)`). Nil if `expected` is not
     /// a type that has any; an error if it has some and none takes this text.
-    func textLiteral(_ text: String, as expected: TypeAnnotation) throws -> (String, Value)? {
-        switch expected {
-        case .optional(let wrapped): return try textLiteral(text, as: wrapped)
-        case .named(let name):
-            guard let type = interpreter.bridged[name] else { return nil }
-            let initializers = type.lowered.enumerated()
-                .filter {
-                    $0.element.kind == .initializer && $0.element.parameters.count == 1
-                        && $0.element.parameters[0].label.map(TextLiteralKind.init(label:)) != nil
-                }
-            guard !initializers.isEmpty else { return nil }
-            for kind in TextLiteralKind.applicable(to: text) {
-                for (index, member) in initializers
-                where member.parameters[0].label == kind.label {
-                    guard let argument = kind.argument(text, for: member.parameters[0].type)
-                    else { continue }
-                    do {
-                        let made = try interpreter.runBridged(
-                            name,
-                            index,
-                            receiver: nil,
-                            [Argument(label: kind.label, value: .literal(argument))]
-                        )
-                        return (name, made)
-                    } catch {
-                        throw TypeError("\(Value.quoted(text)) isn't a \(name) literal: \(error)")
-                    }
+    func textLiteral(_ text: String, as expected: TypeExpression) throws -> (String, Value)? {
+        if let wrapped = expected.optionalWrapped { return try textLiteral(text, as: wrapped) }
+        guard expected.isNominal, !expected.isPrimitive, let name = expected.plainName else {
+            return nil
+        }
+        guard let type = interpreter.bridged[name] else { return nil }
+        let initializers = type.lowered.enumerated()
+            .filter {
+                $0.element.kind == .initializer && $0.element.parameters.count == 1
+                    && $0.element.parameters[0].label.map(TextLiteralKind.init(label:)) != nil
+            }
+        guard !initializers.isEmpty else { return nil }
+        for kind in TextLiteralKind.applicable(to: text) {
+            for (index, member) in initializers
+            where member.parameters[0].label == kind.label {
+                guard let argument = kind.argument(text, for: member.parameters[0].type)
+                else { continue }
+                do {
+                    let made = try interpreter.runBridged(
+                        name,
+                        index,
+                        receiver: nil,
+                        [Argument(label: kind.label, value: .literal(argument))]
+                    )
+                    return (name, made)
+                } catch {
+                    throw TypeError("\(Value.quoted(text)) isn't a \(name) literal: \(error)")
                 }
             }
-            throw TypeError("\(Value.quoted(text)) isn't a \(name) literal")
-        default: return nil
         }
+        throw TypeError("\(Value.quoted(text)) isn't a \(name) literal")
     }
 
     /// Whether `expr` is a name that isn't a value: a type, `env`.
@@ -262,7 +258,7 @@ extension TypeChecker {
 extension TypeChecker {
     // MARK: Members
 
-    func memberType(_ baseExpr: inout Expr, _ name: String) throws -> TypeAnnotation {
+    func memberType(_ baseExpr: inout Expr, _ name: String) throws -> TypeExpression {
         if case .variable(let typeName) = baseExpr, let symbol = lookup(typeName) {
             switch symbol {
             case .enumType, .structType:
@@ -270,7 +266,7 @@ extension TypeChecker {
                 switch description.staticMember(name) {
                 case .property(let property)?: return property.type
                 case .methods(let methods, _)?:
-                    return methods.count == 1 ? functionType(methods[0]) : .function
+                    return methods.count == 1 ? functionType(methods[0]) : .callable
                 case .enumCase?, nil: break
                 }
                 guard description.kind == .enumeration else {
@@ -291,12 +287,12 @@ extension TypeChecker {
     }
 
     /// Whether the host described the type `base` with a member `name` (`describeHostType`).
-    private func describesMember(_ name: String, of base: TypeAnnotation) -> Bool {
-        guard case .named(let typeName) = base, isProtocolType(typeName) else { return false }
+    private func describesMember(_ name: String, of base: TypeExpression) -> Bool {
+        guard let typeName = base.plainName, isProtocolType(typeName) else { return false }
         return describe(named: typeName)?.instanceMember(name) != nil
     }
 
-    func memberType(of written: TypeAnnotation, _ name: String) throws -> TypeAnnotation {
+    func memberType(of written: TypeExpression, _ name: String) throws -> TypeExpression {
         let base = erased(written)
         // What the type declares, or an extension (or a protocol's default) adds.
         let description = describe(base)
@@ -304,7 +300,7 @@ extension TypeChecker {
         switch description?.instanceMember(name) {
         case .property(let property)?: return substitute(property.type, bindings)
         case .methods(let methods, _)?:
-            return methods.count == 1 ? substitute(functionType(methods[0]), bindings) : .function
+            return methods.count == 1 ? substitute(functionType(methods[0]), bindings) : .callable
         case .enumCase?, nil: break
         }
         // Every value has its textual form, as interpolation shows it; a
@@ -318,16 +314,17 @@ extension TypeChecker {
         {
             return substitute(property.returns, bindings)
         }
-        switch base {
-        case .unknown, .record, .metatype:
-            return .unknown
-        case .any:
+        if base == .unknown || base == .record { return .unknown }
+        if case .metatype = base { return .unknown }
+        if base == .any {
             throw TypeError("an Any has no members: cast it first, as in (value as? T)?.\(name)")
-        case .optional:
+        }
+        if base.optionalWrapped != nil {
             throw TypeError(
                 "\(base) might be nil: unwrap it (if let, ??, ?. or !) before using .\(name)"
             )
-        case .named(let typeName):
+        }
+        if base.isNominal, !base.isPrimitive, let typeName = base.plainName {
             switch description?.kind {
             case .protocol?, .structure?, .class?, .actor?:
                 throw TypeError("\(typeName) has no member '\(name)'")
@@ -343,16 +340,16 @@ extension TypeChecker {
                 throw TypeError("\(typeName) has no member '\(name)'")
             }
             return .unknown
+        }
         // A host type's instance with what it holds (`Job<Int>`): the members the host described.
-        case .generic(let typeName, _) where isProtocolType(typeName):
+        if let (typeName, _) = base.genericParts, isProtocolType(typeName) {
             return try memberType(of: .named(typeName), name)
-        case .tuple(let elements):
-            guard let element = tupleElement(name, of: elements) else {
+        }
+        if case .tuple(let tuple) = base, !tuple.elements.isEmpty {
+            guard let element = tupleElement(name, of: tuple.elements) else {
                 throw TypeError("\(base) has no element '\(name)'")
             }
             return element
-        default:
-            break
         }
         throw TypeError("\(base) has no member '\(name)'")
     }
@@ -360,10 +357,10 @@ extension TypeChecker {
     /// `x.name` on a `@dynamicMemberLookup` type that has no member of that name: the arguments of
     /// `x[dynamicMember: "name"]`, and what it gives.
     func dynamicMember(
-        of base: TypeAnnotation,
+        of base: TypeExpression,
         _ name: String
-    ) throws -> (arguments: [Argument], type: TypeAnnotation)? {
-        guard case .named(let typeName) = erased(base), let info = structInfo(named: typeName),
+    ) throws -> (arguments: [Argument], type: TypeExpression)? {
+        guard let typeName = (erased(base).plainName), let info = structInfo(named: typeName),
             info.isDynamicMemberLookup, describe(erased(base))?.instanceMember(name) == nil,
             name != "description", name != "debugDescription"
         else {
@@ -373,8 +370,10 @@ extension TypeChecker {
         return (arguments, try structSubscript(info, &arguments).type)
     }
 
-    func tupleElement(_ name: String, of elements: [TypeAnnotation.TupleElement]) -> TypeAnnotation?
-    {
+    func tupleElement(
+        _ name: String,
+        of elements: [TypeExpression.Tuple.Element]
+    ) -> TypeExpression? {
         if let position = Int(name), elements.indices.contains(position) {
             return elements[position].type
         }
@@ -384,10 +383,10 @@ extension TypeChecker {
     func caseType(
         _ name: String,
         _ arguments: inout [Argument]?,
-        expected: TypeAnnotation?
-    ) throws -> TypeAnnotation {
+        expected: TypeExpression?
+    ) throws -> TypeExpression {
         var requested = expected
-        if case .optional(let wrapped)? = requested { requested = wrapped }
+        if let wrapped = requested?.optionalWrapped { requested = wrapped }
         guard let found = requested, found != .unknown, found != .any else {
             if requested == nil {
                 throw TypeError(
@@ -401,9 +400,9 @@ extension TypeChecker {
         }
         var target = found
         // A generic enum's type arguments say what its cases hold: `Result<Int, E>`.
-        var bindings: [String: TypeAnnotation] = [:]
-        var result: TypeAnnotation? = target
-        if case .generic(let genericName, let arguments) = target,
+        var bindings: [String: TypeExpression] = [:]
+        var result: TypeExpression? = target
+        if let (genericName, arguments) = target.genericParts,
             let info = enumInfo(named: genericName),
             info.typeParameters.count == arguments.count
         {
@@ -418,7 +417,7 @@ extension TypeChecker {
             }
             return .unknown
         }
-        guard case .named(let enumName) = target, let info = enumInfo(named: enumName) else {
+        guard let enumName = target.plainName, let info = enumInfo(named: enumName) else {
             throw TypeError(".\(name) is a case, but a \(target) is wanted here")
         }
         guard let rawPayload = info.payload(of: name) else {
@@ -464,7 +463,7 @@ extension TypeChecker {
     func structSubscript(
         _ info: TypeProfile,
         _ arguments: inout [Argument]
-    ) throws -> (type: TypeAnnotation, settable: Bool) {
+    ) throws -> (type: TypeExpression, settable: Bool) {
         guard !info.subscripts.isEmpty else {
             throw TypeError("\(info.name) can't be indexed: it has no subscript")
         }
@@ -476,13 +475,13 @@ extension TypeChecker {
         return (chosen.returns, info.subscriptSettable[chosen.index])
     }
 
-    func indexType(_ baseExpr: inout Expr, _ index: inout Expr) throws -> TypeAnnotation {
+    func indexType(_ baseExpr: inout Expr, _ index: inout Expr) throws -> TypeExpression {
         return try indexType(of: try typeOf(&baseExpr), &index)
     }
 
     /// Indexing a value of type `base` with `index`.
-    func indexType(of base: TypeAnnotation, _ index: inout Expr) throws -> TypeAnnotation {
-        if case .named(let structName) = base, let info = structInfo(named: structName),
+    func indexType(of base: TypeExpression, _ index: inout Expr) throws -> TypeExpression {
+        if let structName = base.plainName, let info = structInfo(named: structName),
             !info.subscripts.isEmpty
         {
             var arguments = [Argument(value: index)]
@@ -490,23 +489,23 @@ extension TypeChecker {
             index = arguments[0].value
             return result
         }
-        switch base {
-        case .list(let element):
+        if let element = base.arrayElement {
             // `xs[1...3]` is a slice.
             let written = try typeOf(&index)
-            if case .generic(let name, let arguments) = written,
+            if let (name, arguments) = written.genericParts,
                 name == "ClosedRange" || name == "Range",
                 arguments == [.int]
             {
-                return .generic("ArraySlice", [element])
+                return .named("ArraySlice", [element])
             }
             try expect(&index, .int, "a list's index")
             return element
-        case .string:
+        }
+        if base == .string {
             // A String is indexed by its own positions, not by Int, as in Swift.
             let written = try typeOf(&index)
             if written == .named("String.Index") { return .named("Character") }
-            if case .generic(let name, let arguments) = written,
+            if let (name, arguments) = written.genericParts,
                 name == "ClosedRange" || name == "Range",
                 arguments == [.named("String.Index")]
             {
@@ -516,23 +515,27 @@ extension TypeChecker {
             throw TypeError(
                 "a String is indexed by String.Index, not \(written): write s.index(s.startIndex, offsetBy: n)"
             )
-        case .named(let name)
-        where interpreter.bridged[name]?.conformance(named: "Sequence") != nil
-            && interpreter.bridged[name]?.annotatedAssociatedTypes["Element"] != nil:
+        }
+        if base.isNominal, !base.isPrimitive, let name = base.plainName,
+            interpreter.bridged[name]?.conformance(named: "Sequence") != nil,
+            let element = interpreter.bridged[name]?.checkedAssociatedTypes["Element"]
+        {
             // A Swift sequence Swiit holds is indexed by position (a host type's text, by line).
             try expect(&index, .int, "an element's index")
-            return interpreter.bridged[name]!.annotatedAssociatedTypes["Element"]!
-        case .dictionary(let key, let value):
+            return element
+        }
+        if let (key, value) = base.dictionaryTypes {
             try expect(&index, key, "the key")
             return .optional(value)
-        case .unknown, .record:
+        }
+        if base == .unknown || base == .record {
             _ = try typeOf(&index)
             return .unknown
-        case .any:
-            throw TypeError("an Any can't be indexed: cast it first, as in (value as? [Any])")
-        default:
-            throw TypeError("\(base) can't be indexed")
         }
+        if base == .any {
+            throw TypeError("an Any can't be indexed: cast it first, as in (value as? [Any])")
+        }
+        throw TypeError("\(base) can't be indexed")
     }
 }
 
@@ -541,10 +544,10 @@ extension TypeChecker {
     /// a class (an `Array`, a `String`, a type of Swift's) and one of them takes the arguments;
     /// nil to read it as the type itself does.
     func extensionSubscript(
-        on base: TypeAnnotation,
+        on base: TypeExpression,
         _ arguments: inout [Argument]
-    ) throws -> TypeAnnotation? {
-        if case .named(let name) = base, structInfo(named: name) != nil { return nil }
+    ) throws -> TypeExpression? {
+        if let name = base.plainName, structInfo(named: name) != nil { return nil }
         guard let extended = describe(erased(base))?.extended, !extended.subscripts.isEmpty
         else { return nil }
         var attempt = arguments

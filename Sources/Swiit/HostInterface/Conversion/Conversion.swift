@@ -4,7 +4,7 @@ extension Interpreter {
     /// `value` as a `type`, converting as a call's argument is: nil if it is not one. A list's
     /// elements are converted too.
     public func converted(_ value: Value, to type: TypeExpression) -> Value? {
-        inCurrentTask { annotation(type).flatMap { conform(value, to: $0) } }
+        inCurrentTask { byName(type).flatMap { conform(value, to: $0) } }
     }
 
     func value(forCase name: String, in enumType: TypeRef) -> Value? {
@@ -29,7 +29,7 @@ extension Interpreter {
 
     /// The type a value has in a script.
     public func typeExpression(of value: Value) -> TypeExpression {
-        inCurrentTask { typeExpression(TypeChecker(interpreter: self).type(of: value)) }
+        inCurrentTask { byReference(TypeChecker(interpreter: self).type(of: value)) }
     }
 }
 

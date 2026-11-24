@@ -10,32 +10,30 @@ extension Interpreter {
     func bridgedSymbol(
         _ member: BridgedMember,
         checker: TypeChecker,
-        bindings: [String: TypeAnnotation] = [:],
+        bindings: [String: TypeExpression] = [:],
         isSettable: Bool = false
     ) -> Symbol {
         let summary = member.summary.isEmpty ? nil : member.summary
         func throwing() -> Symbol.Throwing {
-            member.typedThrows.map { .typed(typeExpression(.named($0))) }
+            member.typedThrows.map { .typed(byReference(.named($0))) }
                 ?? (member.isRethrowing ? .rethrowing : member.isThrowing ? .any : .no)
         }
         func signature() -> Symbol.Signature {
             Symbol.Signature(
                 parameters: member.parameters.map {
                     let substituted = checker.substitute($0.type, bindings)
-                    var made = Symbol.Parameter(
+                    return Symbol.Parameter(
                         label: $0.label,
                         name: $0.name,
-                        type: typeExpression(substituted),
+                        type: byReference(substituted),
                         arity: $0.variadic
                             ? .variadic
                             : $0.defaultValue != nil || $0.externalDefault != nil
                                 ? .defaulted(.computed) : .required,
                         documentation: member.parameterDocs[$0.name]
                     )
-                    made.annotation = substituted
-                    return made
                 },
-                returns: typeExpression(checker.substitute(member.returns, bindings)),
+                returns: byReference(checker.substitute(member.returns, bindings)),
                 throwing: throwing(),
                 isAsync: member.effect != .sync,
                 generics: member.generics
@@ -67,7 +65,7 @@ extension Interpreter {
                     name: member.name,
                     summary: summary,
                     attributes: member.attributes,
-                    type: typeExpression(checker.substitute(member.returns, bindings)),
+                    type: byReference(checker.substitute(member.returns, bindings)),
                     isSettable: isSettable,
                     isStatic: member.isStatic,
                     isAsync: member.effect != .sync,
@@ -83,10 +81,10 @@ extension Interpreter {
     ) -> Symbol.Parameter {
         var plain: Value?
         if case .literal(let value)? = parameter.defaultValue { plain = value }
-        var made = Symbol.Parameter(
+        return Symbol.Parameter(
             label: parameter.label,
             name: parameter.name,
-            type: typeExpression(parameter.type),
+            type: byReference(parameter.type),
             isInout: parameter.isInout,
             arity: parameter.variadic
                 ? .variadic
@@ -94,8 +92,6 @@ extension Interpreter {
                     ? .defaulted(plain.map { .value($0) } ?? .computed) : .required,
             documentation: documentation
         )
-        made.annotation = parameter.type
-        return made
     }
 
     /// What a type has, for `TypeExpression.members(named:in:)`: its instance members, its static ones, its
@@ -103,7 +99,7 @@ extension Interpreter {
     /// declared (as `check` reads them), by enum and case.
     func memberSymbols(
         named name: String?,
-        of type: TypeAnnotation,
+        of type: TypeExpression,
         checker: TypeChecker? = nil,
         rawValues: [String: [String: Value]] = [:]
     ) -> [Symbol] {
@@ -124,10 +120,10 @@ extension Interpreter {
         }
         // What every sequence has: what the host's prelude adds to `Sequence`, which
         // `TypeExpression.named(.sequence).members(in:)` lists alone.
-        var holder: TypeAnnotation?
-        if case .list(let element) = type {
+        var holder: TypeExpression?
+        if let element = type.arrayElement {
             holder = element
-        } else if case .named("Sequence") = type {
+        } else if type.plainName == "Sequence" {
             holder = .unknown
         }
         if let element = holder {
@@ -147,7 +143,7 @@ extension Interpreter {
             parameters: parameters.map {
                 parameter($0, documentation: signature.documentation?.parameters[$0.name])
             },
-            returns: typeExpression(signature.returns),
+            returns: byReference(signature.returns),
             isThrowing: signature.isThrowing,
             isAsync: signature.effect != .sync,
             generics: signature.generics
@@ -189,7 +185,7 @@ extension Interpreter {
                 .property(
                     Symbol.Property(
                         name: member,
-                        type: typeExpression(property.type),
+                        type: byReference(property.type),
                         isSettable: property.isSettable
                     )
                 )
@@ -206,7 +202,7 @@ extension Interpreter {
                 .property(
                     Symbol.Property(
                         name: member,
-                        type: typeExpression(property.type),
+                        type: byReference(property.type),
                         isSettable: property.isSettable,
                         isStatic: true
                     )
@@ -260,7 +256,7 @@ extension Interpreter {
                         payload: enumCase.payload.map {
                             TypeExpression.Tuple.Element(
                                 label: $0.label,
-                                type: typeExpression($0.type)
+                                type: byReference($0.type)
                             )
                         },
                         rawValue: raw
@@ -272,7 +268,7 @@ extension Interpreter {
     /// What a bridged Swift type has, with its generic parameters bound as `bindings` says.
     private func bridgedMemberSymbols(
         of bridgedType: ImplementedType,
-        bindings: [String: TypeAnnotation],
+        bindings: [String: TypeExpression],
         named name: String?,
         checker: TypeChecker
     ) -> [Symbol] {
@@ -299,7 +295,7 @@ extension Interpreter {
 
     /// The methods every sequence of `element` has.
     private func sequenceMemberSymbols(
-        of element: TypeAnnotation,
+        of element: TypeExpression,
         named name: String?,
         checker: TypeChecker
     ) -> [Symbol] {

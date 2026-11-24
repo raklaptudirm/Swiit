@@ -68,7 +68,7 @@ indirect enum Expr: Equatable, Sendable {
     /// `(name: "x", 2)`: a tuple, labeled or not.
     case tuple([Argument])
     /// `let x: T = e`: the value, of the type written.
-    case annotated(Expr, TypeAnnotation)
+    case annotated(Expr, TypeExpression)
     /// `x!`: the optional's value; nil stops with an error.
     case forceUnwrap(Expr)
     /// `x?.name`: nil if `x` is, and its member otherwise.
@@ -89,7 +89,7 @@ indirect enum Expr: Equatable, Sendable {
     /// isn't static. Only the checker makes these.
     case bridged(type: String, member: Int, receiver: Expr?, arguments: [Argument])
     /// `x as? T`, `x as! T`, `x is T`, or `x as T`.
-    case cast(Expr, TypeAnnotation, CastKind)
+    case cast(Expr, TypeExpression, CastKind)
     /// `#filePath`: the path of the script it's in.
     case filePath
     /// `if c { a } else { b }`, or `c ? a : b`: a value from one of two
@@ -107,7 +107,7 @@ indirect enum Expr: Equatable, Sendable {
     /// A value shown as text by its static type, which says what the value
     /// alone can't: an optional's `Optional(5)`, in `print(x)` and `"\(x)"`.
     /// Only the checker makes these.
-    case described(Expr, TypeAnnotation)
+    case described(Expr, TypeExpression)
 }
 
 enum TryKind: Equatable, Sendable {
@@ -167,6 +167,6 @@ enum BinaryOperator: String, Sendable {
 /// What a type parameter is in one call: `T` is `Int`.
 struct TypeArgument: Hashable, Sendable {
     var name: String
-    var type: TypeAnnotation
-    init(name: String, type: TypeAnnotation) { self.name = name; self.type = type }
+    var type: TypeExpression
+    init(name: String, type: TypeExpression) { self.name = name; self.type = type }
 }

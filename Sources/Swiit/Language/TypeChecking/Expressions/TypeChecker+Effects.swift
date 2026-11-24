@@ -30,8 +30,8 @@ extension TypeChecker {
     }
 
     /// What an actor's state is reached through from outside: as an async call is, with `await`.
-    func actorSite(_ type: TypeAnnotation, _ receiver: Expr?, _ member: String) throws {
-        guard case .named(let name) = type, let info = structInfo(named: name), info.isActor,
+    func actorSite(_ type: TypeExpression, _ receiver: Expr?, _ member: String) throws {
+        guard let name = type.plainName, let info = structInfo(named: name), info.isActor,
             !info.nonisolated.contains(member)
         else { return }
         if case .variable(let variable)? = receiver, variable == "self" || variable == "super" {

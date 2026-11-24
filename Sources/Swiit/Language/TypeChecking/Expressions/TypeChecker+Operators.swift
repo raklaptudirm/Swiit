@@ -7,8 +7,8 @@ extension TypeChecker {
         _ op: BinaryOperator,
         _ lhs: inout Expr,
         _ rhs: inout Expr,
-        expected: TypeAnnotation?
-    ) throws -> TypeAnnotation {
+        expected: TypeExpression?
+    ) throws -> TypeExpression {
         switch op {
         case .and, .or:
             try expect(&lhs, .bool, "'\(op.rawValue)''s left side")
@@ -16,7 +16,7 @@ extension TypeChecker {
             return .bool
         case .coalesce:
             let left = try typeOf(&lhs)
-            guard case .optional(let wrapped) = left else {
+            guard let wrapped = left.optionalWrapped else {
                 // Never nil, so the right side is never used; Swift allows it too.
                 _ = try typeOf(&rhs, expecting: left)
                 return left
@@ -56,12 +56,12 @@ extension TypeChecker {
     func operandTypes(
         _ lhs: inout Expr,
         _ rhs: inout Expr
-    ) throws -> (TypeAnnotation, TypeAnnotation) {
+    ) throws -> (TypeExpression, TypeExpression) {
         if case .caseLiteral = lhs, !TypeChecker.isContextual(rhs) {
             let right = try typeOf(&rhs)
             return (try typeOf(&lhs, expecting: right), right)
         }
-        var rightFirst: TypeAnnotation?
+        var rightFirst: TypeExpression?
         if TypeChecker.isIntegerLiteral(lhs) {
             var probe = rhs
             rightFirst = try? typeOf(&probe)
@@ -95,9 +95,9 @@ extension TypeChecker {
 
     /// What an operator a program defines gives for these operands: a static method of one of their
     /// types, or a function of that name.
-    func userOperatorType(_ name: String, _ operands: [TypeAnnotation]) -> TypeAnnotation? {
+    func userOperatorType(_ name: String, _ operands: [TypeExpression]) -> TypeExpression? {
         var candidates: [Signature] = []
-        for case .named(let typeName) in operands {
+        for typeName in operands.compactMap(\.plainName) {
             candidates += describe(named: typeName)?.staticMethods(named: name) ?? []
         }
         if case .functions(let overloads)? = lookup(name) { candidates += overloads }
@@ -113,9 +113,9 @@ extension TypeChecker {
     /// operator it defines, or one Comparable and Equatable give.
     func declaredOperatorType(
         _ op: BinaryOperator,
-        _ left: TypeAnnotation,
-        _ right: TypeAnnotation
-    ) -> TypeAnnotation? {
+        _ left: TypeExpression,
+        _ right: TypeExpression
+    ) -> TypeExpression? {
         if let type = userOperatorType(op.rawValue, [left, right]) { return type }
         switch op {
         case .notEqual: return userOperatorType("==", [left, right]) != nil ? .bool : nil
@@ -127,16 +127,16 @@ extension TypeChecker {
 
     func binaryType(
         _ op: BinaryOperator,
-        _ left: TypeAnnotation,
-        _ right: TypeAnnotation
-    ) throws -> TypeAnnotation {
-        if case .named = left, let type = declaredOperatorType(op, left, right) { return type }
-        if case .named = right, let type = declaredOperatorType(op, left, right) { return type }
+        _ left: TypeExpression,
+        _ right: TypeExpression
+    ) throws -> TypeExpression {
+        if left.plainName != nil, let type = declaredOperatorType(op, left, right) { return type }
+        if right.plainName != nil, let type = declaredOperatorType(op, left, right) { return type }
         if left == .unknown || right == .unknown {
             switch op {
             case .less, .lessEqual, .greater, .greaterEqual: return .bool
             case .closedRange, .halfOpenRange:
-                return .generic(
+                return .named(
                     op == .closedRange ? "ClosedRange" : "Range",
                     [left == .unknown ? right : left]
                 )
@@ -145,10 +145,11 @@ extension TypeChecker {
         }
         let fail = TypeError("'\(op.rawValue)' can't be applied to \(left) and \(right)")
         // Tuples compare element by element when their elements do.
-        if case .tuple(let a) = left, case .tuple(let b) = right, a.count == b.count,
+        if case .tuple(let a) = left, case .tuple(let b) = right,
+            a.elements.count == b.elements.count,
             [.less, .lessEqual, .greater, .greaterEqual].contains(op)
         {
-            for (x, y) in zip(a, b) { _ = try binaryType(.less, x.type, y.type) }
+            for (x, y) in zip(a.elements, b.elements) { _ = try binaryType(.less, x.type, y.type) }
             return .bool
         }
         // An operator a bridged type declares, for operands of it.
@@ -159,13 +160,11 @@ extension TypeChecker {
             return .bool
         case .closedRange, .halfOpenRange:
             guard left == right, conforms(left, to: "Comparable") else { throw fail }
-            return .generic(op == .closedRange ? "ClosedRange" : "Range", [left])
+            return .named(op == .closedRange ? "ClosedRange" : "Range", [left])
         case .add:
-            switch (left, right) {
-            case (.int, .int), (.double, .double), (.string, .string): return left
-            case (.list(let a), .list(let b)) where fits(b, a): return left
-            default: throw fail
-            }
+            if left == right, left == .int || left == .double || left == .string { return left }
+            if let a = left.arrayElement, let b = right.arrayElement, fits(b, a) { return left }
+            throw fail
         case .subtract:
             switch (left, right) {
             case (.int, .int), (.double, .double): return left

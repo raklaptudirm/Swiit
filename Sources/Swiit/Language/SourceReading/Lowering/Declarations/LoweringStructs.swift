@@ -268,7 +268,9 @@ extension Lowering {
             } else {
                 var value = try binding.initializer.map { try expression($0.value) }
                 // `var x: Int?` starts as nil.
-                if value == nil, mutable, case .optional? = type { value = .literal(.nothing) }
+                if value == nil, mutable, type?.optionalWrapped != nil {
+                    value = .literal(.nothing)
+                }
                 properties.append(
                     PropertyDecl(
                         name: identifier.identifier.plainName,

@@ -79,7 +79,7 @@ extension Lowering {
             return .annotated(
                 made,
                 .list(
-                    TypeAnnotation.spelled(element.baseName.text) ?? .named(element.baseName.text)
+                    TypeExpression.spelled(element.baseName.text) ?? .named(element.baseName.text)
                 )
             )
         }
@@ -92,8 +92,8 @@ extension Lowering {
             return .annotated(
                 made,
                 .dictionary(
-                    TypeAnnotation.spelled(key.baseName.text) ?? .named(key.baseName.text),
-                    TypeAnnotation.spelled(value.baseName.text) ?? .named(value.baseName.text)
+                    TypeExpression.spelled(key.baseName.text) ?? .named(key.baseName.text),
+                    TypeExpression.spelled(value.baseName.text) ?? .named(value.baseName.text)
                 )
             )
         }

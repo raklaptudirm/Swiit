@@ -4,7 +4,7 @@ import Foundation
 /// against them: the interpreter holds one for as long as it lives, and only the checker reads it.
 struct CheckerMemory {
     /// The declared types of globals, so a later entry knows `let xs: [Int] = []` is an `[Int]`.
-    var globalTypes: [String: TypeAnnotation] = [:]
+    var globalTypes: [String: TypeExpression] = [:]
 
     /// For each function, the functions declared at the prompt that call it without `await`, for
     /// the redefinition rule (TypeChecker+Effects.swift).

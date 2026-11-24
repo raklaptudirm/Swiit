@@ -151,7 +151,7 @@ extension Interpreter {
     func update(
         _ root: String,
         _ path: [Assignment.Step],
-        _ change: (Value, TypeAnnotation?) throws -> Value
+        _ change: (Value, TypeExpression?) throws -> Value
     ) throws {
         guard let binding = lookup(root) else {
             throw RuntimeError("no variable named '\(root)'")
@@ -173,9 +173,9 @@ extension Interpreter {
     func updated(
         _ base: Value,
         _ path: ArraySlice<Assignment.Step>,
-        type: TypeAnnotation?,
+        type: TypeExpression?,
         initializing: Bool = false,
-        _ change: (Value, TypeAnnotation?) throws -> Value
+        _ change: (Value, TypeExpression?) throws -> Value
     ) throws -> Value {
         guard let step = path.first else { return try change(base, type) }
         let rest = path.dropFirst()

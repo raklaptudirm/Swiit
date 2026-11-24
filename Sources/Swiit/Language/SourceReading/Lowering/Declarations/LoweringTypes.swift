@@ -1,9 +1,9 @@
 import SwiftSyntax
 
-// Lowering type annotations: names, optionals, tuples, functions and generics.
+// Lowering written types: names, optionals, tuples, functions and generics.
 
 extension Lowering {
-    func type(_ node: TypeSyntax) throws -> TypeAnnotation {
+    func type(_ node: TypeSyntax) throws -> TypeExpression {
         if let identifier = node.as(IdentifierTypeSyntax.self) {
             return try type(named: identifier)
         }
@@ -13,7 +13,7 @@ extension Lowering {
             let base = dottedName(member.baseType)
         {
             let name = base + "." + member.name.text
-            if let spelled = TypeAnnotation.spelled(name) { return spelled }
+            if let spelled = TypeExpression.spelled(name) { return spelled }
             guard declaredTypes.contains(name) || bound[name] == .type else {
                 throw SyntaxError("unknown type '\(name)'")
             }
@@ -52,7 +52,7 @@ extension Lowering {
     }
 
     /// A type written as a name: a parameter, an alias, a generic's arguments, a declared type.
-    private func type(named identifier: IdentifierTypeSyntax) throws -> TypeAnnotation {
+    private func type(named identifier: IdentifierTypeSyntax) throws -> TypeExpression {
         let name = identifier.name.text
         if typeParameters.contains(name) { return .parameter(name) }
         if Lowering.fixedWidthIntegers.contains(name), identifier.genericArgumentClause == nil,
@@ -71,24 +71,24 @@ extension Lowering {
             || name == "Result" && declaredTypes.contains("Result") == false
                 && bound["Result"] == .type
         if let clause = identifier.genericArgumentClause, isGenericEnum {
-            let arguments = try clause.arguments.map { argument -> TypeAnnotation in
+            let arguments = try clause.arguments.map { argument -> TypeExpression in
                 guard case .type(let written) = argument.argument else {
                     throw unsupported("this generic argument", argument)
                 }
                 return try type(written)
             }
-            return .generic(nestedNames[name] ?? name, arguments)
+            return .named(nestedNames[name] ?? name, arguments)
         }
         if identifier.genericArgumentClause != nil, !facts.protocols.contains(name),
             declaredTypes.contains(nestedNames[name] ?? name)
-                || bound[name] == .type && TypeAnnotation.spelled(name) == nil
+                || bound[name] == .type && TypeExpression.spelled(name) == nil
                     && Bridge.current[name] == nil
         {
             // A generic type of the program's own: its arguments only say what it holds.
             return .named(nestedNames[name] ?? name)
         }
         if let clause = identifier.genericArgumentClause {
-            let arguments = try clause.arguments.map { argument -> TypeAnnotation in
+            let arguments = try clause.arguments.map { argument -> TypeExpression in
                 guard case .type(let written) = argument.argument else {
                     throw unsupported("this generic argument", argument)
                 }
@@ -97,7 +97,7 @@ extension Lowering {
             if name == "KeyPath", arguments.count == 2 {
                 return .keyPath(arguments[0], arguments[1])
             }
-            return TypeAnnotation.spelled(name, arguments) ?? .generic(name, arguments)
+            return TypeExpression.spelled(name, arguments) ?? .named(name, arguments)
         }
         if let alias = aliases[name] { return alias }
         if name == "Self", let current = currentType { return .named(current) }
@@ -106,7 +106,7 @@ extension Lowering {
         }
         if typeParameters.contains(name) { return .parameter(name) }
         if let nested = nestedNames[name] { return .named(nested) }
-        if let spelled = TypeAnnotation.spelled(name) { return spelled }
+        if let spelled = TypeExpression.spelled(name) { return spelled }
         if name == "Void" { return .void }
         // `any Collection`, `any Numeric`: Swift's protocols as types hold any value.
         if Lowering.protocols.contains(name), bound[name] != .type,
@@ -120,47 +120,50 @@ extension Lowering {
         return .named(name)
     }
 
-    private func type(of tuple: TupleTypeSyntax) throws -> TypeAnnotation {
+    private func type(of tuple: TupleTypeSyntax) throws -> TypeExpression {
         if tuple.elements.isEmpty { return .void }
         if tuple.elements.count == 1, let only = tuple.elements.first, only.firstName == nil {
             return try type(only.type)
         }
         return .tuple(
-            try tuple.elements.map {
-                TypeAnnotation.TupleElement(label: $0.firstName?.text, type: try type($0.type))
-            }
+            .init(
+                try tuple.elements.map {
+                    TypeExpression.Tuple.Element(label: $0.firstName?.text, type: try type($0.type))
+                }
+            )
         )
     }
 
-    private func type(of function: FunctionTypeSyntax) throws -> TypeAnnotation {
+    private func type(of function: FunctionTypeSyntax) throws -> TypeExpression {
         let throwing = function.effectSpecifiers?.throwsClause != nil
-        let effect: Effect = function.effectSpecifiers?.asyncSpecifier != nil ? .async : .sync
-        return .functionType(
-            try function.parameters.map { parameter -> TypeAnnotation in
-                let isInout =
-                    parameter.type.as(AttributedTypeSyntax.self)?.specifiers
-                    .contains { specifier in
-                        if case .simpleTypeSpecifier(let simple) = specifier {
-                            return simple.specifier.tokenKind == .keyword(.inout)
-                        }
-                        return false
-                    } ?? false
-                let lowered = try type(parameter.type)
-                return isInout ? .inOut(lowered) : lowered
-            },
-            try type(function.returnClause.type),
-            throws: throwing,
-            async: effect
+        let isAsync = function.effectSpecifiers?.asyncSpecifier != nil
+        return .function(
+            .init(
+                parameters: try function.parameters.map { parameter in
+                    let isInout =
+                        parameter.type.as(AttributedTypeSyntax.self)?.specifiers
+                        .contains { specifier in
+                            if case .simpleTypeSpecifier(let simple) = specifier {
+                                return simple.specifier.tokenKind == .keyword(.inout)
+                            }
+                            return false
+                        } ?? false
+                    return .init(try type(parameter.type), isInout: isInout)
+                },
+                returns: try type(function.returnClause.type),
+                throwing: throwing ? .any : .no,
+                isAsync: isAsync
+            )
         )
     }
 
-    private func type(of composition: CompositionTypeSyntax) throws -> TypeAnnotation {
+    private func type(of composition: CompositionTypeSyntax) throws -> TypeExpression {
         guard let first = composition.elements.first else {
             throw unsupported("this type", composition)
         }
         let parts = try composition.elements.map { try type($0.type) }
         let names = parts.compactMap { part -> String? in
-            if case .named(let name) = part { name } else { nil }
+            if let name = part.plainName { name } else { nil }
         }
         // Protocols together: `A & B`. Anything else stands for the first.
         if names.count == parts.count, names.count > 1 {

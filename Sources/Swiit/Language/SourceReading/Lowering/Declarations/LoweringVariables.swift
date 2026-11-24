@@ -141,7 +141,7 @@ extension Lowering {
                                 value: .annotated(
                                     .literal(.nothing),
                                     {
-                                        if case .optional = written {
+                                        if written.optionalWrapped != nil {
                                             written
                                         } else {
                                             .optional(written)
@@ -153,7 +153,7 @@ extension Lowering {
                     )
                 )
             )
-        } else if case .optional = written {
+        } else if written.optionalWrapped != nil {
             if name != "_" { bind(name) }
             statements.append(
                 .declare(
@@ -179,7 +179,7 @@ extension Lowering {
     /// there is one, which a read and an assignment of the name call.
     private mutating func computedVariable(
         _ name: String,
-        type: TypeAnnotation,
+        type: TypeExpression,
         _ binding: PatternBindingSyntax
     ) throws -> [Statement] {
         guard let accessorBlock = binding.accessorBlock else { return [] }
@@ -266,7 +266,7 @@ extension Lowering {
 
     private mutating func observedVariable(
         _ name: String,
-        type: TypeAnnotation,
+        type: TypeExpression,
         _ binding: PatternBindingSyntax,
         _ accessors: Accessors
     ) throws -> [Statement] {
@@ -280,7 +280,7 @@ extension Lowering {
                 type == .any
                 ? try expression(initializer.value)
                 : .annotated(try expression(initializer.value), type)
-        } else if case .optional = type {
+        } else if type.optionalWrapped != nil {
             start = .annotated(.literal(.nothing), type)
         } else {
             throw unsupported("a variable with observers and no value", binding)

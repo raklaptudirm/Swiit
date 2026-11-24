@@ -69,7 +69,7 @@ private func typeError(_ source: String) -> String? {
         .parse("func f(_ g: () async -> Int) async throws -> Int { await g() }", bound: [:])
     guard case .function(let decl) = program.statements[0] else { Issue.record(); return }
     #expect(decl.isAsync && decl.isThrowing)
-    #expect(decl.parameters[0].type == .functionType([], .int, async: .async))
+    #expect(decl.parameters[0].type == .function(parameters: [], returns: .int, isAsync: true))
     #expect(
         SwiftPrinter().source(program).hasPrefix("func f(_ g: () async -> Int) async throws -> Int")
     )
