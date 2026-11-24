@@ -24,6 +24,12 @@ struct Binding {
         self.init(value: value, mutable: mutable, isFunction: isFunction, special: nil)
     }
 
+    /// A variable that is already stored: the binding of a closure to the one it captured.
+    init(cell: Cell, mutable: Bool) {
+        self.cell = cell
+        self.mutable = mutable
+    }
+
     init(value: Value, mutable: Bool, isFunction: Bool = false, special: Special?) {
         cell = Cell(value)
         self.mutable = mutable

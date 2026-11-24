@@ -17,6 +17,9 @@ struct Program: Equatable, Sendable {
     var locals: [Local]?
     /// For a body given a frame, how many slots it has; nil for one run by name.
     var frameSize: Int?
+    /// For a body given a frame, the slots of the locals a closure in it names: these are kept in
+    /// a cell, which the closure shares, and not in the slot itself (the VM, `Docs/vm.md`).
+    var capturedSlots: Set<Int> = []
 
     /// A local and the slot of its frame it lives in.
     struct Local: Equatable, Sendable {

@@ -20,6 +20,8 @@ struct CodeCompiler {
     struct Local {
         let slot: Register
         let mutable: Bool
+        /// Kept in a cell a closure shares, not in the register itself.
+        var boxed = false
     }
 
     struct Scope {
@@ -47,6 +49,10 @@ struct CodeCompiler {
     }
 
     var code = Code()
+    /// The slots of the locals a closure names: those are boxed.
+    var capturedSlots: Set<Int> = []
+    /// The registers of the parameters that are `inout`, which the function hands back as it ends.
+    var inoutParameters: [Register] = []
     var scopes: [Scope] = []
     var breakables: [Breakable] = []
     var nextTemporary = 0
@@ -73,18 +79,26 @@ struct CodeCompiler {
         highest = max(frameSize, function.parameters.count) - 1
         code.parameterCount = function.parameters.count
         code.parameterKinds = function.parameters.map { ParameterKind($0.type) }
+        capturedSlots = body.capturedSlots
         var parameters = Scope()
-        for (slot, parameter) in function.parameters.enumerated() where parameter.name != "_" {
-            parameters.locals[parameter.name] = Local(slot: Register(slot), mutable: false)
+        for (slot, parameter) in function.parameters.enumerated() {
+            if parameter.isInout { inoutParameters.append(Register(slot)) }
+            if parameter.name != "_" {
+                parameters.locals[parameter.name] = local(
+                    Register(slot),
+                    mutable: parameter.isInout
+                )
+            }
         }
         scopes = [parameters]
+        for slot in function.parameters.indices { bindBox(Register(slot)) }
         if let expression = function.implicitReturn {
             code.isImplicitReturn = true
             let result = try operand(expression)
-            emit(.returnValue(result))
+            try emitReturn(result)
         } else {
             try contents(of: body)
-            emit(.returnNothing)
+            try emitReturn(nil)
         }
         code.frameSize = highest + 1
     }
@@ -183,6 +197,35 @@ struct CodeCompiler {
 
     /// The handler's code begins here.
     mutating func aimHandler(_ index: Int) { code.handlers[index].target = here }
+
+    /// A local in `slot`: kept in a cell when a closure names it.
+    func local(_ slot: Register, mutable: Bool) -> Local {
+        Local(slot: slot, mutable: mutable, boxed: capturedSlots.contains(Int(slot)))
+    }
+
+    /// A local was just bound in `slot`: a cell is made of it if a closure shares it.
+    mutating func bindBox(_ slot: Register) {
+        if capturedSlots.contains(Int(slot)) { emit(.box(register: slot)) }
+    }
+
+    /// The function ends with `result`. What its `inout` parameters hold is handed back first.
+    mutating func emitReturn(_ result: Register?) throws {
+        if !inoutParameters.isEmpty {
+            let mark = nextTemporary
+            let first = Register(nextTemporary)
+            for slot in inoutParameters {
+                let held = try allocate()
+                if capturedSlots.contains(Int(slot)) {
+                    emit(.loadCell(dst: held, box: slot))
+                } else {
+                    emit(.move(dst: held, src: slot))
+                }
+            }
+            emit(.inoutOutputs(first: first, count: UInt16(inoutParameters.count)))
+            nextTemporary = mark
+        }
+        emit(result.map(Instruction.returnValue) ?? .returnNothing)
+    }
 
     func lookup(_ name: String) -> Local? {
         for scope in scopes.reversed() {

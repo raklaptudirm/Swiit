@@ -158,7 +158,7 @@ private let programs: [VMSample] = [
     ),
 ]
 
-@Test(arguments: programs + vmControlFlow + vmMoreControlFlow)
+@Test(arguments: programs + vmControlFlow + vmMoreControlFlow + vmClosures)
 private func aProgramGivesTheSameOnBothEngines(_ program: VMSample) {
     let tree = vmRun(program.source, on: .tree)
     let vm = vmRun(program.source, on: .vm)
@@ -170,7 +170,7 @@ private func aProgramGivesTheSameOnBothEngines(_ program: VMSample) {
     #expect(vmCompiled(program.compiles, in: vm.swiit) == [], "\(program.name) was not compiled")
 }
 
-@Test(arguments: programs + vmControlFlow + vmMoreControlFlow)
+@Test(arguments: programs + vmControlFlow + vmMoreControlFlow + vmClosures)
 private func aProgramTakesTheSameStepsOnBothEngines(_ program: VMSample) {
     #expect(
         vmSteps(program.source, on: .vm) == vmSteps(program.source, on: .tree),
@@ -242,7 +242,7 @@ private let failing: [VMSample] = [
     ),
 ]
 
-@Test(arguments: failing + vmFailingControlFlow)
+@Test(arguments: failing + vmFailingControlFlow + vmFailingClosures)
 private func anErrorIsReportedAsOnTheTreeEvaluator(_ program: VMSample) {
     let tree = vmRun(program.source, on: .tree)
     let vm = vmRun(program.source, on: .vm)

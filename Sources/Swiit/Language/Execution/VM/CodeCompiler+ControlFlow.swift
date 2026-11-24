@@ -74,6 +74,7 @@ extension CodeCompiler {
             skip = emit(.jumpIfNil(register: held, offset: 0))
             let bound = try slots(of: [name], in: node.then.locals)[0].register
             emit(.move(dst: bound, src: held))
+            bindBox(bound)
             entering[name] = (bound, mutable)
         case .pattern(let pattern, let value):
             let held = try allocate()
@@ -87,6 +88,7 @@ extension CodeCompiler {
                 )
             )
             for bound in try slots(of: names, in: node.then.locals) {
+                bindBox(bound.register)
                 entering[bound.name] = (bound.register, false)
             }
         }
@@ -122,7 +124,8 @@ extension CodeCompiler {
             fail = emit(.jumpIfNil(register: held, offset: 0))
             let slot = try slots(of: [name], in: introduced)[0].register
             emit(.move(dst: slot, src: held))
-            bound[name] = Local(slot: slot, mutable: mutable)
+            bindBox(slot)
+            bound[name] = local(slot, mutable: mutable)
         case .pattern(let pattern, let value):
             let held = try allocate()
             try expression(value, into: held)
@@ -135,7 +138,8 @@ extension CodeCompiler {
                 )
             )
             for slot in try slots(of: names, in: introduced) {
-                bound[slot.name] = Local(slot: slot.register, mutable: false)
+                bindBox(slot.register)
+                bound[slot.name] = local(slot.register, mutable: false)
             }
         }
         nextTemporary = mark
@@ -178,6 +182,7 @@ extension CodeCompiler {
                 if let condition = switchCase.guardExpr, position == switchCase.patterns.count - 1 {
                     var visible = Scope()
                     for bound in try slots(of: names, in: switchCase.body.locals) {
+                        // Not boxed yet: that is done as the body begins.
                         visible.locals[bound.name] = Local(slot: bound.register, mutable: false)
                     }
                     scopes.append(visible)
@@ -205,11 +210,13 @@ extension CodeCompiler {
                 if let anyName {
                     let slot = try slots(of: [anyName], in: switchCase.body.locals)[0].register
                     emit(.move(dst: slot, src: subject))
+                    bindBox(slot)
                     entering[anyName] = (slot, false)
                 }
             } else {
                 let names = Set(switchCase.patterns.flatMap(FrameResolver.names(in:)))
                 for bound in try slots(of: names.sorted(), in: switchCase.body.locals) {
+                    bindBox(bound.register)
                     entering[bound.name] = (bound.register, false)
                 }
             }

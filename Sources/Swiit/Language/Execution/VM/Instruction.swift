@@ -99,13 +99,70 @@ enum Instruction {
     case quietBegin
     case quietEnd
 
+    // MARK: Captured variables
+
+    /// The local in this register is captured by a closure: from here on it is a cell the closure
+    /// shares, and the register holds the cell.
+    case box(register: Register)
+    case loadCell(dst: Register, box: Register)
+    case storeCell(box: Register, src: Register)
+    case assignCell(box: Register, op: BinaryOperator, value: Register)
+    /// The closure `Code.closures[site]` made of the cells and values it captures.
+    case makeClosure(dst: Register, site: UInt32)
+    /// Assigns a variable that is not a local, by name: a global, or one a closure captured.
+    case assignByName(site: UInt32, value: Register)
+
     // MARK: Calls
 
     /// Calls what `Code.callSites[site]` names with the arguments in the registers from `arguments`.
     /// A script function that compiled takes them where they are: they are its first registers.
     case call(dst: Register, site: UInt32, arguments: Register)
+    /// Calls the function in a register (a closure, or a parameter of function type).
+    case callValue(dst: Register, callee: Register, site: UInt32, arguments: Register)
+    /// What the `inout` parameters hold as the function ends, for the call to hand back.
+    case inoutOutputs(first: Register, count: UInt16)
+    /// The register is what the call left in its `index`th `inout` parameter.
+    case takeInout(dst: Register, index: UInt16)
+    case finishInout
     case returnValue(Register)
     case returnNothing
+}
+
+/// A local a closure names, kept in a cell the closure shares.
+struct CapturedCell {
+    let name: String
+    let register: Register
+    let mutable: Bool
+}
+
+/// A value a capture list takes when the closure is made: `[weak self, count]`.
+struct TakenValue {
+    let name: String
+    let register: Register
+    let isWeak: Bool
+    let isUnowned: Bool
+}
+
+/// A closure as written: what it captures from the code that makes it.
+final class ClosureSite {
+    let literal: ClosureLiteral
+    /// The locals it names, each kept in a cell the closure shares.
+    let cells: [CapturedCell]
+    /// The other names it uses, which are the enclosing closure's own captures, if anything.
+    let others: [String]
+    let captures: [TakenValue]
+
+    init(
+        literal: ClosureLiteral,
+        cells: [CapturedCell],
+        others: [String],
+        captures: [TakenValue]
+    ) {
+        self.literal = literal
+        self.cells = cells
+        self.others = others
+        self.captures = captures
+    }
 }
 
 /// A call as written: what it calls, and the labels of its arguments.
@@ -196,6 +253,9 @@ final class Code {
     var expressions: [Expr] = []
     var callSites: [CallSite] = []
     var patterns: [PatternSite] = []
+    var closures: [ClosureSite] = []
+    /// Assignments to what is not a local, which `assignByName` makes with the value it is given.
+    var assignments: [Assignment] = []
     /// Innermost last: those that start later are inside those that start earlier.
     var handlers: [Handler] = []
     /// The source range of each statement a `step` or `at` names; nil where the program had none.

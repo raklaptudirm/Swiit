@@ -66,6 +66,12 @@ final class Frame {
 /// The program's own `let` and `var` are globals, which stay by name: the host and later runs read
 /// them so. Each function or closure is a frame of its own.
 struct FrameResolver {
+    /// What the closures of a body named, which `expression` finds while it is not mutating.
+    private final class Captures {
+        var slots: Set<Int> = []
+    }
+
+    private let captures = Captures()
     private var next = 0
     private var size = 0
     private var placeable = true
@@ -91,6 +97,7 @@ struct FrameResolver {
         var resolved = resolver.block(body, entering: names, isProgram: isProgram)
         guard resolver.placeable else { return body }
         resolved.frameSize = resolver.size
+        resolved.capturedSlots = resolver.captures.slots
         return resolved
     }
 
@@ -300,6 +307,12 @@ extension FrameResolver {
         case .described(let inner, let type):
             return .described(expression(inner), type)
         case .closure(var literal):
+            // A local it names is shared with it, and so is kept where both can reach it.
+            for name in literal.names.names {
+                if let local = visible.last(where: { $0.name == name }) {
+                    captures.slots.insert(local.slot)
+                }
+            }
             literal.body = FrameResolver.resolve(
                 body: literal.body,
                 isProgram: false,

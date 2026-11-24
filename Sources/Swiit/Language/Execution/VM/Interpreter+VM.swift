@@ -26,76 +26,16 @@ enum VMCode {
 }
 
 extension Function {
-    /// Whether the compiler may take this body: a plain function or closure of the global scopes,
-    /// whose parameters are taken as they come.
+    /// Whether the compiler may take this body: a plain function, or a closure with what it
+    /// captured, whose parameters are taken as they come.
     var isCompilable: Bool {
-        guard case .swiit(let program) = body, program.frameSize != nil, captured.count <= 2,
-            owner == nil, !isMutating, !isFailable, !isConvenience, typeParameters.isEmpty,
-            inoutNames.isEmpty, effect == .sync
+        guard case .swiit(let program) = body, program.frameSize != nil,
+            !(name != nil && captured.count > 2), owner == nil, !isMutating, !isFailable,
+            !isConvenience, typeParameters.isEmpty, effect == .sync
         else { return false }
         return parameters.allSatisfy {
-            !$0.variadic && !$0.isInout && !$0.isAutoclosure && $0.resultBuilder == nil
+            !$0.variadic && !$0.isAutoclosure && $0.resultBuilder == nil
         }
-    }
-}
-
-/// Where a frame is: the function, its code, its registers, and the next instruction.
-struct VMCursor {
-    var function: Function
-    var code: Code
-    var base: Int
-    var pc: Int
-    var statement: Int32
-}
-
-/// A caller's place while the function it called runs.
-struct VMCaller {
-    var code: Code
-    var function: Function
-    var pc: Int
-    var base: Int
-    var statement: Int32
-    /// The register, counted from the stack's start, the callee's result goes to.
-    var destination: Int
-}
-
-/// The registers of a task's compiled code, one frame after another, and where each caller was. A
-/// frame's registers are a window of it, so a call makes nothing: the arguments are written where the
-/// callee's parameters are.
-final class VMStack {
-    private(set) var base: UnsafeMutablePointer<Value>
-    private(set) var capacity: Int
-    /// The first register no frame uses.
-    @exclusivity(unchecked) var top = 0
-    @exclusivity(unchecked) var callers: [VMCaller] = []
-    /// Errors a handler caught, kept for the code it jumped to: the last is the one it is about.
-    var caught: [Error] = []
-    /// What `observesStatements` was before each deferred block that is running began.
-    var quiet: [Bool] = []
-
-    init() {
-        capacity = 1 << 12
-        base = .allocate(capacity: capacity)
-        base.initialize(repeating: .nothing, count: capacity)
-    }
-
-    deinit {
-        base.deinitialize(count: capacity)
-        base.deallocate()
-    }
-
-    /// Room for `needed` registers. A stack that grows moves, so a pointer into it is taken again
-    /// afterward.
-    func ensure(_ needed: Int) {
-        guard needed > capacity else { return }
-        var larger = capacity
-        while larger < needed { larger *= 2 }
-        let moved = UnsafeMutablePointer<Value>.allocate(capacity: larger)
-        moved.moveInitialize(from: base, count: capacity)
-        (moved + capacity).initialize(repeating: .nothing, count: larger - capacity)
-        base.deallocate()
-        base = moved
-        capacity = larger
     }
 }
 
@@ -148,7 +88,7 @@ extension Interpreter {
     }
 
     /// `result` as the function's return type says, or the error the tree evaluator gives.
-    private func conformed(_ result: Value, to function: Function) throws -> Value {
+    func conformed(_ result: Value, to function: Function) throws -> Value {
         guard let returnType = function.returnType else { return result }
         guard let conforming = conform(result, to: returnType) else {
             let what = result == .nothing ? "nothing" : result.typeName
@@ -161,7 +101,7 @@ extension Interpreter {
 
     /// What a frame does as it ends, however it ends: its registers are let go, its call is over, and
     /// the tasks it started are closed.
-    private func leaveFrame(_ function: Function, _ code: Code, base: Int, _ stack: VMStack) {
+    func leaveFrame(_ function: Function, _ code: Code, base: Int, _ stack: VMStack) {
         for index in 0..<code.frameSize { stack.base[base + index] = .nothing }
         let task = self.task
         task.callDepth -= 1
@@ -173,7 +113,7 @@ extension Interpreter {
 
     /// Makes the scopes of `callee` the task's, which are those of `caller` already when both are
     /// functions of the global scopes: the task's scopes are always its running function's.
-    private func setScopes(of callee: Function, from caller: Function, _ task: TaskContext) {
+    func setScopes(of callee: Function, from caller: Function, _ task: TaskContext) {
         let wanted = callee.captured
         let current = caller.captured
         if wanted.count == current.count, wanted.count <= 2,
@@ -188,7 +128,7 @@ extension Interpreter {
     // swiftlint:disable cyclomatic_complexity function_body_length - one case for each instruction
     /// The instructions of one run: the entry frame, and the frames it calls, which are pushed on
     /// `stack` and run by this loop and not by Swift's stack.
-    private func execute(
+    func execute(
         _ entry: Function,
         _ entryCode: Code,
         base entryBase: Int,
@@ -474,6 +414,96 @@ extension Interpreter {
                             regs = stack.base + base
                             regs[Int(dst)] = value
                         }
+                    case .callValue(let dst, let calleeRegister, let siteIndex, let arguments):
+                        let site = code.callSites[Int(siteIndex)]
+                        let argumentBase = base + Int(arguments)
+                        if let (callee, calleeCode) = vmTarget(
+                            ofValue: regs[Int(calleeRegister)],
+                            arguments: site.labels.count
+                        ) {
+                            let maxCallDepth = task.run.limits.maxCallDepth
+                            guard task.callDepth < maxCallDepth else {
+                                throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
+                            }
+                            try checkInterrupt()
+                            for index in 0..<calleeCode.parameterCount
+                            where !calleeCode.parameterKinds[index]
+                                .accepts(
+                                    stack.base[argumentBase + index]
+                                )
+                            {
+                                stack.base[argumentBase + index] = try checked(
+                                    stack.base[argumentBase + index],
+                                    for: callee.parameters[index],
+                                    of: callee.name ?? "closure"
+                                )
+                            }
+                            stack.callers.append(
+                                VMCaller(
+                                    code: code,
+                                    function: function,
+                                    pc: pc,
+                                    base: base,
+                                    statement: statement,
+                                    destination: base + Int(dst)
+                                )
+                            )
+                            stack.ensure(argumentBase + calleeCode.frameSize)
+                            stack.top = argumentBase + calleeCode.frameSize
+                            setScopes(of: callee, from: function, task)
+                            task.callDepth += 1
+                            function = callee
+                            code = calleeCode
+                            instructions = calleeCode.instructions
+                            base = argumentBase
+                            pc = 0
+                            statement = -1
+                            regs = stack.base + base
+                        } else {
+                            let callee = regs[Int(calleeRegister)]
+                            var given: [Argument] = []
+                            for index in 0..<site.labels.count {
+                                given.append(
+                                    Argument(
+                                        label: site.labels[index],
+                                        value: .literal(stack.base[argumentBase + index])
+                                    )
+                                )
+                                stack.base[argumentBase + index] = .nothing
+                            }
+                            let value = try evaluateCall(.literal(callee), given)
+                            regs = stack.base + base
+                            regs[Int(dst)] = value
+                        }
+                    case .box(let register):
+                        regs[Int(register)] = .object(CellBox(regs[Int(register)]))
+                    case .loadCell(let dst, let box):
+                        regs[Int(dst)] = try cell(regs[Int(box)]).value
+                    case .storeCell(let box, let src):
+                        try cell(regs[Int(box)]).value = regs[Int(src)]
+                    case .assignCell(let box, let op, let value):
+                        let held = try cell(regs[Int(box)])
+                        var slot = held.value
+                        held.value = .nothing
+                        defer { held.value = slot }
+                        try applyInPlace(op, &slot, regs[Int(value)])
+                        regs = stack.base + base
+                    case .makeClosure(let dst, let site):
+                        let made = try makeClosure(code.closures[Int(site)], regs)
+                        regs = stack.base + base
+                        regs[Int(dst)] = made
+                    case .assignByName(let site, let value):
+                        var assignment = code.assignments[Int(site)]
+                        assignment.value = .literal(regs[Int(value)])
+                        try assign(assignment)
+                        regs = stack.base + base
+                    case .inoutOutputs(let first, let count):
+                        task.inoutOutputs = (0..<Int(count)).map { regs[Int(first) + $0] }
+                    case .takeInout(let dst, let index):
+                        let outputs = task.inoutOutputs
+                        regs[Int(dst)] = Int(index) < outputs.count ? outputs[Int(index)] : .nothing
+                    case .finishInout:
+                        task.inoutOutputs = []
                     case .returnValue(let register):
                         var cursor = VMCursor(
                             function: function,
@@ -583,59 +613,4 @@ extension Interpreter {
     }
 
     // swiftlint:enable cyclomatic_complexity function_body_length
-
-    /// A frame returns `result`. The entry frame's is the run's; another's goes to the register its
-    /// caller named, and the caller goes on. The result is conformed to the callee's return type once
-    /// the callee is gone, which is where the tree evaluator does it.
-    private func leave(
-        with result: Value,
-        _ cursor: inout VMCursor,
-        entryDepth: Int,
-        on stack: VMStack
-    ) throws -> Value? {
-        let callee = cursor.function
-        leaveFrame(callee, cursor.code, base: cursor.base, stack)
-        if stack.callers.count == entryDepth { return result }
-        let caller = stack.callers.removeLast()
-        cursor = VMCursor(
-            function: caller.function,
-            code: caller.code,
-            base: caller.base,
-            pc: caller.pc,
-            statement: caller.statement
-        )
-        setScopes(of: caller.function, from: callee, task)
-        stack.top = caller.base + caller.code.frameSize
-        let conforming = try conformed(result, to: callee)
-        stack.base[caller.destination] = conforming
-        return nil
-    }
-
-    /// The function a call site calls, when the VM can call it without leaving its loop: the one
-    /// function the name is bound to, compiled, taking these arguments as written.
-    private func vmTarget(of site: CallSite) -> (Function, Code)? {
-        guard let name = site.name, let binding = lookup(name),
-            case .function(let callable) = binding.value.storage
-        else { return nil }
-        let only: Function
-        if let function = callable as? Function {
-            only = function
-        } else if let set = callable as? OverloadSet, set.candidates.count == 1 {
-            only = set.candidates[0]
-        } else {
-            return nil
-        }
-        guard let code = compiled(only) else { return nil }
-        if site.lastFunction !== only {
-            site.lastFunction = only
-            site.lastFits =
-                only.parameters.count == site.labels.count
-                && zip(only.parameters, site.labels).allSatisfy { $0.label == $1 }
-        }
-        // A value of function type is called with its arguments in order, whatever they are labeled.
-        let fits =
-            binding.isFunction
-            ? site.lastFits : only.parameters.count == site.labels.count
-        return fits ? (only, code) : nil
-    }
 }

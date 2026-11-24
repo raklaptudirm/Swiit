@@ -47,8 +47,8 @@ extension CodeCompiler {
     ) throws {
         guard let locals = program.locals else { throw Unsupported("a block run by name") }
         var scope = Scope()
-        for (name, local) in names {
-            scope.locals[name] = Local(slot: local.slot, mutable: local.mutable)
+        for (name, entered) in names {
+            scope.locals[name] = local(entered.slot, mutable: entered.mutable)
         }
         if let first = locals.map(\.slot).min(), let last = locals.map(\.slot).max() {
             scope.cleared = (Register(first), Register(last - first + 1))
@@ -117,7 +117,8 @@ extension CodeCompiler {
         case .declareLocal(let local, let mutable, let value):
             let slot = Register(local.slot)
             try expression(value, into: slot)
-            scopes[scopes.count - 1].locals[local.name] = Local(slot: slot, mutable: mutable)
+            bindBox(slot)
+            scopes[scopes.count - 1].locals[local.name] = self.local(slot, mutable: mutable)
             finished(statement)
         case .assign(let assignment):
             try assign(assignment)
@@ -140,7 +141,7 @@ extension CodeCompiler {
                 return copy
             }
             try emitExit(downTo: 0, clearing: false)
-            emit(result.map(Instruction.returnValue) ?? .returnNothing)
+            try emitReturn(result)
             nextTemporary = mark
         case .throwStatement(let value):
             let mark = nextTemporary
@@ -179,14 +180,28 @@ extension CodeCompiler {
         emit(.finished(statement: stored(statement), value: Register.max))
     }
 
+    /// `x = v` and `x += v` of a local, or of a variable that is not (a global, or one a closure
+    /// captured) which the tree evaluator assigns by name.
     private mutating func assign(_ assignment: Assignment) throws {
-        guard assignment.path.isEmpty, let local = lookup(assignment.root), local.mutable else {
-            throw Unsupported("an assignment to something but a local variable")
-        }
+        guard assignment.path.isEmpty else { throw Unsupported("an assignment through a path") }
         let mark = nextTemporary
         let value = try allocate()
         try expression(assignment.value, into: value)
-        emit(.assign(local: local.slot, op: assignment.op, value: value))
+        if let local = lookup(assignment.root) {
+            guard local.mutable else { throw Unsupported("an assignment to a constant") }
+            if local.boxed {
+                if let op = assignment.op {
+                    emit(.assignCell(box: local.slot, op: op, value: value))
+                } else {
+                    emit(.storeCell(box: local.slot, src: value))
+                }
+            } else {
+                emit(.assign(local: local.slot, op: assignment.op, value: value))
+            }
+        } else {
+            code.assignments.append(assignment)
+            emit(.assignByName(site: UInt32(code.assignments.count - 1), value: value))
+        }
         nextTemporary = mark
     }
 
@@ -264,6 +279,7 @@ extension CodeCompiler {
         nextTemporary = bounds
         let head = here
         let next = emit(.rangeNext(counter: counter, variable: variable ?? scratch, exit: 0))
+        if let variable { bindBox(variable) }
         breakables.append(
             Breakable(
                 label: loop.label,
