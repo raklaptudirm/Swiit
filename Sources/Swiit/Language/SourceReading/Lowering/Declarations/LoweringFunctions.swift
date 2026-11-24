@@ -153,7 +153,10 @@ extension Lowering {
         } else if node.modifiers.contains(where: { $0.name.tokenKind == .keyword(.postfix) }) {
             name = "postfix " + name
         }
-        let (isThrowing, isRethrowing, thrownType) = try throwing(effects?.throwsClause)
+        let throwing = try throwing(effects?.throwsClause)
+        let (isThrowing, isRethrowing, thrownType) = (
+            throwing.isThrowing, throwing.isRethrowing, throwing.thrown
+        )
         // In the prelude, a builtin's body is in Swift.
         guard let body = node.body else {
             guard prelude else { throw unsupported("a function without a body", node) }
@@ -211,11 +214,17 @@ extension Lowering {
         )
     }
 
+    struct Throwing {
+        let isThrowing: Bool
+        let isRethrowing: Bool
+        let thrown: TypeExpression?
+    }
+
     /// What a `throws`, `throws(E)` or `rethrows` clause says: whether the function throws, whether it
     /// only rethrows what its closures throw, and the one type it throws.
     private mutating func throwing(
         _ clause: ThrowsClauseSyntax?
-    ) throws -> (isThrowing: Bool, isRethrowing: Bool, thrown: TypeExpression?) {
+    ) throws -> Throwing {
         var thrown = try clause?.type.map { try type($0) }
         // `throws(Never)` throws nothing.
         if thrown == .named("Never") { thrown = nil }
@@ -223,7 +232,7 @@ extension Lowering {
             clause?.throwsSpecifier.tokenKind == .keyword(.throws)
             && !(clause?.type != nil && thrown == nil)
         let isRethrowing = clause?.throwsSpecifier.tokenKind == .keyword(.rethrows)
-        return (isThrowing, isRethrowing, thrown)
+        return Throwing(isThrowing: isThrowing, isRethrowing: isRethrowing, thrown: thrown)
     }
 
     mutating func initializer(_ node: InitializerDeclSyntax) throws -> FunctionDecl {
@@ -237,9 +246,7 @@ extension Lowering {
         )
         defer { typeParameters = outerParameters }
         let parameters = try parameters(node.signature.parameterClause)
-        let (isThrowing, isRethrowing, thrown) = try throwing(
-            node.signature.effectSpecifiers?.throwsClause
-        )
+        let throwing = try throwing(node.signature.effectSpecifiers?.throwsClause)
         guard let body = node.body else { throw unsupported("an initializer without a body", node) }
         locals.append(Set(parameters.map(\.name)))
         let outer = (tryDepth, leaving)
@@ -254,10 +261,11 @@ extension Lowering {
             body: program,
             documentation: documentation(of: node),
             isMutating: true,
-            isThrowing: isThrowing,
-            isRethrowing: isRethrowing,
+            isThrowing: throwing.isThrowing,
+            isRethrowing: throwing.isRethrowing,
             names: NamesUsed(names: names(in: body))
-        ).withThrown(thrown)
+        )
+        .withThrown(throwing.thrown)
         declaration.isFailable = node.optionalMark != nil
         declaration.isConvenience = node.modifiers.contains {
             $0.name.tokenKind == .keyword(.convenience)
