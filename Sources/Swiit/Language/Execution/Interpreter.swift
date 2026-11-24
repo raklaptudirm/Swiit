@@ -60,6 +60,8 @@ public final class Interpreter: @unchecked Sendable {
     var observesStatements = true
     /// How function bodies run: on the tree evaluator, or compiled for the VM where the compiler can.
     var engine = Engine.initial
+    /// The functions the VM's compiler left to the tree evaluator, each with why, as they were met.
+    var vmFallbacks: [String] = []
 
     /// What bounds a run (steps, depth, time, output) unless the run is given limits of its own.
     var limits = Interpreter.Limits()

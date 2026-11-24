@@ -86,4 +86,6 @@ struct VMSample {
     let source: String
     /// The functions in it the compiler is expected to take.
     let compiles: [String]
+    /// Every function of it that runs is compiled: the VM left none to the tree evaluator.
+    var entirely = false
 }

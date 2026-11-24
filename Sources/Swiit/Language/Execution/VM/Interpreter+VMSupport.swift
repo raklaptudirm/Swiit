@@ -24,7 +24,11 @@ extension Interpreter {
             pc: caller.pc,
             statement: caller.statement
         )
-        setScopes(of: caller.function, from: callee, task)
+        if let own = caller.scopes {
+            task.scopes = own
+        } else {
+            setScopes(of: caller.function, from: callee, task)
+        }
         stack.top = caller.base + caller.code.frameSize
         let conforming = try conformed(result, to: callee)
         stack.base[caller.destination] = conforming
@@ -97,7 +101,9 @@ extension Interpreter {
         } else {
             return nil
         }
-        guard only.parameters.count == arguments, let code = compiled(only) else { return nil }
+        guard only.parameters.count == arguments, let code = compiled(only), code.isPlain else {
+            return nil
+        }
         return (only, code)
     }
 
@@ -115,7 +121,7 @@ extension Interpreter {
         } else {
             return nil
         }
-        guard let code = compiled(only) else { return nil }
+        guard let code = compiled(only), code.isPlain else { return nil }
         if site.lastFunction !== only {
             site.lastFunction = only
             site.lastFits =

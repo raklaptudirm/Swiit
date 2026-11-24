@@ -144,6 +144,9 @@ enum Instruction {
     /// The register is what the call left in its `index`th `inout` parameter.
     case takeInout(dst: Register, index: UInt16)
     case finishInout
+    /// A failable initializer returns: when what it returns is nil (`return nil`, or a bare `return`),
+    /// the construction failed. `Register.max` for a bare `return`.
+    case failInit(Register)
     case returnValue(Register)
     case returnNothing
 }
@@ -318,4 +321,11 @@ final class Code {
     /// The body is one expression that is the result (a closure's, or a short function's), which the
     /// tree evaluator runs without counting a statement: so does the VM.
     var isImplicitReturn = false
+    /// The VM's loop may call it with the arguments as written, in registers, and it runs in the
+    /// scopes it captured: false for what has a scope of its own (a method's `self`, a generic
+    /// function's types) and for what binds its arguments in a way of its own (a variadic parameter
+    /// gathers them in a list, an `@autoclosure` one wraps the argument).
+    var isPlain = true
+    /// An initializer that may fail, whose `return nil` ends the construction.
+    var isFailable = false
 }

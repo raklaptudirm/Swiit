@@ -18,6 +18,9 @@ struct VMCaller {
     var statement: Int32
     /// The register, counted from the stack's start, the callee's result goes to.
     var destination: Int
+    /// The scopes the caller ran in, when it had a scope of its own (a method's `self`, a generic
+    /// function's types) that is not what it captured; nil otherwise.
+    var scopes: [Scope]?
 }
 
 /// The registers of a task's compiled code, one frame after another, and where each caller was. A

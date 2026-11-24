@@ -26,16 +26,11 @@ enum VMCode {
 }
 
 extension Function {
-    /// Whether the compiler may take this body: a plain function, or a closure with what it
+    /// Whether the compiler may take this body: a function or method, or a closure with what it
     /// captured, whose parameters are taken as they come.
     var isCompilable: Bool {
-        guard case .swiit(let program) = body, program.frameSize != nil,
-            !(name != nil && captured.count > 2), owner == nil, !isMutating, !isFailable,
-            !isConvenience, typeParameters.isEmpty, effect == .sync
-        else { return false }
-        return parameters.allSatisfy {
-            !$0.variadic && !$0.isAutoclosure && $0.resultBuilder == nil
-        }
+        guard case .swiit(let program) = body else { return false }
+        return program.frameSize != nil && !(name != nil && captured.count > 2) && effect == .sync
     }
 }
 
@@ -53,6 +48,7 @@ extension Interpreter {
                 return code
             case .failure(let unsupported):
                 function.vmCode = .unsupported(unsupported.reason)
+                vmFallbacks.append("\(function.name ?? "a closure"): \(unsupported.reason)")
                 return nil
             }
         }
@@ -63,7 +59,8 @@ extension Interpreter {
     func runCompiled(
         _ function: Function,
         _ code: Code,
-        with arguments: BindingTable
+        with arguments: BindingTable,
+        receiver: Receiver? = nil
     ) throws -> Value {
         let task = self.task
         let stack = task.vm
@@ -75,12 +72,30 @@ extension Interpreter {
         stack.top = base + code.frameSize
         let saved = (scopes: task.scopes, frame: task.frame, frameBase: task.frameBase)
         task.scopes = function.captured
-        task.frame = nil
+        // A method has `self`, and a generic function its type parameters, in a scope of the call.
+        var own: Scope?
+        if receiver != nil || !code.isPlain {
+            let made = Scope()
+            openTypeParameters(of: function, arguments, in: made)
+            if let receiver {
+                made.bindings["self"] = Binding(
+                    value: receiver.value,
+                    mutable: receiver.mutable,
+                    special: receiver.initializing ? .initializing : nil
+                )
+            }
+            task.scopes.append(made)
+            own = made
+        }
+        if let owner = function.owner { task.owners.append(owner) }
         task.callDepth += 1
+        task.frame = nil
         defer {
+            if let receiver, let changed = own?.bindings["self"]?.value { receiver.value = changed }
             task.scopes = saved.scopes
             task.frame = saved.frame
             task.frameBase = saved.frameBase
+            if function.owner != nil { task.owners.removeLast() }
             stack.top = base
         }
         let result = try execute(function, code, base: base, on: stack)
@@ -116,7 +131,7 @@ extension Interpreter {
     func setScopes(of callee: Function, from caller: Function, _ task: TaskContext) {
         let wanted = callee.captured
         let current = caller.captured
-        if wanted.count == current.count, wanted.count <= 2,
+        if task.scopes.count == current.count, wanted.count == current.count, wanted.count <= 2,
             wanted.isEmpty
                 || (wanted[0] === current[0] && (wanted.count < 2 || wanted[1] === current[1]))
         {
@@ -385,7 +400,9 @@ extension Interpreter {
                                     pc: pc,
                                     base: base,
                                     statement: statement,
-                                    destination: base + Int(dst)
+                                    destination: base + Int(dst),
+                                    scopes: task.scopes.count == function.captured.count
+                                        ? nil : task.scopes
                                 )
                             )
                             stack.ensure(argumentBase + calleeCode.frameSize)
@@ -471,7 +488,9 @@ extension Interpreter {
                                     pc: pc,
                                     base: base,
                                     statement: statement,
-                                    destination: base + Int(dst)
+                                    destination: base + Int(dst),
+                                    scopes: task.scopes.count == function.captured.count
+                                        ? nil : task.scopes
                                 )
                             )
                             stack.ensure(argumentBase + calleeCode.frameSize)
@@ -536,6 +555,10 @@ extension Interpreter {
                         regs[Int(dst)] = Int(index) < outputs.count ? outputs[Int(index)] : .nothing
                     case .finishInout:
                         task.inoutOutputs = []
+                    case .failInit(let register):
+                        if register == Register.max || regs[Int(register)] == .nothing {
+                            task.failedInit = true
+                        }
                     case .returnValue(let register):
                         var cursor = VMCursor(
                             function: function,
@@ -625,7 +648,11 @@ extension Interpreter {
                     base = caller.base
                     pc = caller.pc
                     statement = caller.statement
-                    setScopes(of: function, from: leaving, task)
+                    if let own = caller.scopes {
+                        task.scopes = own
+                    } else {
+                        setScopes(of: function, from: leaving, task)
+                    }
                     stack.top = base + code.frameSize
                 }
             }

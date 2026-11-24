@@ -101,6 +101,12 @@ struct FrameResolver {
         return resolved
     }
 
+    /// A declaration inside a block, which is bound by name where it is: its block gets no frame.
+    private mutating func unplaced(_ statement: Statement) -> Statement {
+        placeable = false
+        return statement
+    }
+
     private mutating func slot() -> Int {
         defer {
             next += 1
@@ -155,10 +161,28 @@ struct FrameResolver {
                 parameters: decl.parameters
             )
             return .function(decl)
-        case .enumDecl, .structDecl, .classDecl, .protocolDecl, .typeExtension, .extensionDecl,
-            .operatorDeclaration:
-            if !isProgram { placeable = false }
-            return statement
+        case .structDecl(var decl):
+            guard isProgram else { return unplaced(statement) }
+            FrameResolver.resolve(members: &decl)
+            return .structDecl(decl)
+        case .classDecl(var decl):
+            guard isProgram else { return unplaced(statement) }
+            FrameResolver.resolve(members: &decl.members)
+            return .classDecl(decl)
+        case .typeExtension(var decl):
+            guard isProgram else { return unplaced(statement) }
+            FrameResolver.resolve(members: &decl.members)
+            return .typeExtension(decl)
+        case .enumDecl(var decl):
+            guard isProgram else { return unplaced(statement) }
+            decl.methods = FrameResolver.resolved(decl.methods)
+            decl.staticMethods = FrameResolver.resolved(decl.staticMethods)
+            decl.initializers = FrameResolver.resolved(decl.initializers)
+            decl.properties = FrameResolver.resolved(decl.properties)
+            decl.staticProperties = FrameResolver.resolved(decl.staticProperties)
+            return .enumDecl(decl)
+        case .protocolDecl, .extensionDecl, .operatorDeclaration:
+            return isProgram ? statement : unplaced(statement)
         case .guardStatement(let condition, let otherwise, _):
             // A program's own guard binds a global, which stays by name.
             if isProgram { return statement }
@@ -365,6 +389,68 @@ extension FrameResolver {
         case .cast(let inner, _), .some(let inner): names(in: inner)
         case .tuple(let patterns): patterns.flatMap(names(in:))
         case .wildcard, .expression, .isType, .partialRange: []
+        }
+    }
+}
+
+// The bodies of a type's members, which are each a frame of their own as a function is.
+extension FrameResolver {
+    /// The methods, initializers and static methods of a type, each a frame of its own as a
+    /// function is.
+    fileprivate static func resolve(members decl: inout StructDecl) {
+        decl.methods = resolved(decl.methods)
+        decl.staticMethods = resolved(decl.staticMethods)
+        decl.initializers = resolved(decl.initializers)
+        decl.properties = resolved(decl.properties)
+        decl.staticProperties = resolved(decl.staticProperties)
+        decl.subscripts = decl.subscripts.map { declared in
+            var declared = declared
+            declared.getter = resolve(
+                body: declared.getter,
+                isProgram: false,
+                parameters: declared.parameters
+            )
+            declared.setter = declared.setter.map {
+                resolve(
+                    body: $0,
+                    isProgram: false,
+                    parameters: declared.parameters + [named(declared.setterName)]
+                )
+            }
+            return declared
+        }
+    }
+
+    fileprivate static func named(_ name: String) -> Parameter { Parameter(name: name, type: .any) }
+
+    /// The bodies of computed properties and observers: a getter takes nothing, a setter and an
+    /// observer the value.
+    fileprivate static func resolved(_ properties: [PropertyDecl]) -> [PropertyDecl] {
+        properties.map { property in
+            var property = property
+            property.getter = property.getter.map { resolve(body: $0, isProgram: false) }
+            property.setter = property.setter.map {
+                resolve(body: $0, isProgram: false, parameters: [named(property.setterName)])
+            }
+            property.willSet = property.willSet.map {
+                resolve(body: $0, isProgram: false, parameters: [named(property.willSetName)])
+            }
+            property.didSet = property.didSet.map {
+                resolve(body: $0, isProgram: false, parameters: [named(property.didSetName)])
+            }
+            return property
+        }
+    }
+
+    fileprivate static func resolved(_ functions: [FunctionDecl]) -> [FunctionDecl] {
+        functions.map { function in
+            var function = function
+            function.body = resolve(
+                body: function.body,
+                isProgram: false,
+                parameters: function.parameters
+            )
+            return function
         }
     }
 }

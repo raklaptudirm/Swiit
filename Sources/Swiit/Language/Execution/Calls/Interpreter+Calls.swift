@@ -61,8 +61,8 @@ extension Interpreter {
         receiver: Receiver? = nil
     ) throws -> Value {
         guard case .swiit(let body) = function.body else { preconditionFailure() }
-        if engine == .vm, receiver == nil, let code = compiled(function) {
-            return try runCompiled(function, code, with: arguments)
+        if engine == .vm, let code = compiled(function) {
+            return try runCompiled(function, code, with: arguments, receiver: receiver)
         }
         let hasFrame = body.frameSize != nil
         let isNested = function.name != nil && function.captured.count > 2
@@ -167,7 +167,7 @@ extension Interpreter {
 
     /// A type parameter the call left to what was passed (a protocol's type) is the type of that
     /// value, as Swift opens an existential: bound in the call's scope under its name.
-    private func openTypeParameters(
+    func openTypeParameters(
         of function: Function,
         _ arguments: BindingTable,
         in argumentScope: Scope

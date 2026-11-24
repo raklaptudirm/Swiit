@@ -158,7 +158,14 @@ private let programs: [VMSample] = [
     ),
 ]
 
-@Test(arguments: programs + vmControlFlow + vmMoreControlFlow + vmClosures + vmRuntimeNodes)
+/// The programs of every file, which one test runs on both engines.
+private let everyProgram: [VMSample] = [
+    programs, vmControlFlow, vmMoreControlFlow, vmClosures, vmRuntimeNodes, vmKinds,
+    vmParameterKinds,
+]
+.flatMap { $0 }
+
+@Test(arguments: everyProgram)
 private func aProgramGivesTheSameOnBothEngines(_ program: VMSample) {
     let tree = vmRun(program.source, on: .tree)
     let vm = vmRun(program.source, on: .vm)
@@ -167,10 +174,17 @@ private func aProgramGivesTheSameOnBothEngines(_ program: VMSample) {
         tree.outcome.failure == nil,
         "\(program.name) failed: \(String(describing: tree.outcome.failure))"
     )
-    #expect(vmCompiled(program.compiles, in: vm.swiit) == [], "\(program.name) was not compiled")
+    let missed = vmCompiled(program.compiles, in: vm.swiit)
+    #expect(missed == [], "\(program.name) was not compiled: \(missed)")
+    if program.entirely {
+        #expect(
+            vm.swiit.vmFallbacks == [],
+            "\(program.name) left functions to the tree: \(vm.swiit.vmFallbacks)"
+        )
+    }
 }
 
-@Test(arguments: programs + vmControlFlow + vmMoreControlFlow + vmClosures + vmRuntimeNodes)
+@Test(arguments: everyProgram)
 private func aProgramTakesTheSameStepsOnBothEngines(_ program: VMSample) {
     #expect(
         vmSteps(program.source, on: .vm) == vmSteps(program.source, on: .tree),
@@ -242,13 +256,22 @@ private let failing: [VMSample] = [
     ),
 ]
 
-@Test(arguments: failing + vmFailingControlFlow + vmFailingClosures + vmFailingRuntimeNodes)
+private let everyFailingProgram: [VMSample] = [
+    failing, vmFailingControlFlow, vmFailingClosures, vmFailingRuntimeNodes, vmFailingKinds,
+]
+.flatMap { $0 }
+
+@Test(arguments: everyFailingProgram)
 private func anErrorIsReportedAsOnTheTreeEvaluator(_ program: VMSample) {
     let tree = vmRun(program.source, on: .tree)
     let vm = vmRun(program.source, on: .vm)
     #expect(tree.outcome.failure != nil, "\(program.name) did not fail on the tree evaluator")
     #expect(vm.outcome == tree.outcome, "\(program.name)")
-    #expect(vmCompiled(program.compiles, in: vm.swiit) == [], "\(program.name) was not compiled")
+    let missed = vmCompiled(program.compiles, in: vm.swiit)
+    #expect(
+        missed == [],
+        "\(program.name) was not compiled: \(missed); it failed with \(tree.outcome.failure ?? "")"
+    )
 }
 
 @Test func theVMNeedsNoSwiftStackForDepth() throws {

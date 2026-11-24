@@ -66,7 +66,7 @@ struct CodeCompiler {
     static func compile(_ function: Function) -> Result<Code, Unsupported> {
         guard function.isCompilable, case .swiit(let body) = function.body,
             let frameSize = body.frameSize
-        else { return .failure(Unsupported("not a plain function of the global scopes")) }
+        else { return .failure(Unsupported("not a function the VM takes")) }
         var compiler = CodeCompiler()
         do {
             try compiler.function(function, body, frameSize: frameSize)
@@ -81,6 +81,13 @@ struct CodeCompiler {
     private mutating func function(_ function: Function, _ body: Program, frameSize: Int) throws {
         nextTemporary = frameSize
         highest = max(frameSize, function.parameters.count) - 1
+        code.isPlain =
+            function.owner == nil && !function.isMutating && !function.isFailable
+            && !function.isConvenience && function.typeParameters.isEmpty
+            && function.parameters.allSatisfy {
+                !$0.variadic && !$0.isAutoclosure && $0.resultBuilder == nil
+            }
+        code.isFailable = function.isFailable
         code.parameterCount = function.parameters.count
         code.parameterKinds = function.parameters.map { ParameterKind($0.type) }
         capturedSlots = body.capturedSlots

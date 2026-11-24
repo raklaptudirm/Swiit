@@ -121,6 +121,12 @@ extension CodeCompiler {
             bindBox(slot)
             scopes[scopes.count - 1].locals[local.name] = self.local(slot, mutable: mutable)
             finished(statement)
+        case .declare(let name, _, let value) where name == "_":
+            // `_ = value`: made, and let go.
+            let mark = nextTemporary
+            try expression(value, into: try allocate())
+            nextTemporary = mark
+            finished(statement)
         case .assign(let assignment):
             try assign(assignment, statement)
             finished(statement)
@@ -142,6 +148,7 @@ extension CodeCompiler {
                 return copy
             }
             try emitExit(downTo: 0, clearing: false)
+            if code.isFailable { emit(.failInit(result ?? Register.max)) }
             try emitReturn(result)
             nextTemporary = mark
         case .throwStatement(let value):

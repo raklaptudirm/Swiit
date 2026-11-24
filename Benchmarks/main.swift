@@ -54,6 +54,30 @@ let cases = [
             """
     ),
     Case(
+        name: "fn: method with arguments, 200k",
+        source: """
+            struct A { var k = 3; func add(_ x: Int, _ y: Int) -> Int { if x > y { return x + k }; return y + k } }
+            func run() -> Int { let a = A(); var s = 0; for i in 0..<200_000 { s += a.add(i, 5) }; return s }
+            run()
+            """
+    ),
+    Case(
+        name: "fn: initializer, 100k",
+        source: """
+            struct V { var x: Int; var y: Int; init(x: Int, y: Int) { self.x = x; self.y = y * 2 } }
+            func run() -> Int { var s = 0; for i in 0..<100_000 { let v = V(x: i, y: 1); s += v.x + v.y }; return s }
+            run()
+            """
+    ),
+    Case(
+        name: "fn: class method, 100k",
+        source: """
+            class C { var n = 0; func bump(_ by: Int) -> Int { n += by; return n } }
+            func run() -> Int { let c = C(); var s = 0; for i in 0..<100_000 { s += c.bump(i % 3) }; return s }
+            run()
+            """
+    ),
+    Case(
         name: "fn: dictionary, 100k",
         source: """
             func run() -> Int {
