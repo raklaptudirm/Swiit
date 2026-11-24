@@ -25,6 +25,20 @@ let cases = [
         source: "func fib(_ n: Int) -> Int { n < 2 ? n : fib(n - 1) + fib(n - 2) }\nfib(24)"
     ),
     Case(
+        name: "recursion, fib(30), statements",
+        source: """
+            func fib(_ n: Int) -> Int { if n < 2 { return n }; return fib(n - 1) + fib(n - 2) }
+            fib(30)
+            """
+    ),
+    Case(
+        name: "loop in a function, 1.5M",
+        source: """
+            func run() -> Int { var s = 0; for i in 0..<1_500_000 { s += i % 7 }; return s }
+            run()
+            """
+    ),
+    Case(
         name: "list append, 200k",
         source: "var xs: [Int] = []\nfor i in 0..<200_000 { xs.append(i * 2) }\nxs.reduce(0, +)"
     ),

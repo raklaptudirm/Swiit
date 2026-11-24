@@ -61,6 +61,9 @@ extension Interpreter {
         receiver: Receiver? = nil
     ) throws -> Value {
         guard case .swiit(let body) = function.body else { preconditionFailure() }
+        if engine == .vm, receiver == nil, let code = compiled(function) {
+            return try runCompiled(function, code, with: arguments)
+        }
         let hasFrame = body.frameSize != nil
         let isNested = function.name != nil && function.captured.count > 2
         let argumentScope =

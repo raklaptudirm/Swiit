@@ -41,6 +41,8 @@ final class Function: Callable, @unchecked Sendable {
     let isConvenience: Bool
     /// The class whose body it is in, which `super` in it looks above.
     weak var owner: ClassType?
+    /// What the VM made of the body, the first time it was wanted.
+    @exclusivity(unchecked) var vmCode = VMCode.untried
 
     init(
         name: String?,

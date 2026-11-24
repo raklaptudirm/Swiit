@@ -58,6 +58,8 @@ public final class Interpreter: @unchecked Sendable {
     /// exit status, as the host does.
     /// Whether the host is told as statements finish; not while a `defer` cleans up.
     var observesStatements = true
+    /// How function bodies run: on the tree evaluator, or compiled for the VM where the compiler can.
+    var engine = Engine.initial
 
     /// What bounds a run (steps, depth, time, output) unless the run is given limits of its own.
     var limits = Interpreter.Limits()

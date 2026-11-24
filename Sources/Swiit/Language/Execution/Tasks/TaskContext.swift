@@ -5,10 +5,12 @@
 /// the only one (Docs/async.md, step 1); the interpreter's own state of
 /// these names is the current task's.
 final class TaskContext {
+    /// The registers and callers of the compiled code this task runs (`Docs/vm.md`).
+    lazy var vm = VMStack()
     /// Variable scopes, innermost last. The outermost two are the global
     /// ones every task shares: the builtins, then what is declared at the
     /// prompt, so a `func` there shadows a builtin rather than overloading it.
-    var scopes: [Scope]
+    @exclusivity(unchecked) var scopes: [Scope]
     /// The locals of the function, closure or program running now, if it was given a frame
     /// (`FrameResolver`); nil for one run by name.
     var frame: Frame?
@@ -17,7 +19,7 @@ final class TaskContext {
     /// Frames whose runs have ended, to be used again, so a call makes none.
     var spareFrames: [Frame] = []
     /// How many Swiit function calls are in progress.
-    var callDepth = 0
+    @exclusivity(unchecked) var callDepth = 0
     /// The return types of the functions being run, innermost last, so a
     /// returned `.case` knows its enum.
     var returnTypes: [TypeExpression?] = []
@@ -33,7 +35,7 @@ final class TaskContext {
     /// Whether the initializer running has called `super.init`.
     var calledSuperInit = false
     /// The function whose call finished last: after an expression that is a call, the one it made.
-    var lastCallee: Function?
+    @exclusivity(unchecked) var lastCallee: Function?
     /// The run it belongs to: its limits and what it has spent of them, shared with the tasks it
     /// starts.
     var run: RunState
@@ -49,7 +51,7 @@ final class TaskContext {
     /// The tasks it started and hasn't seen end, with how deep in its calls
     /// it was: each belongs to the scope that started it, which cancels and
     /// waits for it as it closes.
-    var children: [(depth: Int, handle: ScriptTask)] = []
+    @exclusivity(unchecked) var children: [(depth: Int, handle: ScriptTask)] = []
 
     init(globals: [Scope], host: AnyObject? = nil, run: RunState = RunState(limits: .init())) {
         self.scopes = globals
