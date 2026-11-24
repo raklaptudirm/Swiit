@@ -31,6 +31,32 @@ let vmKinds: [VMSample] = [
         entirely: true
     ),
     VMSample(
+        name: "a throwing initializer, caught and not",
+        source: """
+            struct Natural {
+                var n: Int
+                struct Negative: Error {}
+                init(_ n: Int) throws {
+                    if n < 0 { throw Negative() }
+                    self.n = n
+                }
+            }
+            func f(_ x: Int) -> Int {
+                var t = 0
+                for i in 0..<x {
+                    do {
+                        t += try Natural(i - 2).n
+                    } catch {
+                        t += 100
+                    }
+                }
+                return t + ((try? Natural(-1))?.n ?? 7)
+            }
+            f(4)
+            """,
+        compiles: ["f"]
+    ),
+    VMSample(
         name: "initializers of a struct, one that calls another and one that may fail",
         source: """
             struct Box {
