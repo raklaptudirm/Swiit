@@ -414,6 +414,32 @@ extension Interpreter {
                             regs = stack.base + base
                             regs[Int(dst)] = value
                         }
+                    case .evaluateTree(let dst, let node):
+                        let value = try runTree(code.trees[Int(node)], base: base, on: stack)
+                        regs = stack.base + base
+                        regs[Int(dst)] = value
+                    case .runTree(let node):
+                        _ = try runTree(code.trees[Int(node)], base: base, on: stack)
+                        regs = stack.base + base
+                    case .iterate(let dst, let sequence):
+                        let iteration = try makeIteration(regs[Int(sequence)])
+                        regs = stack.base + base
+                        regs[Int(dst)] = .object(iteration)
+                    case .iterateNext(let iterator, let variable, let exit):
+                        guard case .object(let object) = regs[Int(iterator)].storage,
+                            let iteration = object as? IterationBox
+                        else { throw RuntimeError("a for lost its iterator") }
+                        let element = try iteration.next()
+                        regs = stack.base + base
+                        guard let element else {
+                            pc += Int(exit)
+                            continue
+                        }
+                        regs[Int(variable)] = element
+                    case .iterationMismatch(let element):
+                        throw RuntimeError(
+                            "a \(regs[Int(element)].typeName) doesn't fit this 'for' pattern"
+                        )
                     case .callValue(let dst, let calleeRegister, let siteIndex, let arguments):
                         let site = code.callSites[Int(siteIndex)]
                         let argumentBase = base + Int(arguments)
@@ -479,6 +505,12 @@ extension Interpreter {
                         regs[Int(register)] = .object(CellBox(regs[Int(register)]))
                     case .loadCell(let dst, let box):
                         regs[Int(dst)] = try cell(regs[Int(box)]).value
+                    case .derefWeak(let register):
+                        if case .object(let reference as WeakReference) = regs[Int(register)]
+                            .storage
+                        {
+                            regs[Int(register)] = reference.target.map { .object($0) } ?? .nothing
+                        }
                     case .storeCell(let box, let src):
                         try cell(regs[Int(box)]).value = regs[Int(src)]
                     case .assignCell(let box, let op, let value):

@@ -18,7 +18,7 @@ extension CodeCompiler {
     // MARK: Patterns
 
     /// Where each name a pattern binds goes: the slots of the block that follows it.
-    private func slots(
+    func slots(
         of names: [String],
         in locals: [Program.Local]?
     ) throws -> [(
@@ -46,7 +46,7 @@ extension CodeCompiler {
         }
     }
 
-    private mutating func site(
+    mutating func site(
         _ pattern: Pattern,
         names: [String],
         in locals: [Program.Local]?

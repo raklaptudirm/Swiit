@@ -49,8 +49,12 @@ struct CodeCompiler {
     }
 
     var code = Code()
+    /// How many slots the function's locals have: what a frame for the tree evaluator needs.
+    var localCount = 0
     /// The slots of the locals a closure names: those are boxed.
     var capturedSlots: Set<Int> = []
+    /// The slots of the locals declared `weak` or `unowned`, which hold a reference that is read through.
+    var weakSlots: Set<Int> = []
     /// The registers of the parameters that are `inout`, which the function hands back as it ends.
     var inoutParameters: [Register] = []
     var scopes: [Scope] = []
@@ -80,6 +84,7 @@ struct CodeCompiler {
         code.parameterCount = function.parameters.count
         code.parameterKinds = function.parameters.map { ParameterKind($0.type) }
         capturedSlots = body.capturedSlots
+        localCount = frameSize
         var parameters = Scope()
         for (slot, parameter) in function.parameters.enumerated() {
             if parameter.isInout { inoutParameters.append(Register(slot)) }
@@ -141,6 +146,12 @@ struct CodeCompiler {
         case .rangeNext(let counter, let variable, _):
             code.instructions[index] = .rangeNext(
                 counter: counter,
+                variable: variable,
+                exit: offset
+            )
+        case .iterateNext(let iterator, let variable, _):
+            code.instructions[index] = .iterateNext(
+                iterator: iterator,
                 variable: variable,
                 exit: offset
             )

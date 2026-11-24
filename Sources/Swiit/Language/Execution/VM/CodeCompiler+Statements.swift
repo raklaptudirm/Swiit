@@ -116,12 +116,13 @@ extension CodeCompiler {
         switch statement {
         case .declareLocal(let local, let mutable, let value):
             let slot = Register(local.slot)
+            if case .call(.variable(InternalName.weak), _) = value { weakSlots.insert(local.slot) }
             try expression(value, into: slot)
             bindBox(slot)
             scopes[scopes.count - 1].locals[local.name] = self.local(slot, mutable: mutable)
             finished(statement)
         case .assign(let assignment):
-            try assign(assignment)
+            try assign(assignment, statement)
             finished(statement)
         case .expression(let value):
             let mark = nextTemporary
@@ -182,13 +183,20 @@ extension CodeCompiler {
 
     /// `x = v` and `x += v` of a local, or of a variable that is not (a global, or one a closure
     /// captured) which the tree evaluator assigns by name.
-    private mutating func assign(_ assignment: Assignment) throws {
-        guard assignment.path.isEmpty else { throw Unsupported("an assignment through a path") }
+    private mutating func assign(_ assignment: Assignment, _ statement: Statement) throws {
+        // Through a path (`p.x = 1`, `xs[i] += 1`), or to a constant, which fails as it does there: the
+        // tree evaluator's, which finds the root in a frame of the locals the statement mentions.
+        let known = lookup(assignment.root)
+        // A weak variable stays weak when it is assigned, which the tree evaluator sees to.
+        let isWeak = known.map { weakSlots.contains(Int($0.slot)) } ?? false
+        guard assignment.path.isEmpty, known?.mutable ?? true, !isWeak else {
+            treeStatement(statement, roots: [assignment.root])
+            return
+        }
         let mark = nextTemporary
         let value = try allocate()
         try expression(assignment.value, into: value)
-        if let local = lookup(assignment.root) {
-            guard local.mutable else { throw Unsupported("an assignment to a constant") }
+        if let local = known {
             if local.boxed {
                 if let op = assignment.op {
                     emit(.assignCell(box: local.slot, op: op, value: value))
@@ -251,10 +259,24 @@ extension CodeCompiler {
     }
 
     private mutating func forLoop(_ loop: ForLoop, _ statement: Statement) throws {
-        guard !loop.isAwait, !loop.isTry,
-            case .binary(let op, let lower, let upper) = loop.sequence,
+        guard !loop.isAwait else { throw Unsupported("a for await") }
+        if case .binary(let op, let lower, let upper) = loop.sequence,
             op == .closedRange || op == .halfOpenRange
-        else { throw Unsupported("a for over something but a range") }
+        {
+            try rangeLoop(loop, op, lower, upper, statement)
+        } else {
+            try elementsLoop(loop, statement)
+        }
+    }
+
+    /// `for x in a..<b`: counted without making the range.
+    private mutating func rangeLoop(
+        _ loop: ForLoop,
+        _ op: BinaryOperator,
+        _ lower: Expr,
+        _ upper: Expr,
+        _ statement: Statement
+    ) throws {
         var entering: [String: (slot: Register, mutable: Bool)] = [:]
         var variable: Register?
         switch loop.pattern {
@@ -292,6 +314,71 @@ extension CodeCompiler {
         try block(loop.body, entering: entering)
         jump(to: head)
         let context = breakables.removeLast()
+        patch(next, to: here)
+        for index in context.breaks { patch(index, to: here) }
+        nextTemporary = mark
+    }
+
+    /// `for x in xs`: of a collection, a string, a dictionary, or what has an iterator. A pattern that
+    /// is not a name (`(i, x)`) is matched to each element as the runtime matches one.
+    private mutating func elementsLoop(_ loop: ForLoop, _ statement: Statement) throws {
+        var entering: [String: (slot: Register, mutable: Bool)] = [:]
+        var variable: Register?
+        var matched: (site: UInt32, names: [String])?
+        switch loop.pattern {
+        case .wildcard: break
+        case .binding(let name, let mutable):
+            guard let local = loop.body.locals?.first(where: { $0.name == name }) else {
+                throw Unsupported("a for variable without a slot")
+            }
+            variable = Register(local.slot)
+            entering[name] = (Register(local.slot), mutable)
+        default:
+            let names = FrameResolver.names(in: loop.pattern)
+            matched = (try site(loop.pattern, names: names, in: loop.body.locals), names)
+            for bound in try slots(of: names, in: loop.body.locals) {
+                entering[bound.name] = (bound.register, false)
+            }
+        }
+        finished(statement)
+        let mark = nextTemporary
+        let iterator = try allocate()
+        let element = try allocate()
+        let sequence = try operand(loop.sequence)
+        emit(.iterate(dst: iterator, sequence: sequence))
+        let head = here
+        let next = emit(
+            .iterateNext(
+                iterator: iterator,
+                variable: matched != nil ? element : (variable ?? element),
+                exit: 0
+            )
+        )
+        var mismatch: Int?
+        if let matched {
+            mismatch = emit(.match(pattern: matched.site, value: element, fail: 0))
+            for name in matched.names {
+                if let bound = entering[name] { bindBox(bound.slot) }
+            }
+        } else if let variable {
+            bindBox(variable)
+        }
+        breakables.append(
+            Breakable(
+                label: loop.label,
+                isSwitch: false,
+                scopeDepth: scopes.count,
+                continueTarget: head
+            )
+        )
+        emit(.tick)
+        try block(loop.body, entering: entering)
+        jump(to: head)
+        let context = breakables.removeLast()
+        if let mismatch {
+            patch(mismatch, to: here)
+            emit(.iterationMismatch(element: element))
+        }
         patch(next, to: here)
         for index in context.breaks { patch(index, to: here) }
         nextTemporary = mark

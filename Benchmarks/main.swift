@@ -39,6 +39,54 @@ let cases = [
             """
     ),
     Case(
+        name: "fn: list append, 200k",
+        source: """
+            func run() -> Int { var xs: [Int] = []; for i in 0..<200_000 { xs.append(i * 2) }; return xs.count }
+            run()
+            """
+    ),
+    Case(
+        name: "fn: mutating method, 200k",
+        source: """
+            struct P { var x = 0; mutating func inc() { x += 1 } }
+            func run() -> Int { var p = P(); for _ in 0..<200_000 { p.inc() }; return p.x }
+            run()
+            """
+    ),
+    Case(
+        name: "fn: dictionary, 100k",
+        source: """
+            func run() -> Int {
+                var d: [Int: Int] = [:]
+                for i in 0..<100_000 { d[i % 1000, default: 0] += i }
+                return d.count
+            }
+            run()
+            """
+    ),
+    Case(
+        name: "fn: string building, 50k",
+        source: """
+            func run() -> Int { var t = ""; for i in 0..<50_000 { t += "\\(i)," }; return t.count }
+            run()
+            """
+    ),
+    Case(
+        name: "fn: struct make and read, 200k",
+        source: """
+            struct P { var x: Int; var y: Int; func sum() -> Int { x + y } }
+            func run() -> Int { var t = 0; for i in 0..<200_000 { let p = P(x: i, y: 1); t += p.sum() }; return t }
+            run()
+            """
+    ),
+    Case(
+        name: "fn: map and filter, 200k",
+        source: """
+            func run(_ k: Int) -> Int { (0..<200_000).map { $0 * k }.filter { $0 % 2 == 0 }.count }
+            run(3)
+            """
+    ),
+    Case(
         name: "list append, 200k",
         source: "var xs: [Int] = []\nfor i in 0..<200_000 { xs.append(i * 2) }\nxs.reduce(0, +)"
     ),

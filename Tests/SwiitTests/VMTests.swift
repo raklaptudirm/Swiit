@@ -158,7 +158,7 @@ private let programs: [VMSample] = [
     ),
 ]
 
-@Test(arguments: programs + vmControlFlow + vmMoreControlFlow + vmClosures)
+@Test(arguments: programs + vmControlFlow + vmMoreControlFlow + vmClosures + vmRuntimeNodes)
 private func aProgramGivesTheSameOnBothEngines(_ program: VMSample) {
     let tree = vmRun(program.source, on: .tree)
     let vm = vmRun(program.source, on: .vm)
@@ -170,7 +170,7 @@ private func aProgramGivesTheSameOnBothEngines(_ program: VMSample) {
     #expect(vmCompiled(program.compiles, in: vm.swiit) == [], "\(program.name) was not compiled")
 }
 
-@Test(arguments: programs + vmControlFlow + vmMoreControlFlow + vmClosures)
+@Test(arguments: programs + vmControlFlow + vmMoreControlFlow + vmClosures + vmRuntimeNodes)
 private func aProgramTakesTheSameStepsOnBothEngines(_ program: VMSample) {
     #expect(
         vmSteps(program.source, on: .vm) == vmSteps(program.source, on: .tree),
@@ -242,7 +242,7 @@ private let failing: [VMSample] = [
     ),
 ]
 
-@Test(arguments: failing + vmFailingControlFlow + vmFailingClosures)
+@Test(arguments: failing + vmFailingControlFlow + vmFailingClosures + vmFailingRuntimeNodes)
 private func anErrorIsReportedAsOnTheTreeEvaluator(_ program: VMSample) {
     let tree = vmRun(program.source, on: .tree)
     let vm = vmRun(program.source, on: .vm)
@@ -260,4 +260,23 @@ private func anErrorIsReportedAsOnTheTreeEvaluator(_ program: VMSample) {
         """
     let vm = vmRun(source, on: .vm)
     #expect(vm.outcome.value == "900")
+}
+
+@Test func changingACollectionInAFunctionDoesNotCopyIt() {
+    // Each change moves the collection out of its register into the frame the tree evaluator runs
+    // over, and back: if it were copied each time, 40 000 appends would take minutes.
+    let source = """
+        func build(_ n: Int) -> Int {
+            var xs: [Int] = []
+            var d: [Int: Int] = [:]
+            for i in 0..<n { xs.append(i); d[i % 100, default: 0] += 1 }
+            return xs.count + d.count
+        }
+        build(40000)
+        """
+    let start = ContinuousClock.now
+    let result = vmRun(source, on: .vm)
+    #expect(result.outcome.value == "40100")
+    #expect(ContinuousClock.now - start < .seconds(10), "took \(ContinuousClock.now - start)")
+    #expect(vmCompiled(["build"], in: result.swiit) == [])
 }

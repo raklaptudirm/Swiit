@@ -3,10 +3,14 @@ import Foundation
 extension CodeCompiler {
     /// The register an expression's value is in: a local's own, or a temporary it was computed into.
     mutating func operand(_ expression: Expr) throws -> Register {
-        if case .local(let local) = expression, !capturedSlots.contains(local.slot) {
+        if case .local(let local) = expression, !capturedSlots.contains(local.slot),
+            !weakSlots.contains(local.slot)
+        {
             return Register(local.slot)
         }
-        if case .variable(let name) = expression, let local = lookup(name), !local.boxed {
+        if case .variable(let name) = expression, let local = lookup(name), !local.boxed,
+            !weakSlots.contains(Int(local.slot))
+        {
             return local.slot
         }
         let result = try allocate()
@@ -31,7 +35,15 @@ extension CodeCompiler {
                 emit(.loadVariable(dst: destination, name: UInt32(code.names.count - 1)))
             }
         case .binary(let op, let lhs, let rhs):
-            try binary(op, lhs, rhs, into: destination)
+            // A `.case` operand takes its enum from the other side, and a range is a value of its own:
+            // the tree evaluator's.
+            if Interpreter.isCaseLiteral(lhs) || Interpreter.isCaseLiteral(rhs)
+                || op == .closedRange || op == .halfOpenRange
+            {
+                treeExpression(expression, into: destination)
+            } else {
+                try binary(op, lhs, rhs, into: destination)
+            }
         case .unary(let op, let operand):
             let source = try self.operand(operand)
             emit(.unary(op: op, dst: destination, src: source))
@@ -47,9 +59,13 @@ extension CodeCompiler {
         case .attempt(let operand, let kind):
             try attempt(operand, kind, into: destination)
         case .call(let callee, let arguments):
-            try call(callee, arguments, into: destination)
+            if !(try call(callee, arguments, into: destination)) {
+                treeExpression(expression, into: destination)
+            }
         default:
-            throw Unsupported("an expression the VM does not run yet")
+            // What the VM does not compile itself: members, subscripts, constructors, casts,
+            // interpolation, literals of collections, key paths, and the rest.
+            treeExpression(expression, into: destination)
         }
     }
 
@@ -72,9 +88,6 @@ extension CodeCompiler {
         _ rhs: Expr,
         into destination: Register
     ) throws {
-        if Interpreter.isCaseLiteral(lhs) || Interpreter.isCaseLiteral(rhs) {
-            throw Unsupported("a .case operand")
-        }
         switch op {
         case .and, .or:
             try expression(lhs, into: destination)
@@ -88,7 +101,7 @@ extension CodeCompiler {
             try expression(rhs, into: destination)
             patch(present, to: here)
         case .closedRange, .halfOpenRange:
-            throw Unsupported("a range as a value")
+            preconditionFailure("a range is made by the tree evaluator")
         default:
             let a = try operand(lhs)
             let b = try operand(rhs)
@@ -103,6 +116,7 @@ extension CodeCompiler {
         } else if slot != destination {
             emit(.move(dst: destination, src: slot))
         }
+        if weakSlots.contains(Int(slot)) { emit(.derefWeak(register: destination)) }
     }
 
     /// A closure: made when this runs, of the cells of the locals it names and the values its
@@ -138,17 +152,32 @@ extension CodeCompiler {
         emit(.makeClosure(dst: destination, site: UInt32(code.closures.count - 1)))
     }
 
+    /// A call the VM makes itself: of a global name, a member of a global, or a local. False for any
+    /// other (a call on a value, an `inout` argument that is not a local, a `.case` argument), which the
+    /// tree evaluator makes.
     private mutating func call(
         _ callee: Expr,
         _ arguments: [Argument],
         into destination: Register
-    ) throws {
+    ) throws -> Bool {
         var named = callee
         if case .chosen(let inner, _) = callee { named = inner }
         enum Target {
             case name(String)
             case member
             case value(Register)
+        }
+        for argument in arguments {
+            switch argument.value {
+            case .caseLiteral: return false
+            case .inoutArgument(let place):
+                switch place {
+                case .local: break
+                case .variable(let name) where lookup(name) != nil: break
+                default: return false
+                }
+            default: break
+            }
         }
         let target: Target
         switch named {
@@ -159,14 +188,14 @@ extension CodeCompiler {
             let held = try allocate()
             try expression(named, into: held)
             target = .value(held)
-        default: throw Unsupported("a call of something but a name, a member of one, or a local")
+        default: return false
         }
         // The places `&x` names get what the callee leaves in its `inout` parameters.
         var places: [InoutPlace] = []
         var values: [Expr] = []
         for argument in arguments {
             switch argument.value {
-            case .caseLiteral: throw Unsupported("a .case argument")
+            case .caseLiteral: return false
             case .inoutArgument(let place):
                 var local: (slot: Register, boxed: Bool)?
                 if case .local(let named) = place {
@@ -174,7 +203,7 @@ extension CodeCompiler {
                 } else if case .variable(let name) = place, let found = lookup(name) {
                     local = (found.slot, found.boxed)
                 }
-                guard let local else { throw Unsupported("an inout argument that is not a local") }
+                guard let local else { return false }
                 places.append(InoutPlace(index: places.count, slot: local.slot, boxed: local.boxed))
                 values.append(place)
             default: values.append(argument.value)
@@ -194,7 +223,7 @@ extension CodeCompiler {
         } else {
             emit(.call(dst: destination, site: site, arguments: first))
         }
-        guard !places.isEmpty else { return }
+        guard !places.isEmpty else { return true }
         for place in places {
             if place.boxed {
                 let outcome = try allocate()
@@ -205,6 +234,7 @@ extension CodeCompiler {
             }
         }
         emit(.finishInout)
+        return true
     }
 }
 

@@ -105,12 +105,32 @@ enum Instruction {
     /// shares, and the register holds the cell.
     case box(register: Register)
     case loadCell(dst: Register, box: Register)
+    /// A `weak` or `unowned` variable is read as what it refers to, or nil once that is gone.
+    case derefWeak(register: Register)
     case storeCell(box: Register, src: Register)
     case assignCell(box: Register, op: BinaryOperator, value: Register)
     /// The closure `Code.closures[site]` made of the cells and values it captures.
     case makeClosure(dst: Register, site: UInt32)
     /// Assigns a variable that is not a local, by name: a global, or one a closure captured.
     case assignByName(site: UInt32, value: Register)
+
+    // MARK: What the tree evaluator runs
+
+    /// An expression the compiler does not compile, evaluated by the tree evaluator over a frame of
+    /// the locals it mentions.
+    case evaluateTree(dst: Register, node: UInt32)
+    /// A statement it does not compile (an assignment through a path), run the same way.
+    case runTree(node: UInt32)
+
+    // MARK: Iteration
+
+    /// `for x in s`: the iterator over a collection, a string, a dictionary or whatever `makeIterator`
+    /// gives.
+    case iterate(dst: Register, sequence: Register)
+    /// The next element into `variable`, or a jump out of the loop.
+    case iterateNext(iterator: Register, variable: Register, exit: Int32)
+    /// An element that did not fit the pattern of a `for`.
+    case iterationMismatch(element: Register)
 
     // MARK: Calls
 
@@ -126,6 +146,35 @@ enum Instruction {
     case finishInout
     case returnValue(Register)
     case returnNothing
+}
+
+/// A local a piece of code the tree evaluator runs mentions, which it is given in its frame.
+struct TreeLocal {
+    let slot: Register
+    let name: String
+    let mutable: Bool
+    /// Kept in a cell a closure shares: the frame shares the cell too.
+    let boxed: Bool
+}
+
+/// An expression or a statement the compiler leaves to the tree evaluator, with the locals it
+/// mentions.
+final class TreeNode {
+    enum Source {
+        case expression(Expr)
+        case statement(Statement)
+    }
+
+    let source: Source
+    let locals: [TreeLocal]
+    /// How many slots the frame has: as many as the function's locals.
+    let frameSize: Int
+
+    init(source: Source, locals: [TreeLocal], frameSize: Int) {
+        self.source = source
+        self.locals = locals
+        self.frameSize = frameSize
+    }
 }
 
 /// A local a closure names, kept in a cell the closure shares.
@@ -254,6 +303,7 @@ final class Code {
     var callSites: [CallSite] = []
     var patterns: [PatternSite] = []
     var closures: [ClosureSite] = []
+    var trees: [TreeNode] = []
     /// Assignments to what is not a local, which `assignByName` makes with the value it is given.
     var assignments: [Assignment] = []
     /// Innermost last: those that start later are inside those that start earlier.
