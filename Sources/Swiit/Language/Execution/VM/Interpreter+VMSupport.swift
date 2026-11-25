@@ -497,7 +497,7 @@ extension Interpreter {
     func storedField(_ name: String, of value: Value) -> Value? {
         switch value.storage {
         case .structure(let structure):
-            return structure.record[name]
+            return structure[name]
         case .object(let object):
             if let instance = object as? ClassInstance, let stored = instance.storage[name] {
                 return read(stored)

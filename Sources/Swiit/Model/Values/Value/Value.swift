@@ -24,7 +24,7 @@ public struct Value: Sendable {
         /// A tuple: elements in order, each labeled or not: `(name: "x", 2)`.
         indirect case tuple(Value.Tuple)
         /// A struct's value: its type's name, and its fields in the order the type declares them.
-        indirect case structure(Value.Structure)
+        case structure(Value.Structure)
         /// `["a": 1]`: keys to values, as Swift's Dictionary, unordered.
         case dictionary([Value: Value])
         /// A case of an enum: `.directory`, or `.failed(code: 2)`.

@@ -12,22 +12,21 @@ extension Interpreter {
         _ value: Value
     ) -> Bool {
         if site.initializing { return setInitialMember(site, &local, op, value) }
-        switch local.storage {
-        case .structure(let structure):
-            guard site.mutatesStruct, let typeRef = structure.record.typeRef else { return false }
+        // Nothing here holds the struct while it is set, so that it is set where it is.
+        if let typeRef = local.structTypeRef {
+            guard site.mutatesStruct else { return false }
             if site.version != scopeVersion || site.type != typeRef {
                 site.version = scopeVersion
                 site.type = typeRef
                 site.classType = nil
-                site.isDirect = isDirectlySettable(structure.record, site.name)
+                site.isDirect = local.record.map { isDirectlySettable($0, site.name) } ?? false
             }
             return site.isDirect && local.setField(site.name, op, value)
-        case .object(let object):
-            guard let instance = object as? ClassInstance else { return false }
-            return setField(site, of: instance, op, value)
-        default:
-            return false
         }
+        if case .object(let object) = local.storage, let instance = object as? ClassInstance {
+            return setField(site, of: instance, op, value)
+        }
+        return false
     }
 
     /// `setMember` of the value a cell holds.
@@ -111,11 +110,11 @@ extension Value {
     /// holds and `value`, when the field holds a number, a Bool or a string and `value` is of that
     /// kind. The struct is changed where it is, not copied. False, with nothing changed, otherwise.
     mutating func setField(_ name: String, _ op: BinaryOperator?, _ value: Value) -> Bool {
-        guard case .structure(var structure) = storage, let old = structure.record[name],
+        guard case .structure(var structure) = storage, let old = structure[name],
             let result = Value.combined(old, op, value)
         else { return false }
         storage = .nothing
-        structure.record[name] = result
+        structure[name] = result
         storage = .structure(structure)
         return true
     }
@@ -145,7 +144,7 @@ extension Interpreter {
         } else {
             switch receiver.storage {
             case .structure(let structure):
-                guard let typeRef = structure.record.typeRef else { return nil }
+                guard let typeRef = structure.typeRefIfAny else { return nil }
                 if site.version != scopeVersion || site.type != typeRef {
                     site.version = scopeVersion
                     site.type = typeRef
@@ -307,22 +306,23 @@ extension Interpreter {
         _ op: BinaryOperator?,
         _ value: Value
     ) -> Bool {
-        switch local.storage {
-        case .structure(let structure):
-            guard let typeRef = structure.record.typeRef else { return false }
+        // The struct is not held here while it is set, so that it is set where it is.
+        if let typeRef = local.structTypeRef {
             if site.version != scopeVersion || site.type != typeRef {
                 site.version = scopeVersion
                 site.type = typeRef
                 site.classType = nil
-                let type = structType(of: structure.record)
+                let record = local.record
+                let type = record.flatMap { structType(of: $0) }
                 site.isDirect =
                     type?.members.setters[site.name] == nil && type?.property(site.name) != nil
-                    && extensionChain(of: Value(Value.Storage.structure(structure)))
-                        .allSatisfy { $0.setters[site.name] == nil }
+                    && extensionChain(of: local).allSatisfy { $0.setters[site.name] == nil }
                 site.propertyType = type?.property(site.name)?.type
             }
             guard site.isDirect, let stored = initialValue(site, op, value) else { return false }
             return local.setStoredField(site.name, stored)
+        }
+        switch local.storage {
         case .object(let object):
             guard let instance = object as? ClassInstance else { return false }
             let type = instance.type
@@ -362,7 +362,7 @@ extension Value {
     mutating func setStoredField(_ name: String, _ value: Value) -> Bool {
         guard case .structure(var structure) = storage else { return false }
         storage = .nothing
-        structure.record[name] = value
+        structure[name] = value
         storage = .structure(structure)
         return true
     }
@@ -515,5 +515,13 @@ extension Interpreter {
     ) throws -> Value? {
         if try enterMethod(site, operands, &cursor, stack) { return nil }
         return try member(name, of: stack.base[cursor.base + Int(operands.receiver)])
+    }
+}
+
+extension Value {
+    /// The type of the struct this is, if it is one: found without holding the struct.
+    var structTypeRef: TypeRef? {
+        if case .structure(let structure) = storage { return structure.typeRefIfAny }
+        return nil
     }
 }

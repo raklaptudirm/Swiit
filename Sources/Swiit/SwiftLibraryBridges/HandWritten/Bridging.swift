@@ -120,7 +120,7 @@ extension Value.Bridging {
         return try make(
             labels.enumerated()
                 .map { index, label in
-                    label.flatMap { record[$0] } ?? record[record.keys[index]]!
+                    label.flatMap { record[$0] } ?? record[record.key(at: index)]!
                 }
         )
     }
