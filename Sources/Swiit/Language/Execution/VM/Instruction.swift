@@ -34,6 +34,22 @@ enum Instruction {
     /// `loadVariable` of a global, which finds the variable's cell once and keeps it while the names
     /// stay as they were.
     case loadGlobal(dst: Register, site: UInt32)
+    /// `fastMember` of a global list or string, read or changed in its cell.
+    case fastGlobalMember(
+        kind: FastMember,
+        dst: Register,
+        global: UInt32,
+        argument: Register,
+        offset: Int32
+    )
+    /// `assignMember` of a global struct or class instance, set in its cell.
+    case assignGlobalMember(
+        global: UInt32,
+        site: UInt32,
+        op: BinaryOperator?,
+        value: Register,
+        offset: Int32
+    )
     /// A member of a Swift type that is not made by `fastMember`, run by the one routine the tree
     /// evaluator runs them with, with the receiver (`Register.max` for a static member) and arguments
     /// the loop has made already.
@@ -368,6 +384,8 @@ final class MethodSite {
     let isGetter: Bool
     /// The receiver is `self` of the running method, whose cell a struct that is changed goes back to.
     let receiverIsSelf: Bool
+    /// The receiver is a global, whose cell a struct that is changed goes back to.
+    let global: GlobalSite?
     /// For the method found, which argument each parameter takes (-1: its default), when some are left out.
     @exclusivity(unchecked) var mapping: [Int]?
 
@@ -377,7 +395,8 @@ final class MethodSite {
         mayMutate: Bool,
         isSuper: Bool = false,
         isGetter: Bool = false,
-        receiverIsSelf: Bool = false
+        receiverIsSelf: Bool = false,
+        global: GlobalSite? = nil
     ) {
         self.name = name
         self.labels = labels
@@ -385,6 +404,7 @@ final class MethodSite {
         self.isSuper = isSuper
         self.isGetter = isGetter
         self.receiverIsSelf = receiverIsSelf
+        self.global = global
     }
 }
 

@@ -157,6 +157,27 @@ extension CodeCompiler {
         case .variable(let name): held = lookup(name)
         default: break
         }
+        // A name that is not a local is a global, whose cell the list or string is changed in.
+        if held == nil, case .variable(let name) = receiver, name != "self", name != "super",
+            arguments.allSatisfy({ $0.label == nil && isPure($0.value) })
+        {
+            let mark = nextTemporary
+            let argument = try arguments.first.map { try operand($0.value) } ?? 0
+            code.globals.append(GlobalSite(name: name))
+            let fast = emit(
+                .fastGlobalMember(
+                    kind: kind,
+                    dst: destination,
+                    global: UInt32(code.globals.count - 1),
+                    argument: argument,
+                    offset: 0
+                )
+            )
+            nextTemporary = mark
+            treeExpression(expression, into: destination)
+            patch(fast, to: here)
+            return true
+        }
         guard let held, !held.boxed, !weakSlots.contains(Int(held.slot)),
             kind != .append || held.mutable,
             arguments.allSatisfy({ $0.label == nil && isPure($0.value) })
@@ -277,7 +298,14 @@ extension CodeCompiler {
         }
         // `self.name(…)`, which a bare `name(…)` in a method is: on the value in the cell of `self`.
         let onSelf = held == nil && namesSelfRegister(selfName(of: base))
-        guard onSelf || (held.map { !$0.boxed && !weakSlots.contains(Int($0.slot)) } ?? false),
+        // A global: its value is loaded, and a struct a method changes goes back in its cell.
+        var globalName: String?
+        if held == nil, !onSelf, case .variable(let name) = base, name != "self", name != "super" {
+            globalName = name
+        }
+        guard
+            onSelf || globalName != nil
+                || (held.map { !$0.boxed && !weakSlots.contains(Int($0.slot)) } ?? false),
             arguments.allSatisfy({ isPure($0.value) })
         else { return false }
         let mark = nextTemporary
@@ -285,6 +313,13 @@ extension CodeCompiler {
         if onSelf, let cell = code.selfRegister {
             receiver = try allocate()
             emit(.loadCell(dst: receiver, box: cell))
+        }
+        var global: GlobalSite?
+        if let globalName {
+            global = GlobalSite(name: globalName)
+            code.globals.append(global!)
+            receiver = try allocate()
+            emit(.loadGlobal(dst: receiver, site: UInt32(code.globals.count - 1)))
         }
         let first = Register(nextTemporary)
         for argument in arguments {
@@ -294,8 +329,9 @@ extension CodeCompiler {
             MethodSite(
                 name: name,
                 labels: arguments.map(\.label),
-                mayMutate: onSelf ? changesSelf : held?.mutable ?? false,
-                receiverIsSelf: onSelf
+                mayMutate: onSelf ? changesSelf : global != nil ? true : held?.mutable ?? false,
+                receiverIsSelf: onSelf,
+                global: global
             )
         )
         let fast = emit(

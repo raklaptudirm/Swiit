@@ -74,6 +74,77 @@ let vmTopLevel: [VMSample] = [
         compiles: [],
         loops: 2
     ),
+    VMSample(
+        name: "a global list, string and struct changed in a top-level loop",
+        source: """
+            struct P { var x = 0; var y = 1.5; var name = "p" }
+            class K { var n = 0 }
+            var xs: [Int] = []
+            var words: [String] = []
+            var s = "ab"
+            var p = P()
+            let k = K()
+            for i in 0..<20 {
+                xs.append(i * 2)
+                words.append("w\\(i)")
+                p.x += i
+                p.y *= 1.5
+                p.name = "q\\(i)"
+                k.n += 1
+            }
+            var total = 0
+            for i in 0..<xs.count { total += xs[i] + s.count }
+            print(xs.count, words.count, total, p.x, p.name, k.n)
+            total
+            """,
+        compiles: [],
+        loops: 2
+    ),
+    VMSample(
+        name:
+            "a global that is a constant, a Double list, and an empty list that gets its first element",
+        source: """
+            let fixed = [1, 2, 3]
+            var ds: [Double] = []
+            var empty: [Int] = []
+            var anys: [Any] = [1]
+            var t = 0
+            for i in 0..<5 {
+                ds.append(1)
+                ds.append(Double(i) / 2)
+                empty.append(i)
+                anys.append("s\\(i)")
+                t += fixed[i % 3] + fixed.count
+            }
+            print(ds.count, empty.count, anys.count)
+            t
+            """,
+        compiles: [],
+        loops: 1
+    ),
+    VMSample(
+        name: "methods called on globals in a top-level loop, one that changes the struct",
+        source: """
+            struct Counter {
+                var n = 0
+                var log: [Int] = []
+                func peek() -> Int { n * 2 }
+                mutating func bump(by step: Int) { n += step; log.append(n) }
+            }
+            class Box { var total = 0; func add(_ k: Int) -> Int { total += k; return total } }
+            var c = Counter()
+            let b = Box()
+            var seen = 0
+            for i in 1...6 {
+                c.bump(by: i)
+                seen += c.peek() + b.add(i)
+            }
+            print(c.n, c.log, b.total)
+            seen
+            """,
+        compiles: [],
+        loops: 1
+    ),
 ]
 
 let vmFailingTopLevel: [VMSample] = [

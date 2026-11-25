@@ -421,13 +421,26 @@ extension Interpreter {
                 owner: cursor.function.owner
             )
         else { return false }
+        var storeIn: Binding.Cell?
+        // A method of a global that changes it puts the struct back in the global's cell, if it is a `var`.
+        if let global = site.global {
+            if !(global.version == scopeVersion
+                && global.function == ObjectIdentifier(cursor.function))
+            {
+                findGlobal(global, cursor.function, cursor.code)
+            }
+            guard let cell = global.cell else { return false }
+            if target.function.isMutating && !target.isClass {
+                guard global.isMutable else { return false }
+                storeIn = cell
+            }
+        }
         try checkInterrupt()
         if let mapping = target.mapping {
             try placeAndCheckArguments(mapping, of: target.function, at: argumentBase)
         }
         let saved = task.scopes
         // A method of `self` that changes it puts the struct back in the cell of `self`.
-        var storeIn: Binding.Cell?
         if site.receiverIsSelf, let register = cursor.code.selfRegister,
             case .object(let object) = stack.base[cursor.base + Int(register)].storage
         {
@@ -527,5 +540,64 @@ extension Value {
     var structTypeRef: TypeRef? {
         if case .structure(let structure) = storage { return structure.typeRefIfAny }
         return nil
+    }
+}
+
+extension Interpreter {
+    /// A list's or a string's member (`append`, `count`, a subscript) of a global, where the global's
+    /// cell holds the value: read there, or, for `append`, changed there. Nil, with nothing changed, where
+    /// the kinds do not fit, which the tree evaluator then does.
+    func fastGlobalMember(
+        _ kind: FastMember,
+        _ site: GlobalSite,
+        _ function: Function,
+        _ code: Code,
+        _ argument: Value
+    ) throws -> Value? {
+        if !(site.version == scopeVersion && site.function == ObjectIdentifier(function)) {
+            findGlobal(site, function, code)
+        }
+        guard let cell = site.cell else { return nil }
+        switch kind {
+        case .append:
+            guard site.isMutable, cell.value.isList(likeElement: argument) else { return nil }
+            try checkInterrupt()
+            // Taken out of the cell, so that it is changed where it is and not copied.
+            var held = cell.value
+            cell.value = .nothing
+            _ = held.appendLikeElements(argument)
+            cell.value = held
+            return .nothing
+        case .listCount:
+            guard case .list(let items) = cell.value.storage else { return nil }
+            try checkInterrupt()
+            return .int(items.count)
+        case .element:
+            guard case .list(let items) = cell.value.storage,
+                case .int(let index) = argument.storage,
+                index >= 0, index < items.count
+            else { return nil }
+            return items[index]
+        case .stringCount:
+            guard case .string(let text) = cell.value.storage else { return nil }
+            try checkInterrupt()
+            return .int(text.count)
+        }
+    }
+
+    /// `name.field = value` or `name.field op= value` of a global holding a struct or an instance, set
+    /// in the cell as `setMember` sets a local's. False, with nothing changed, otherwise.
+    func setGlobalMember(
+        _ site: GlobalSite,
+        _ member: MemberSite,
+        _ function: Function,
+        _ code: Code,
+        _ assignment: (op: BinaryOperator?, value: Value)
+    ) throws -> Bool {
+        if !(site.version == scopeVersion && site.function == ObjectIdentifier(function)) {
+            findGlobal(site, function, code)
+        }
+        guard site.isMutable, let cell = site.cell else { return false }
+        return setMember(member, in: cell, assignment.op, assignment.value)
     }
 }

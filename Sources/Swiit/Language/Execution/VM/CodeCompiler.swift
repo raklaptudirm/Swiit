@@ -287,6 +287,22 @@ extension CodeCompiler {
                 value: value,
                 offset: offset
             )
+        case .fastGlobalMember(let kind, let dst, let global, let argument, _):
+            code.instructions[index] = .fastGlobalMember(
+                kind: kind,
+                dst: dst,
+                global: global,
+                argument: argument,
+                offset: offset
+            )
+        case .assignGlobalMember(let global, let site, let op, let value, _):
+            code.instructions[index] = .assignGlobalMember(
+                global: global,
+                site: site,
+                op: op,
+                value: value,
+                offset: offset
+            )
         case .jumpIfTrue(let condition, _):
             code.instructions[index] = .jumpIfTrue(condition: condition, offset: offset)
         case .jumpIfWhereFalse(let condition, _):

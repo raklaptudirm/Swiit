@@ -450,11 +450,18 @@ extension Interpreter {
                         let made = try makeClosure(code.closures[Int(site)], regs)
                         regs = stack.base + base
                         regs[Int(dst)] = made
-                    case .fastMember(let kind, let dst, let receiver, let argument, let offset):
-                        if let result = try fastMember(kind, regs, receiver, argument) {
-                            regs[Int(dst)] = result
-                            pc += Int(offset)
-                        }
+                    case .fastMember, .fastGlobalMember, .assignMember, .assignGlobalMember,
+                        .assignSelfMember, .callBridged:
+                        var cursor = VMCursor(
+                            function: function,
+                            code: code,
+                            base: base,
+                            pc: pc,
+                            statement: statement
+                        )
+                        try executeMemberInstruction(instruction, &cursor, stack)
+                        pc = cursor.pc
+                        regs = stack.base + base
                     case .loadMember(let dst, let baseRegister, let name, let siteIndex):
                         if let field = storedField(
                             code.names[Int(name)],
@@ -496,15 +503,6 @@ extension Interpreter {
                             instructions = code.program
                             regs = stack.base + base
                         }
-                    case .assignMember(let local, let siteIndex, let op, let value, let offset):
-                        if setMember(
-                            code.members[Int(siteIndex)],
-                            &regs[Int(local)],
-                            op,
-                            regs[Int(value)]
-                        ) {
-                            pc += Int(offset)
-                        }
                     case .callMethod(
                         let dst,
                         let siteIndex,
@@ -534,26 +532,6 @@ extension Interpreter {
                             instructions = code.program
                             regs = stack.base + base
                         }
-                    case .assignSelfMember(let cell, let siteIndex, let op, let value, let offset):
-                        if case .object(let object) = regs[Int(cell)].storage,
-                            let cell = object as? Binding.Cell,
-                            setMember(
-                                code.members[Int(siteIndex)],
-                                in: cell,
-                                op,
-                                regs[Int(value)]
-                            )
-                        {
-                            pc += Int(offset)
-                        }
-                    case .callBridged(let dst, let siteIndex, let receiver, let arguments):
-                        let value = try callBridged(
-                            code.bridgedSites[Int(siteIndex)],
-                            receiver: receiver == Register.max ? nil : regs[Int(receiver)],
-                            arguments: base + Int(arguments)
-                        )
-                        regs = stack.base + base
-                        regs[Int(dst)] = value
                     case .loadGlobal(let dst, let siteIndex):
                         unowned(unsafe) let site = code.globalTable[Int(siteIndex)]
                             .takeUnretainedValue()

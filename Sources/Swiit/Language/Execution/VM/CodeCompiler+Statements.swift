@@ -242,6 +242,28 @@ extension CodeCompiler {
         _ assignment: Assignment,
         _ statement: Statement
     ) throws {
+        // A global, whose struct or instance is set in its cell.
+        if known == nil, assignment.root != "self", assignment.path.count == 1,
+            case .member(let name) = assignment.path[0], isPure(assignment.value)
+        {
+            let mark = nextTemporary
+            let value = try operand(assignment.value)
+            code.globals.append(GlobalSite(name: assignment.root))
+            code.members.append(MemberSite(name: name, mutatesStruct: true))
+            let fast = emit(
+                .assignGlobalMember(
+                    global: UInt32(code.globals.count - 1),
+                    site: UInt32(code.members.count - 1),
+                    op: assignment.op,
+                    value: value,
+                    offset: 0
+                )
+            )
+            nextTemporary = mark
+            treeStatement(statement, roots: [assignment.root])
+            patch(fast, to: here)
+            return
+        }
         guard let known, known.mutable, !known.boxed, !weakSlots.contains(Int(known.slot)),
             assignment.path.count == 1, case .member(let name) = assignment.path[0],
             isPure(assignment.value)
