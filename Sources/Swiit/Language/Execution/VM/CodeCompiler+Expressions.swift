@@ -54,6 +54,10 @@ extension CodeCompiler {
         case .member(let base, _) where isConstant(base):
             code.expressions.append(expression)
             emit(.evaluate(dst: destination, expression: UInt32(code.expressions.count - 1)))
+        case .member(let base, let name):
+            let held = try operand(base)
+            code.names.append(name)
+            emit(.loadMember(dst: destination, base: held, name: UInt32(code.names.count - 1)))
         case .closure(let literal):
             try closure(literal, into: destination)
         case .await(let target, _):
@@ -62,6 +66,9 @@ extension CodeCompiler {
         case .attempt(let operand, let kind):
             try attempt(operand, kind, into: destination)
         case .bridged where try fastMember(expression, into: destination):
+            break
+        case .call(.member(let base, let name), let arguments)
+        where try method(base, name, arguments, expression, into: destination):
             break
         case .call(let callee, let arguments):
             if !(try call(callee, arguments, into: destination)) {
@@ -134,6 +141,46 @@ extension CodeCompiler {
                 dst: destination,
                 receiver: held.slot,
                 argument: argument,
+                offset: 0
+            )
+        )
+        nextTemporary = mark
+        treeExpression(expression, into: destination)
+        patch(fast, to: here)
+        return true
+    }
+
+    /// `p.name(arguments)` of a local `p`: run by `callMethod` where `p` holds a struct with a plain method
+    /// of that name, and by the tree evaluator, which follows it, where not. False if the receiver is not
+    /// a local or an argument is not plain.
+    mutating func method(
+        _ base: Expr,
+        _ name: String,
+        _ arguments: [Argument],
+        _ expression: Expr,
+        into destination: Register
+    ) throws -> Bool {
+        var held: Local?
+        switch base {
+        case .local(let local): held = lookup(local.name)
+        case .variable(let name): held = lookup(name)
+        default: break
+        }
+        guard let held, !held.boxed, !weakSlots.contains(Int(held.slot)),
+            arguments.allSatisfy({ isPure($0.value) })
+        else { return false }
+        let mark = nextTemporary
+        let first = Register(nextTemporary)
+        for argument in arguments {
+            try self.expression(argument.value, into: try allocate())
+        }
+        code.methods.append(MethodSite(name: name, labels: arguments.map(\.label)))
+        let fast = emit(
+            .callMethod(
+                dst: destination,
+                site: UInt32(code.methods.count - 1),
+                receiver: held.slot,
+                arguments: first,
                 offset: 0
             )
         )

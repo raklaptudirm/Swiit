@@ -1,38 +1,6 @@
 import Foundation
 
-/// How a function body runs: on the tree evaluator, or compiled to `Code` and run by the VM where the
-/// compiler handles it (`Docs/vm.md`). Both run the same checked program and give the same results.
-enum Engine: Sendable {
-    case tree
-    case vm
-
-    /// The engine a new interpreter starts with: the VM. Building with `-Xswiftc -DSWIIT_TREE_ENGINE`
-    /// makes it the tree evaluator, which runs the test suites as the reference.
-    static var initial: Engine {
-        #if SWIIT_TREE_ENGINE
-        .tree
-        #else
-        .vm
-        #endif
-    }
-}
-
-/// What the VM made of a function body, kept with the function.
-enum VMCode {
-    case untried
-    case code(Code)
-    /// It stays on the tree evaluator, for this reason.
-    case unsupported(String)
-}
-
-extension Function {
-    /// Whether the compiler may take this body: a function or method, or a closure with what it
-    /// captured, whose parameters are taken as they come.
-    var isCompilable: Bool {
-        guard case .swiit(let program) = body else { return false }
-        return program.frameSize != nil && !(name != nil && captured.count > 2)
-    }
-}
+// Running compiled code: the loop that executes a function's instructions (`Docs/vm.md`).
 
 extension Interpreter {
     /// The code the VM runs for `function`, compiled the first time it is asked for; nil when the
@@ -495,36 +463,58 @@ extension Interpreter {
                             regs[Int(dst)] = result
                             pc += Int(offset)
                         }
+                    case .loadMember(let dst, let baseRegister, let name):
+                        let value = try loadMember(code.names[Int(name)], regs[Int(baseRegister)])
+                        regs = stack.base + base
+                        regs[Int(dst)] = value
+                    case .assignMember(let local, let siteIndex, let op, let value, let offset):
+                        if setMember(
+                            code.members[Int(siteIndex)],
+                            &regs[Int(local)],
+                            op,
+                            regs[Int(value)]
+                        ) {
+                            pc += Int(offset)
+                        }
+                    case .callMethod(
+                        let dst,
+                        let siteIndex,
+                        let receiver,
+                        let arguments,
+                        let offset
+                    ):
+                        if let value = try callMethod(
+                            code.methods[Int(siteIndex)],
+                            receiver: regs[Int(receiver)],
+                            arguments: base + Int(arguments)
+                        ) {
+                            regs = stack.base + base
+                            regs[Int(dst)] = value
+                            pc += Int(offset)
+                        }
                     case .loadGlobal(let dst, let siteIndex):
                         unowned(unsafe) let site = code.globalTable[Int(siteIndex)]
                             .takeUnretainedValue()
-                        if !(site.version == scopeVersion
-                            && site.function == ObjectIdentifier(function))
+                        if site.version == scopeVersion,
+                            site.function == ObjectIdentifier(function),
+                            let cell = site.cell
                         {
-                            findGlobal(site, function, code)
-                        }
-                        if let cell = site.cell {
                             let value = cell.value
                             if case .object(is WeakReference) = value.storage {
-                                // Gives what it refers to: the tree evaluator's.
-                                regs[Int(dst)] = try evaluate(.variable(site.name))
-                                regs = stack.base + base
                             } else {
                                 regs[Int(dst)] = value
+                                continue
                             }
-                        } else {
-                            regs[Int(dst)] = try evaluate(.variable(site.name))
-                            regs = stack.base + base
                         }
+                        let value = try globalValue(site, function, code)
+                        regs = stack.base + base
+                        regs[Int(dst)] = value
                     case .assignGlobal(let global, let assignmentIndex, let value):
                         unowned(unsafe) let site = code.globalTable[Int(global)]
                             .takeUnretainedValue()
-                        if !(site.version == scopeVersion
-                            && site.function == ObjectIdentifier(function))
-                        {
-                            findGlobal(site, function, code)
-                        }
-                        if site.isMutable, let cell = site.cell,
+                        if site.version == scopeVersion,
+                            site.function == ObjectIdentifier(function),
+                            site.isMutable, let cell = site.cell,
                             setNumber(
                                 in: cell,
                                 code.assignments[Int(assignmentIndex)].op,
@@ -533,9 +523,8 @@ extension Interpreter {
                         {
                             continue
                         }
-                        var assignment = code.assignments[Int(assignmentIndex)]
-                        assignment.value = .literal(regs[Int(value)])
-                        try assign(assignment)
+                        let assignment = code.assignments[Int(assignmentIndex)]
+                        try assignGlobal(site, assignment, regs[Int(value)], function, code)
                         regs = stack.base + base
                     case .assignByName(let site, let value):
                         var assignment = code.assignments[Int(site)]

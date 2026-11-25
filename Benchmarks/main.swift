@@ -96,6 +96,38 @@ let cases = [
             """
     ),
     Case(
+        name: "fn: member read, 200k",
+        source: """
+            struct P { var x = 1; var y = 2 }
+            func run() -> Int { let p = P(); var s = 0; for _ in 0..<200_000 { s += p.x + p.y }; return s }
+            run()
+            """
+    ),
+    Case(
+        name: "fn: member write, 200k",
+        source: """
+            struct P { var x = 1 }
+            func run() -> Int { var p = P(); for i in 0..<200_000 { p.x = i }; return p.x }
+            run()
+            """
+    ),
+    Case(
+        name: "fn: constructor, 200k",
+        source: """
+            struct P { var x: Int; var y: Int }
+            func run() -> Int { var s = 0; for i in 0..<200_000 { let p = P(x: i, y: 2); s += i }; return s }
+            run()
+            """
+    ),
+    Case(
+        name: "fn: method call, 200k",
+        source: """
+            struct P { var x = 1; func g() -> Int { 3 } }
+            func run() -> Int { let p = P(); var s = 0; for _ in 0..<200_000 { s += p.g() }; return s }
+            run()
+            """
+    ),
+    Case(
         name: "fn: struct make and read, 200k",
         source: """
             struct P { var x: Int; var y: Int; func sum() -> Int { x + y } }

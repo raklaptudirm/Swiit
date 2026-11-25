@@ -47,6 +47,12 @@ extension Value {
             self.init(fields, typeRef: typeName.map(TypeRef.native))
         }
 
+        /// Room for `count` fields, so that adding them does not grow it again and again.
+        mutating func reserveCapacity(_ count: Int) {
+            keys.reserveCapacity(count)
+            storage.reserveCapacity(count)
+        }
+
         subscript(key: String) -> Value? {
             get { storage[key] }
             set {

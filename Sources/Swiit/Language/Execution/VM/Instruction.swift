@@ -34,6 +34,29 @@ enum Instruction {
     /// `loadVariable` of a global, which finds the variable's cell once and keeps it while the names
     /// stay as they were.
     case loadGlobal(dst: Register, site: UInt32)
+    /// `local.name(arguments)` of a struct's method that is plain (not mutating, taking its arguments
+    /// as written): run from the registers, without the tree evaluator's lookups and tables. The next
+    /// `offset` instructions, which do it the long way, are skipped when it ran.
+    case callMethod(
+        dst: Register,
+        site: UInt32,
+        receiver: Register,
+        arguments: Register,
+        offset: Int32
+    )
+    /// `base.name`: a field of a struct is read where it is, and any other member by the one routine
+    /// the tree evaluator reads them with.
+    case loadMember(dst: Register, base: Register, name: UInt32)
+    /// `local.name = value` and `local.name op= value` of a stored field of a struct whose type lets
+    /// it be set directly, to a value of the kind it holds; the next `offset` instructions, which do it
+    /// the long way, are skipped then.
+    case assignMember(
+        local: Register,
+        site: UInt32,
+        op: BinaryOperator?,
+        value: Register,
+        offset: Int32
+    )
     /// A member of a list or a string, made here when the receiver and argument are plainly of the
     /// kinds it knows; the next `offset` instructions, which make it the long way, are skipped then.
     case fastMember(
@@ -285,6 +308,32 @@ enum FastMember: UInt8 {
     case stringCount
 }
 
+/// A method a body calls on a local, and the one it was found to call when the names had this version.
+final class MethodSite {
+    let name: String
+    let labels: [String?]
+    @exclusivity(unchecked) var type: TypeRef?
+    @exclusivity(unchecked) var version = -1
+    @exclusivity(unchecked) var function: Function?
+    @exclusivity(unchecked) var code: Code?
+
+    init(name: String, labels: [String?]) {
+        self.name = name
+        self.labels = labels
+    }
+}
+
+/// A field of a struct a body sets through a local, and whether its type was found to let it be set
+/// directly (no setter, no observer, a `var`) when the names had this version.
+final class MemberSite {
+    let name: String
+    @exclusivity(unchecked) var type: TypeRef?
+    @exclusivity(unchecked) var version = -1
+    @exclusivity(unchecked) var isDirect = false
+
+    init(name: String) { self.name = name }
+}
+
 /// A global variable a body names, and the cell it was found to be in last time.
 final class GlobalSite {
     let name: String
@@ -397,6 +446,8 @@ final class Code {
     @exclusivity(unchecked) var callSites: [CallSite] = [] {
         didSet { callSiteTable = callSites.map(Unmanaged.passUnretained) }
     }
+    @exclusivity(unchecked) var members: [MemberSite] = []
+    @exclusivity(unchecked) var methods: [MethodSite] = []
     @exclusivity(unchecked) var globals: [GlobalSite] = [] {
         didSet { globalTable = globals.map(Unmanaged.passUnretained) }
     }

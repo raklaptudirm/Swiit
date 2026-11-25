@@ -163,6 +163,22 @@ struct CodeCompiler {
                 argument: argument,
                 offset: offset
             )
+        case .assignMember(let local, let site, let op, let value, _):
+            code.instructions[index] = .assignMember(
+                local: local,
+                site: site,
+                op: op,
+                value: value,
+                offset: offset
+            )
+        case .callMethod(let dst, let site, let receiver, let arguments, _):
+            code.instructions[index] = .callMethod(
+                dst: dst,
+                site: site,
+                receiver: receiver,
+                arguments: arguments,
+                offset: offset
+            )
         case .jumpIfTrue(let condition, _):
             code.instructions[index] = .jumpIfTrue(condition: condition, offset: offset)
         case .jumpIfWhereFalse(let condition, _):

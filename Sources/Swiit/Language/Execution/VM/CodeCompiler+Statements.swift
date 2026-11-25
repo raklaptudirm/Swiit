@@ -197,7 +197,7 @@ extension CodeCompiler {
         // A weak variable stays weak when it is assigned, which the tree evaluator sees to.
         let isWeak = known.map { weakSlots.contains(Int($0.slot)) } ?? false
         guard assignment.path.isEmpty, known?.mutable ?? true, !isWeak else {
-            treeStatement(statement, roots: [assignment.root])
+            try member(of: known, assignment, statement)
             return
         }
         let mark = nextTemporary
@@ -226,6 +226,37 @@ extension CodeCompiler {
             }
         }
         nextTemporary = mark
+    }
+
+    /// `p.x = v` and `p.x += v` of a local `p`: set where it is when `p` holds a struct whose field `x`
+    /// may be, and by the tree evaluator, which follows it, where not. Any other path is the tree's.
+    private mutating func member(
+        of known: Local?,
+        _ assignment: Assignment,
+        _ statement: Statement
+    ) throws {
+        guard let known, known.mutable, !known.boxed, !weakSlots.contains(Int(known.slot)),
+            assignment.path.count == 1, case .member(let name) = assignment.path[0],
+            isPure(assignment.value)
+        else {
+            treeStatement(statement, roots: [assignment.root])
+            return
+        }
+        let mark = nextTemporary
+        let value = try operand(assignment.value)
+        code.members.append(MemberSite(name: name))
+        let fast = emit(
+            .assignMember(
+                local: known.slot,
+                site: UInt32(code.members.count - 1),
+                op: assignment.op,
+                value: value,
+                offset: 0
+            )
+        )
+        nextTemporary = mark
+        treeStatement(statement, roots: [assignment.root])
+        patch(fast, to: here)
     }
 
     // MARK: Loops

@@ -203,14 +203,17 @@ extension Interpreter {
         _ function: Function,
         _ code: Code,
         with arguments: BindingTable,
-        receiver: Receiver? = nil
+        receiver: Receiver? = nil,
+        argumentsAt registers: Int? = nil
     ) throws -> Value {
         let task = self.task
         let stack = task.vm
         let base = stack.top
         stack.ensure(base + code.frameSize)
         for (index, parameter) in function.parameters.enumerated() {
-            stack.base[base + index] = arguments[parameter.name]?.value ?? .nothing
+            stack.base[base + index] =
+                registers.map { stack.base[$0 + index] }
+                ?? arguments[parameter.name]?.value ?? .nothing
         }
         stack.top = base + code.frameSize
         let saved = (scopes: task.scopes, frame: task.frame, frameBase: task.frameBase)
@@ -420,5 +423,174 @@ extension Interpreter {
             try checkInterrupt()
             return .int(text.count)
         }
+    }
+}
+
+extension Interpreter {
+    /// Sets the field a site names of the struct `local` holds, in place, when its type allows that
+    /// and `value` is of the kind the field holds. False, with nothing changed, otherwise.
+    func setMember(
+        _ site: MemberSite,
+        _ local: inout Value,
+        _ op: BinaryOperator?,
+        _ value: Value
+    ) -> Bool {
+        guard case .structure(let structure) = local.storage,
+            let typeRef = structure.record.typeRef
+        else { return false }
+        if site.version != scopeVersion || site.type != typeRef {
+            site.version = scopeVersion
+            site.type = typeRef
+            site.isDirect = isDirectlySettable(structure.record, site.name)
+        }
+        guard site.isDirect else { return false }
+        return local.setField(site.name, op, value)
+    }
+
+    /// Whether the field `name` of a value of the struct type of `record` may be set where it is: the
+    /// tree evaluator's own conditions for changing a place in place (`plainPlace`).
+    private func isDirectlySettable(_ record: Value.Record, _ name: String) -> Bool {
+        guard let type = structType(of: record), type.members.setters[name] == nil,
+            type.observers[name] == nil, let property = type.property(name), property.mutable
+        else { return false }
+        return extensionChain(of: Value(Value.Storage.structure(Value.Structure(record))))
+            .allSatisfy { $0.setters[name] == nil }
+    }
+}
+
+extension Value {
+    /// Sets the stored field `name` of this struct to `value`, or to the result of `op` on what it
+    /// holds and `value`, when the field holds a number, a Bool or a string and `value` is of that
+    /// kind. The struct is changed where it is, not copied. False, with nothing changed, otherwise.
+    mutating func setField(_ name: String, _ op: BinaryOperator?, _ value: Value) -> Bool {
+        guard case .structure(var structure) = storage, let old = structure.record[name] else {
+            return false
+        }
+        let result: Value
+        switch (old.storage, value.storage) {
+        case (.int(let x), .int(let y)):
+            guard let op else { result = value; break }
+            guard let done = try? Interpreter.arithmetic(op, x, y), case .int = done.storage else {
+                return false
+            }
+            result = done
+        case (.double(let x), .double(let y)):
+            switch op {
+            case nil: result = value
+            case .add?: result = .double(x + y)
+            case .subtract?: result = .double(x - y)
+            case .multiply?: result = .double(x * y)
+            default: return false
+            }
+        case (.bool, .bool), (.string, .string):
+            guard op == nil else { return false }
+            result = value
+        default: return false
+        }
+        storage = .nothing
+        structure.record[name] = result
+        storage = .structure(structure)
+        return true
+    }
+}
+
+extension Interpreter {
+    /// A struct's plain method called on `receiver` with the arguments in the registers from
+    /// `arguments` on, when the site has found it to be one and the arguments are plainly of the types
+    /// it takes; nil, with nothing done, otherwise. What the tree evaluator's call of it does, in the
+    /// same steps, without finding the method again by name or binding its arguments in a table.
+    func callMethod(_ site: MethodSite, receiver: Value, arguments: Int) throws -> Value? {
+        guard case .structure(let structure) = receiver.storage,
+            let typeRef = structure.record.typeRef
+        else { return nil }
+        if site.version != scopeVersion || site.type != typeRef {
+            site.version = scopeVersion
+            site.type = typeRef
+            (site.function, site.code) = plainMethod(site, of: structure.record)
+        }
+        guard let function = site.function, let code = site.code else { return nil }
+        let stack = task.vm
+        for index in 0..<code.parameterCount
+        where !code.parameterKinds[index].accepts(at: stack.base + arguments + index) {
+            return nil
+        }
+        let maxCallDepth = task.run.maxCallDepth
+        guard task.callDepth < maxCallDepth else {
+            throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
+        }
+        try checkInterrupt()
+        defer { task.lastCallee = function }
+        return try runCompiled(
+            function,
+            code,
+            with: [:],
+            receiver: Receiver(receiver, mutable: false),
+            argumentsAt: arguments
+        )
+    }
+
+    /// The method `site` calls on a struct of the type of `record`, if it is the only one of that
+    /// name, takes these arguments as written, and is one the loop can run (`Code.isPlain`).
+    private func plainMethod(_ site: MethodSite, of record: Value.Record) -> (Function?, Code?) {
+        guard record[site.name] == nil, let type = structType(of: record),
+            let methods = type.members.methods[site.name], methods.candidates.count == 1,
+            case let method = methods.candidates[0], !method.isMutating, !method.isThrowing,
+            method.parameters.count == site.labels.count,
+            zip(method.parameters, site.labels).allSatisfy({ $0.label == $1 }),
+            let code = compiled(method), code.isPlain
+        else { return (nil, nil) }
+        return (method, code)
+    }
+}
+
+extension Interpreter {
+    /// The value of the global `site` names, read from its cell when it has one, and by the tree
+    /// evaluator's lookup where it has not (a variable that is not there, or is worked out, or weak).
+    @inline(__always)
+    func globalValue(_ site: GlobalSite, _ function: Function, _ code: Code) throws -> Value {
+        if !(site.version == scopeVersion && site.function == ObjectIdentifier(function)) {
+            findGlobal(site, function, code)
+        }
+        if let cell = site.cell {
+            let value = cell.value
+            if case .object(is WeakReference) = value.storage {
+                return try evaluate(.variable(site.name))
+            }
+            return value
+        }
+        return try evaluate(.variable(site.name))
+    }
+
+    /// `name = value` or `name op= value` of a global: set in its cell when both are numbers of one
+    /// kind, and by the tree evaluator's assignment where not.
+    @inline(__always)
+    func assignGlobal(
+        _ site: GlobalSite,
+        _ assignment: Assignment,
+        _ value: Value,
+        _ function: Function,
+        _ code: Code
+    ) throws {
+        if !(site.version == scopeVersion && site.function == ObjectIdentifier(function)) {
+            findGlobal(site, function, code)
+        }
+        if site.isMutable, let cell = site.cell, setNumber(in: cell, assignment.op, to: value) {
+            return
+        }
+        var long = assignment
+        long.value = .literal(value)
+        try assign(long)
+    }
+}
+
+extension Interpreter {
+    /// `value.name`: a stored field of a struct is read where it is, and any other member by the
+    /// routine the tree evaluator reads them with.
+    @inline(__always)
+    func loadMember(_ name: String, _ value: Value) throws -> Value {
+        if case .structure(let structure) = value.storage, let field = structure.record[name] {
+            return field
+        }
+        return try member(name, of: value)
     }
 }
