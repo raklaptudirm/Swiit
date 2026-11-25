@@ -51,6 +51,10 @@ struct CodeCompiler {
     var code = Code()
     /// The function is a method that changes its receiver, other than an initializer.
     var changesSelf = false
+    /// The function is a method, other than an initializer, whose `self` may be a class's.
+    var isMethod = false
+    /// The function is an initializer, whose `self` is being made.
+    var isInitializer = false
     /// The Swift members a script's calls and reads can name, which tell what a `bridged` node is.
     var bridged: [String: ImplementedType] = [:]
     /// How many slots the function's locals have: what a frame for the tree evaluator needs.
@@ -99,18 +103,21 @@ struct CodeCompiler {
         nextTemporary = frameSize
         highest = max(frameSize, function.parameters.count) - 1
         code.takesArgumentsAsWritten =
-            function.owner == nil && !function.isFailable
+            !function.isFailable
             && !function.isConvenience && function.typeParameters.isEmpty
             && function.parameters.allSatisfy {
                 !$0.variadic && !$0.isAutoclosure && $0.resultBuilder == nil
             }
-        code.isPlain = code.takesArgumentsAsWritten && !function.isMutating
+        code.isPlain =
+            code.takesArgumentsAsWritten && function.owner == nil && !function.isMutating
         // A body that names `self` has the cell of it in a register of its own, after the locals.
         if !function.parameters.contains(where: { $0.name == "self" }), mentionsSelf(body) {
             code.selfRegister = Register(frameSize)
             nextTemporary = frameSize + 1
             highest = max(highest, frameSize)
-            changesSelf = function.isMutating && function.name != "init"
+            changesSelf = function.isMutating && !function.isInitializer
+            isMethod = !function.isInitializer
+            isInitializer = function.isInitializer
         }
         code.isFailable = function.isFailable
         code.parameterCount = function.parameters.count

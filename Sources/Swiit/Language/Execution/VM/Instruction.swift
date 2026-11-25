@@ -291,6 +291,12 @@ final class CallSite {
     @exclusivity(unchecked) var cachedCode: Unmanaged<Code>?
     @exclusivity(unchecked) var cachedSharesScopes = false
 
+    /// The struct type the name was found to be, when the names had this version and it was called from
+    /// this function: what a call that makes a value need not look up again.
+    @exclusivity(unchecked) var constructedType: StructType?
+    @exclusivity(unchecked) var constructedVersion = -1
+    @exclusivity(unchecked) var constructedCaller: ObjectIdentifier?
+
     struct Cached {
         let caller: Function
         let callee: Function
@@ -321,6 +327,7 @@ final class MethodSite {
     let name: String
     let labels: [String?]
     @exclusivity(unchecked) var type: TypeRef?
+    @exclusivity(unchecked) var classType: ObjectIdentifier?
     @exclusivity(unchecked) var version = -1
     @exclusivity(unchecked) var function: Function?
     @exclusivity(unchecked) var code: Code?
@@ -338,11 +345,22 @@ final class MethodSite {
 /// directly (no setter, no observer, a `var`) when the names had this version.
 final class MemberSite {
     let name: String
+    /// A struct it is set in may be changed: the local is a variable, or the method changes its receiver.
+    let mutatesStruct: Bool
+    /// It is set in an initializer: a field is made, and a `let` one may be, and no observer runs.
+    let initializing: Bool
+    /// The type its field is declared to have, when it was found to be set directly as it is made.
+    @exclusivity(unchecked) var propertyType: TypeExpression?
     @exclusivity(unchecked) var type: TypeRef?
+    @exclusivity(unchecked) var classType: ObjectIdentifier?
     @exclusivity(unchecked) var version = -1
     @exclusivity(unchecked) var isDirect = false
 
-    init(name: String) { self.name = name }
+    init(name: String, mutatesStruct: Bool, initializing: Bool = false) {
+        self.name = name
+        self.mutatesStruct = mutatesStruct
+        self.initializing = initializing
+    }
 }
 
 /// A global variable a body names, and the cell it was found to be in last time.

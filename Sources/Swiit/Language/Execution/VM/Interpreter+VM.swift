@@ -333,18 +333,15 @@ extension Interpreter {
                             pc = 0
                             statement = -1
                             regs = stack.base + base
+                        } else if let made = try constructStruct(
+                            site,
+                            from: function,
+                            arguments: argumentBase
+                        ) {
+                            regs = stack.base + base
+                            regs[Int(dst)] = made
                         } else {
-                            var given: [Argument] = []
-                            for index in 0..<site.labels.count {
-                                given.append(
-                                    Argument(
-                                        label: site.labels[index],
-                                        value: .literal(stack.base[argumentBase + index])
-                                    )
-                                )
-                                stack.base[argumentBase + index] = .nothing
-                            }
-                            let value = try evaluateCall(site.callee, given)
+                            let value = try evaluateCall(site, site.callee, argumentBase)
                             regs = stack.base + base
                             regs[Int(dst)] = value
                         }
@@ -421,17 +418,7 @@ extension Interpreter {
                             regs = stack.base + base
                         } else {
                             let callee = regs[Int(calleeRegister)]
-                            var given: [Argument] = []
-                            for index in 0..<site.labels.count {
-                                given.append(
-                                    Argument(
-                                        label: site.labels[index],
-                                        value: .literal(stack.base[argumentBase + index])
-                                    )
-                                )
-                                stack.base[argumentBase + index] = .nothing
-                            }
-                            let value = try evaluateCall(.literal(callee), given)
+                            let value = try evaluateCall(site, .literal(callee), argumentBase)
                             regs = stack.base + base
                             regs[Int(dst)] = value
                         }

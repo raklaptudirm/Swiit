@@ -198,7 +198,7 @@ extension CodeCompiler {
         let isWeak = known.map { weakSlots.contains(Int($0.slot)) } ?? false
         guard assignment.path.isEmpty, known?.mutable ?? true, !isWeak else {
             if known == nil, assignment.root == "self", let register = code.selfRegister,
-                changesSelf, assignment.path.count == 1, isPure(assignment.value),
+                assignment.path.count == 1, isPure(assignment.value),
                 case .member(let name) = assignment.path[0]
             {
                 try selfMember(name, register, assignment, statement)
@@ -251,7 +251,7 @@ extension CodeCompiler {
         }
         let mark = nextTemporary
         let value = try operand(assignment.value)
-        code.members.append(MemberSite(name: name))
+        code.members.append(MemberSite(name: name, mutatesStruct: true))
         let fast = emit(
             .assignMember(
                 local: known.slot,
@@ -276,7 +276,9 @@ extension CodeCompiler {
     ) throws {
         let mark = nextTemporary
         let value = try operand(assignment.value)
-        code.members.append(MemberSite(name: name))
+        code.members.append(
+            MemberSite(name: name, mutatesStruct: changesSelf, initializing: isInitializer)
+        )
         let fast = emit(
             .assignSelfMember(
                 cell: cell,

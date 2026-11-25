@@ -148,7 +148,7 @@ extension Interpreter {
         return Value(record: record)
     }
 
-    private func storedValue(
+    func storedValue(
         _ expr: Expr,
         for property: PropertyDecl,
         of type: StructType

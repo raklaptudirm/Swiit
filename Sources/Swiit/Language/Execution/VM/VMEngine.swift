@@ -26,6 +26,9 @@ enum VMCode {
 }
 
 extension Function {
+    /// An initializer, which the checker names with its type's (`Point.init`).
+    var isInitializer: Bool { name == "init" || name?.hasSuffix(".init") == true }
+
     /// Whether the compiler may take this body: a function or method, or a closure with what it
     /// captured, whose parameters are taken as they come.
     var isCompilable: Bool {

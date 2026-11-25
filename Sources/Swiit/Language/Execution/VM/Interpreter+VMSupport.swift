@@ -124,6 +124,12 @@ extension Interpreter {
     /// The function a call site calls, when the VM can call it without leaving its loop: the one
     /// function the name is bound to, compiled, taking these arguments as written.
     func vmTarget(of site: CallSite, from caller: Function) -> VMTarget? {
+        // A name found to be a struct's is not looked up again for a function.
+        if site.constructedType != nil, site.constructedVersion == scopeVersion,
+            site.constructedCaller == ObjectIdentifier(caller)
+        {
+            return nil
+        }
         guard let name = site.name, let binding = lookup(name),
             case .function(let callable) = binding.value.storage
         else { return nil }
@@ -432,143 +438,6 @@ extension Interpreter {
 }
 
 extension Interpreter {
-    /// Sets the field a site names of the struct `local` holds, in place, when its type allows that
-    /// and `value` is of the kind the field holds. False, with nothing changed, otherwise.
-    func setMember(
-        _ site: MemberSite,
-        _ local: inout Value,
-        _ op: BinaryOperator?,
-        _ value: Value
-    ) -> Bool {
-        guard case .structure(let structure) = local.storage,
-            let typeRef = structure.record.typeRef
-        else { return false }
-        if site.version != scopeVersion || site.type != typeRef {
-            site.version = scopeVersion
-            site.type = typeRef
-            site.isDirect = isDirectlySettable(structure.record, site.name)
-        }
-        guard site.isDirect else { return false }
-        return local.setField(site.name, op, value)
-    }
-
-    /// `setMember` of the struct a cell holds.
-    func setMember(
-        _ site: MemberSite,
-        in cell: Binding.Cell,
-        _ op: BinaryOperator?,
-        _ value: Value
-    ) -> Bool {
-        var held = cell.value
-        cell.value = .nothing
-        defer { cell.value = held }
-        return setMember(site, &held, op, value)
-    }
-
-    /// Whether the field `name` of a value of the struct type of `record` may be set where it is: the
-    /// tree evaluator's own conditions for changing a place in place (`plainPlace`).
-    private func isDirectlySettable(_ record: Value.Record, _ name: String) -> Bool {
-        guard let type = structType(of: record), type.members.setters[name] == nil,
-            type.observers[name] == nil, let property = type.property(name), property.mutable
-        else { return false }
-        return extensionChain(of: Value(Value.Storage.structure(Value.Structure(record))))
-            .allSatisfy { $0.setters[name] == nil }
-    }
-}
-
-extension Value {
-    /// Sets the stored field `name` of this struct to `value`, or to the result of `op` on what it
-    /// holds and `value`, when the field holds a number, a Bool or a string and `value` is of that
-    /// kind. The struct is changed where it is, not copied. False, with nothing changed, otherwise.
-    mutating func setField(_ name: String, _ op: BinaryOperator?, _ value: Value) -> Bool {
-        guard case .structure(var structure) = storage, let old = structure.record[name] else {
-            return false
-        }
-        let result: Value
-        switch (old.storage, value.storage) {
-        case (.int(let x), .int(let y)):
-            guard let op else { result = value; break }
-            guard let done = try? Interpreter.arithmetic(op, x, y), case .int = done.storage else {
-                return false
-            }
-            result = done
-        case (.double(let x), .double(let y)):
-            switch op {
-            case nil: result = value
-            case .add?: result = .double(x + y)
-            case .subtract?: result = .double(x - y)
-            case .multiply?: result = .double(x * y)
-            default: return false
-            }
-        case (.bool, .bool), (.string, .string):
-            guard op == nil else { return false }
-            result = value
-        default: return false
-        }
-        storage = .nothing
-        structure.record[name] = result
-        storage = .structure(structure)
-        return true
-    }
-}
-
-extension Interpreter {
-    /// A struct's plain method called on `receiver` with the arguments in the registers from
-    /// `arguments` on, when the site has found it to be one and the arguments are plainly of the types
-    /// it takes; nil, with nothing done, otherwise. What the tree evaluator's call of it does, in the
-    /// same steps, without finding the method again by name or binding its arguments in a table.
-    func callMethod(
-        _ site: MethodSite,
-        receiver: Value,
-        arguments: Int
-    ) throws -> (result: Value, receiver: Value?)? {
-        guard case .structure(let structure) = receiver.storage,
-            let typeRef = structure.record.typeRef
-        else { return nil }
-        if site.version != scopeVersion || site.type != typeRef {
-            site.version = scopeVersion
-            site.type = typeRef
-            (site.function, site.code) = plainMethod(site, of: structure.record)
-        }
-        guard let function = site.function, let code = site.code else { return nil }
-        let stack = task.vm
-        for index in 0..<code.parameterCount
-        where !code.parameterKinds[index].accepts(at: stack.base + arguments + index) {
-            return nil
-        }
-        let maxCallDepth = task.run.maxCallDepth
-        guard task.callDepth < maxCallDepth else {
-            throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
-        }
-        try checkInterrupt()
-        defer { task.lastCallee = function }
-        let held = Receiver(receiver, mutable: function.isMutating)
-        let result = try runCompiled(
-            function,
-            code,
-            with: [:],
-            receiver: held,
-            argumentsAt: arguments
-        )
-        return (result, function.isMutating ? held.value : nil)
-    }
-
-    /// The method `site` calls on a struct of the type of `record`, if it is the only one of that
-    /// name, takes these arguments as written, and is one the loop can run (`Code.takesArgumentsAsWritten`).
-    private func plainMethod(_ site: MethodSite, of record: Value.Record) -> (Function?, Code?) {
-        guard record[site.name] == nil, let type = structType(of: record),
-            let methods = type.members.methods[site.name], methods.candidates.count == 1,
-            case let method = methods.candidates[0], !method.isMutating || site.mayMutate,
-            !method.isThrowing,
-            method.parameters.count == site.labels.count,
-            zip(method.parameters, site.labels).allSatisfy({ $0.label == $1 }),
-            let code = compiled(method), code.takesArgumentsAsWritten
-        else { return (nil, nil) }
-        return (method, code)
-    }
-}
-
-extension Interpreter {
     /// The value of the global `site` names, read from its cell when it has one, and by the tree
     /// evaluator's lookup where it has not (a variable that is not there, or is worked out, or weak).
     @inline(__always)
@@ -613,9 +482,35 @@ extension Interpreter {
     /// routine the tree evaluator reads them with.
     @inline(__always)
     func loadMember(_ name: String, _ value: Value) throws -> Value {
-        if case .structure(let structure) = value.storage, let field = structure.record[name] {
-            return field
+        switch value.storage {
+        case .structure(let structure):
+            if let field = structure.record[name] { return field }
+        case .object(let object):
+            // A stored field of a class's instance, as `classMember` reads it first.
+            if let instance = object as? ClassInstance, let stored = instance.storage[name] {
+                return read(stored)
+            }
+        default: break
         }
         return try member(name, of: value)
+    }
+}
+
+extension Interpreter {
+    /// A call the loop does not make itself: the tree evaluator's, with the arguments in the registers
+    /// from `arguments` on, which it takes.
+    func evaluateCall(_ site: CallSite, _ callee: Expr, _ arguments: Int) throws -> Value {
+        let stack = task.vm
+        var given: [Argument] = []
+        for index in 0..<site.labels.count {
+            given.append(
+                Argument(
+                    label: site.labels[index],
+                    value: .literal(stack.base[arguments + index])
+                )
+            )
+            stack.base[arguments + index] = .nothing
+        }
+        return try evaluateCall(callee, given)
     }
 }
