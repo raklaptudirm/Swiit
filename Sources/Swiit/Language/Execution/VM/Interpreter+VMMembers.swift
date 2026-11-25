@@ -187,15 +187,49 @@ extension Interpreter {
         )
     }
 
-    /// What returning from a method the loop called undoes: the class pushed for `super` is popped,
+    /// What returning from a method the loop called undoes (and, for an initializer, the value it gives): the class pushed for `super` is popped,
     /// and a struct the method changed goes back in the register it was called on.
-    func finishMethod(_ exit: MethodExit, on stack: VMStack) {
+    func finishMethod(_ exit: MethodExit, on stack: VMStack) throws -> Value? {
         if exit.popsOwner { task.owners.removeLast() }
         if exit.storeReceiverAt >= 0 { stack.base[exit.storeReceiverAt] = exit.selfCell.value }
+        exit.storeReceiverIn?.value = exit.selfCell.value
+        switch exit.completion {
+        case nil:
+            return nil
+        case .structValue(let type)?:
+            guard let made = exit.selfCell.value.record else {
+                throw RuntimeError("\(type.name).init must leave self a \(type.name)")
+            }
+            var record = Value.Record(typeRef: type.typeRef)
+            record.reserveCapacity(type.stored.count)
+            for property in type.stored {
+                guard let value = made[property.name] else {
+                    throw RuntimeError("\(type.name).init must set '\(property.name)'")
+                }
+                record[property.name] = value
+            }
+            return Value(record: record)
+        case .classInstance(let instance, let initializer, let saved)?:
+            defer { task.calledSuperInit = saved }
+            try completeInitialization(of: instance, by: initializer)
+            try checkAllSet(instance)
+            return .object(instance)
+        }
+    }
+
+    /// An error left a method's frame: what it pushed is undone, and nothing is stored.
+    func abandonMethod(_ exit: MethodExit) {
+        if exit.popsOwner { task.owners.removeLast() }
+        if case .classInstance(_, _, let saved)? = exit.completion { task.calledSuperInit = saved }
     }
 
     /// The scope a method call runs in, with `self` bound in it: after what the method captured.
-    func enterMethodScope(_ target: MethodTarget, receiver: Value, storeAt: Int) -> MethodExit {
+    func enterMethodScope(
+        _ target: MethodTarget,
+        receiver: Value,
+        storeAt: Int,
+        storeIn: Binding.Cell?
+    ) -> MethodExit {
         let made = Scope()
         let binding = Binding(
             value: receiver,
@@ -211,13 +245,24 @@ extension Interpreter {
         return MethodExit(
             selfCell: binding.cell,
             popsOwner: target.function.owner != nil,
-            storeReceiverAt: target.function.isMutating && !target.isClass ? storeAt : -1
+            storeReceiverAt: target.function.isMutating && !target.isClass && storeIn == nil
+                ? storeAt : -1,
+            storeReceiverIn: target.function.isMutating && !target.isClass ? storeIn : nil
         )
     }
 
     /// The method `site` calls on an instance of `type`: the one method of that name it has or
     /// inherits, which takes these arguments as written and is one the loop can run.
     private func plainMethod(_ site: MethodSite, of type: ClassType) -> (Function?, Code?) {
+        if site.isGetter {
+            guard !Interpreter.namesSpecialMember(site.name),
+                !type.allStored.contains(where: { $0.name == site.name }),
+                let getter = type.computedProperty(site.name), !getter.isThrowing,
+                getter.parameters.isEmpty, let code = compiled(getter), code.takesArgumentsAsWritten
+            else { return (nil, nil) }
+            site.mapping = nil
+            return (getter, code)
+        }
         let methods = type.allMethods(site.name)
         guard methods.count == 1, case let method = methods[0], !method.isThrowing,
             let mapping = argumentMapping(of: method, labels: site.labels),
@@ -230,6 +275,15 @@ extension Interpreter {
     /// The method `site` calls on a struct of the type of `record`, if it is the only one of that
     /// name, takes these arguments as written, and is one the loop can run (`Code.takesArgumentsAsWritten`).
     private func plainMethod(_ site: MethodSite, of record: Value.Record) -> (Function?, Code?) {
+        if site.isGetter {
+            guard !Interpreter.namesSpecialMember(site.name), record[site.name] == nil,
+                let type = structType(of: record), let getter = type.members.computed[site.name],
+                !getter.isThrowing, getter.parameters.isEmpty, let code = compiled(getter),
+                code.takesArgumentsAsWritten
+            else { return (nil, nil) }
+            site.mapping = nil
+            return (getter, code)
+        }
         guard record[site.name] == nil, let type = structType(of: record),
             let methods = type.members.methods[site.name], methods.candidates.count == 1,
             case let method = methods.candidates[0], !method.isMutating || site.mayMutate,
@@ -315,207 +369,6 @@ extension Value {
 }
 
 extension Interpreter {
-    /// `Point(x: 1, y: 2)` of a struct or `Dog(name: "Rex")` of a class, made from the registers from `arguments` on, when the type is
-    /// plain: the memberwise initializer taking every field, or one initializer of its own that takes
-    /// its arguments as written and does not fail. The value is what `construct` makes of the same
-    /// arguments; nil, with nothing done, where the site is not that, which `construct` then makes.
-    func constructValue(
-        _ site: CallSite,
-        from function: Function,
-        arguments: Int
-    ) throws -> Value? {
-        guard let name = site.name else { return nil }
-        if site.constructedVersion != scopeVersion
-            || site.constructedCaller != ObjectIdentifier(function)
-        {
-            site.constructedVersion = scopeVersion
-            site.constructedCaller = ObjectIdentifier(function)
-            site.constructedType = nil
-            site.constructedClass = nil
-            site.constructedInitializer = nil
-            site.constructedCode = nil
-            switch lookup(name)?.value.storage {
-            case .object(let type as StructType)?: site.constructedType = type
-            case .object(let type as ClassType)?: findClassInitializer(of: type, site)
-            default: break
-            }
-        }
-        if let type = site.constructedClass { return try constructClass(type, site, arguments) }
-        guard let type = site.constructedType, typeExtensions[type.name]?.initializers == nil
-        else { return nil }
-        let made: Value
-        if let initializers = type.members.initializers {
-            guard let value = try constructWithInitializer(type, initializers, site, arguments)
-            else { return nil }
-            made = value
-        } else {
-            guard let value = constructMemberwise(type, site, arguments) else { return nil }
-            made = value
-        }
-        let stack = task.vm
-        for index in 0..<site.labels.count { stack.base[arguments + index] = .nothing }
-        return made
-    }
-
-    /// The memberwise initializer, when the call gives every field in order, each as its type has it.
-    private func constructMemberwise(
-        _ type: StructType,
-        _ site: CallSite,
-        _ arguments: Int
-    ) -> Value? {
-        let parameters = type.memberwise.parameters
-        guard parameters.count == site.labels.count, parameters.count == type.stored.count,
-            zip(parameters, site.labels).allSatisfy({ $0.label == $1 })
-        else { return nil }
-        let stack = task.vm
-        var record = Value.Record(typeRef: type.typeRef)
-        record.reserveCapacity(parameters.count)
-        for (index, parameter) in parameters.enumerated() {
-            let value = stack.base[arguments + index]
-            guard
-                let stored = ParameterKind(parameter.type).accepts(value)
-                    ? value : conform(value, to: parameter.type)
-            else { return nil }
-            record[parameter.name] = stored
-        }
-        // In the order the type declares them.
-        var ordered = Value.Record(typeRef: type.typeRef)
-        ordered.reserveCapacity(parameters.count)
-        for property in type.stored {
-            guard let value = record[property.name] else { return nil }
-            ordered[property.name] = value
-        }
-        return Value(record: ordered)
-    }
-
-    /// An initializer of the type's own, run from the registers: the defaults are the start of the
-    /// value, the initializer sets the rest, and the fields are put in declaration order.
-    private func constructWithInitializer(
-        _ type: StructType,
-        _ initializers: OverloadSet,
-        _ site: CallSite,
-        _ arguments: Int
-    ) throws -> Value? {
-        guard initializers.candidates.count == 1, case let initializer = initializers.candidates[0],
-            !initializer.isFailable, !initializer.isConvenience,
-            initializer.parameters.count == site.labels.count,
-            zip(initializer.parameters, site.labels).allSatisfy({ $0.label == $1 }),
-            let code = compiled(initializer), code.takesArgumentsAsWritten
-        else { return nil }
-        let stack = task.vm
-        for index in 0..<code.parameterCount
-        where !code.parameterKinds[index].accepts(at: stack.base + arguments + index) {
-            return nil
-        }
-        let maxCallDepth = task.run.maxCallDepth
-        guard task.callDepth < maxCallDepth else {
-            throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
-        }
-        var start = Value.Record(typeRef: type.typeRef)
-        start.reserveCapacity(type.stored.count)
-        for property in type.stored {
-            if let defaultValue = property.defaultValue {
-                start[property.name] = try storedValue(defaultValue, for: property, of: type)
-            }
-        }
-        let receiver = Receiver(Value(record: start), mutable: true, initializing: true)
-        task.failedInit = false
-        try checkInterrupt()
-        defer { task.lastCallee = initializer }
-        _ = try runCompiled(
-            initializer,
-            code,
-            with: [:],
-            receiver: receiver,
-            argumentsAt: arguments
-        )
-        guard let made = receiver.value.record else {
-            throw RuntimeError("\(type.name).init must leave self a \(type.name)")
-        }
-        var record = Value.Record(typeRef: type.typeRef)
-        record.reserveCapacity(type.stored.count)
-        for property in type.stored {
-            guard let value = made[property.name] else {
-                throw RuntimeError("\(type.name).init must set '\(property.name)'")
-            }
-            record[property.name] = value
-        }
-        return Value(record: record)
-    }
-}
-
-extension Interpreter {
-    /// What a site that makes an instance of `type` runs: its one initializer, when it has just one that
-    /// is designated, not failable and takes the call's arguments as written, or none when the call has
-    /// no arguments. The site keeps the class only when that is so.
-    private func findClassInitializer(of type: ClassType, _ site: CallSite) {
-        let candidates = initializers(of: type)
-        if candidates.isEmpty {
-            if site.labels.isEmpty { site.constructedClass = type }
-            return
-        }
-        guard candidates.count == 1, case let initializer = candidates[0],
-            !initializer.isFailable, !initializer.isConvenience,
-            initializer.parameters.count == site.labels.count,
-            zip(initializer.parameters, site.labels).allSatisfy({ $0.label == $1 }),
-            let code = compiled(initializer), code.takesArgumentsAsWritten
-        else { return }
-        site.constructedClass = type
-        site.constructedInitializer = initializer
-        site.constructedCode = code
-    }
-
-    /// An instance of `type`, made as `construct` makes one: its properties start as they are declared,
-    /// the initializer runs on it from the registers, and each property must be set after.
-    private func constructClass(
-        _ type: ClassType,
-        _ site: CallSite,
-        _ arguments: Int
-    ) throws -> Value? {
-        let stack = task.vm
-        if let code = site.constructedCode {
-            for index in 0..<code.parameterCount
-            where !code.parameterKinds[index].accepts(at: stack.base + arguments + index) {
-                return nil
-            }
-        }
-        let maxCallDepth = task.run.maxCallDepth
-        guard task.callDepth < maxCallDepth else {
-            throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
-        }
-        let instance = ClassInstance(type: type)
-        for property in type.allStored {
-            if let value = try initialValue(of: property) {
-                instance.storage[property.name] = value
-            }
-        }
-        if type.chain.contains(where: { $0.deinitializer != nil }) {
-            instance.onRelease = { [weak self] released in self?.release(released) }
-        }
-        if let initializer = site.constructedInitializer, let code = site.constructedCode {
-            task.failedInit = false
-            try initialize(instance, with: initializer) { receiver in
-                try self.checkInterrupt()
-                defer { self.task.lastCallee = initializer }
-                _ = try self.runCompiled(
-                    initializer,
-                    code,
-                    with: [:],
-                    receiver: receiver,
-                    argumentsAt: arguments
-                )
-            }
-        }
-        for property in type.allStored
-        where instance.storage[property.name] == nil && !property.isLazy {
-            throw RuntimeError("\(type.name).init must set '\(property.name)'")
-        }
-        for index in 0..<site.labels.count { stack.base[arguments + index] = .nothing }
-        return .object(instance)
-    }
-}
-
-extension Interpreter {
     /// A call that leaves out parameters with defaults: the arguments go where the parameters are, the
     /// defaults are made, and each is made the type its parameter has, as `bind` does.
     func placeAndCheckArguments(
@@ -569,10 +422,18 @@ extension Interpreter {
             try placeAndCheckArguments(mapping, of: target.function, at: argumentBase)
         }
         let saved = task.scopes
+        // A method of `self` that changes it puts the struct back in the cell of `self`.
+        var storeIn: Binding.Cell?
+        if site.receiverIsSelf, let register = cursor.code.selfRegister,
+            case .object(let object) = stack.base[cursor.base + Int(register)].storage
+        {
+            storeIn = (object as? CellBox)?.cell
+        }
         let exit = enterMethodScope(
             target,
             receiver: stack.base[cursor.base + Int(operands.receiver)],
-            storeAt: cursor.base + Int(operands.receiver)
+            storeAt: cursor.base + Int(operands.receiver),
+            storeIn: storeIn
         )
         stack.callers.append(
             VMCaller(
@@ -602,5 +463,57 @@ extension Interpreter {
             stack.base[argumentBase + Int(register)] = .object(CellBox(cell: exit.selfCell))
         }
         return true
+    }
+}
+
+extension Interpreter {
+    /// A member of a Swift type run as the tree evaluator runs it, with the receiver and the arguments
+    /// (in the registers from `arguments` on) taken as they are.
+    func callBridged(_ site: BridgedSite, receiver: Value?, arguments: Int) throws -> Value {
+        let stack = task.vm
+        var given: [Argument] = []
+        given.reserveCapacity(site.labels.count)
+        for index in 0..<site.labels.count {
+            given.append(
+                Argument(label: site.labels[index], value: .literal(stack.base[arguments + index]))
+            )
+            stack.base[arguments + index] = .nothing
+        }
+        return try runBridged(
+            site.type,
+            site.member,
+            receiver: receiver.map { .literal($0) },
+            given
+        )
+    }
+}
+
+extension Interpreter {
+    /// A call of a name that is not a function the loop enters: the value of a struct or a class made
+    /// from the registers, or by the tree evaluator's call; nil where an initializer's frame was entered,
+    /// which makes it when it returns.
+    func constructOrCall(
+        _ call: ConstructCall,
+        _ cursor: inout VMCursor,
+        _ stack: VMStack
+    ) throws -> Value? {
+        switch try construct(call, &cursor, stack) {
+        case .made(let value): return value
+        case .entered: return nil
+        case .none: return try evaluateCall(call.site, call.site.callee, call.argumentBase)
+        }
+    }
+
+    /// `value.name` that is not a stored field: a computed property's getter entered as a frame (nil),
+    /// or what `member(_:of:)` gives.
+    func readMember(
+        _ site: MethodSite,
+        _ name: String,
+        _ operands: CallOperands,
+        _ cursor: inout VMCursor,
+        _ stack: VMStack
+    ) throws -> Value? {
+        if try enterMethod(site, operands, &cursor, stack) { return nil }
+        return try member(name, of: stack.base[cursor.base + Int(operands.receiver)])
     }
 }

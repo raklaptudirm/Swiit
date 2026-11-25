@@ -34,6 +34,10 @@ enum Instruction {
     /// `loadVariable` of a global, which finds the variable's cell once and keeps it while the names
     /// stay as they were.
     case loadGlobal(dst: Register, site: UInt32)
+    /// A member of a Swift type that is not made by `fastMember`, run by the one routine the tree
+    /// evaluator runs them with, with the receiver (`Register.max` for a static member) and arguments
+    /// the loop has made already.
+    case callBridged(dst: Register, site: UInt32, receiver: Register, arguments: Register)
     /// `assignMember` of `self`, whose cell is in `cell`: in a method that changes its receiver.
     case assignSelfMember(
         cell: Register,
@@ -54,7 +58,7 @@ enum Instruction {
     )
     /// `base.name`: a field of a struct is read where it is, and any other member by the one routine
     /// the tree evaluator reads them with.
-    case loadMember(dst: Register, base: Register, name: UInt32)
+    case loadMember(dst: Register, base: Register, name: UInt32, site: UInt32)
     /// `local.name = value` and `local.name op= value` of a stored field of a struct whose type lets
     /// it be set directly, to a value of the kind it holds; the next `offset` instructions, which do it
     /// the long way, are skipped then.
@@ -311,10 +315,14 @@ final class CallSite {
         let code: Code
     }
 
-    init(name: String?, callee: Expr, labels: [String?]) {
+    /// Which of the overloads of the name the checker chose, when it did.
+    let overload: Int?
+
+    init(name: String?, callee: Expr, labels: [String?], overload: Int? = nil) {
         self.name = name
         self.callee = callee
         self.labels = labels
+        self.overload = overload
     }
 }
 
@@ -330,6 +338,19 @@ enum FastMember: UInt8 {
     case stringCount
 }
 
+/// A member of a Swift type a body calls: which, and the labels of the arguments.
+final class BridgedSite {
+    let type: String
+    let member: Int
+    let labels: [String?]
+
+    init(type: String, member: Int, labels: [String?]) {
+        self.type = type
+        self.member = member
+        self.labels = labels
+    }
+}
+
 /// A method a body calls on a local, and the one it was found to call when the names had this version.
 final class MethodSite {
     let name: String
@@ -343,14 +364,27 @@ final class MethodSite {
     let mayMutate: Bool
     /// `super.name(…)`: the method is the one the class above the running method's has.
     let isSuper: Bool
+    /// A computed property read: the method is the getter the type declares for the name.
+    let isGetter: Bool
+    /// The receiver is `self` of the running method, whose cell a struct that is changed goes back to.
+    let receiverIsSelf: Bool
     /// For the method found, which argument each parameter takes (-1: its default), when some are left out.
     @exclusivity(unchecked) var mapping: [Int]?
 
-    init(name: String, labels: [String?], mayMutate: Bool, isSuper: Bool = false) {
+    init(
+        name: String,
+        labels: [String?],
+        mayMutate: Bool,
+        isSuper: Bool = false,
+        isGetter: Bool = false,
+        receiverIsSelf: Bool = false
+    ) {
         self.name = name
         self.labels = labels
         self.mayMutate = mayMutate
         self.isSuper = isSuper
+        self.isGetter = isGetter
+        self.receiverIsSelf = receiverIsSelf
     }
 }
 
@@ -490,6 +524,7 @@ final class Code {
     }
     @exclusivity(unchecked) var members: [MemberSite] = []
     @exclusivity(unchecked) var methods: [MethodSite] = []
+    @exclusivity(unchecked) var bridgedSites: [BridgedSite] = []
     @exclusivity(unchecked) var globals: [GlobalSite] = [] {
         didSet { globalTable = globals.map(Unmanaged.passUnretained) }
     }

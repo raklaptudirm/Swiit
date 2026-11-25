@@ -329,17 +329,31 @@ extension Interpreter {
                             pc = 0
                             statement = -1
                             regs = stack.base + base
-                        } else if let made = try constructValue(
-                            site,
-                            from: function,
-                            arguments: argumentBase
-                        ) {
-                            regs = stack.base + base
-                            regs[Int(dst)] = made
                         } else {
-                            let value = try evaluateCall(site, site.callee, argumentBase)
-                            regs = stack.base + base
-                            regs[Int(dst)] = value
+                            var cursor = VMCursor(
+                                function: function,
+                                code: code,
+                                base: base,
+                                pc: pc,
+                                statement: statement
+                            )
+                            let made = ConstructCall(
+                                site: site,
+                                dst: dst,
+                                argumentBase: argumentBase
+                            )
+                            if let value = try constructOrCall(made, &cursor, stack) {
+                                regs = stack.base + base
+                                regs[Int(dst)] = value
+                            } else {
+                                (function, code, base, pc, statement) =
+                                    (
+                                        cursor.function, cursor.code, cursor.base, cursor.pc,
+                                        cursor.statement
+                                    )
+                                instructions = code.program
+                                regs = stack.base + base
+                            }
                         }
                     case .evaluateTree(let dst, let node):
                         let value = try runTree(code.trees[Int(node)], base: base, on: stack)
@@ -403,6 +417,10 @@ extension Interpreter {
                             pc = 0
                             statement = -1
                             regs = stack.base + base
+                            // A closure that names `self` has the cell of it, which it captured, in a register.
+                            if let register = code.selfRegister, let binding = lookup("self") {
+                                regs[Int(register)] = .object(CellBox(cell: binding.cell))
+                            }
                         } else {
                             let callee = regs[Int(calleeRegister)]
                             let value = try evaluateCall(site, .literal(callee), argumentBase)
@@ -437,10 +455,47 @@ extension Interpreter {
                             regs[Int(dst)] = result
                             pc += Int(offset)
                         }
-                    case .loadMember(let dst, let baseRegister, let name):
-                        let value = try loadMember(code.names[Int(name)], regs[Int(baseRegister)])
-                        regs = stack.base + base
-                        regs[Int(dst)] = value
+                    case .loadMember(let dst, let baseRegister, let name, let siteIndex):
+                        if let field = storedField(
+                            code.names[Int(name)],
+                            of: regs[Int(baseRegister)]
+                        ) {
+                            regs[Int(dst)] = field
+                            continue
+                        }
+                        var cursor = VMCursor(
+                            function: function,
+                            code: code,
+                            base: base,
+                            pc: pc,
+                            statement: statement
+                        )
+                        let operands = CallOperands(
+                            dst: dst,
+                            receiver: baseRegister,
+                            arguments: Register(code.frameSize),
+                            offset: 0
+                        )
+                        let read = try readMember(
+                            code.methods[Int(siteIndex)],
+                            code.names[Int(name)],
+                            operands,
+                            &cursor,
+                            stack
+                        )
+                        if let read {
+                            regs = stack.base + base
+                            regs[Int(dst)] = read
+                        } else {
+                            // A computed property's getter, which is a frame above this one's registers.
+                            (function, code, base, pc, statement) =
+                                (
+                                    cursor.function, cursor.code, cursor.base, cursor.pc,
+                                    cursor.statement
+                                )
+                            instructions = code.program
+                            regs = stack.base + base
+                        }
                     case .assignMember(let local, let siteIndex, let op, let value, let offset):
                         if setMember(
                             code.members[Int(siteIndex)],
@@ -491,6 +546,14 @@ extension Interpreter {
                         {
                             pc += Int(offset)
                         }
+                    case .callBridged(let dst, let siteIndex, let receiver, let arguments):
+                        let value = try callBridged(
+                            code.bridgedSites[Int(siteIndex)],
+                            receiver: receiver == Register.max ? nil : regs[Int(receiver)],
+                            arguments: base + Int(arguments)
+                        )
+                        regs = stack.base + base
+                        regs[Int(dst)] = value
                     case .loadGlobal(let dst, let siteIndex):
                         unowned(unsafe) let site = code.globalTable[Int(siteIndex)]
                             .takeUnretainedValue()
@@ -541,11 +604,16 @@ extension Interpreter {
                         if register == Register.max || regs[Int(register)] == .nothing {
                             task.failedInit = true
                         }
-                    case .returnValue(let register):
+                    case .returnValue, .returnNothing:
+                        let result: Value
+                        if case .returnValue(let register) = instruction {
+                            result = regs[Int(register)]
+                        } else {
+                            result = .nothing
+                        }
                         // The common return, to a frame of this loop with no task started: what `leave`
                         // does, without building a cursor.
                         if stack.callers.count > entryDepth, task.children.isEmpty {
-                            let result = regs[Int(register)]
                             unowned(unsafe) let finishedCode = code
                             VMStack.clear(regs, count: finishedCode.frameSize)
                             task.callDepth -= 1
@@ -562,12 +630,14 @@ extension Interpreter {
                                 setScopes(of: function, from: caller.callee, task)
                             }
                             stack.top = base + code.frameSize
+                            var made: Value?
                             if caller.isMethod {
-                                finishMethod(stack.methodExits.removeLast(), on: stack)
+                                made = try finishMethod(stack.methodExits.removeLast(), on: stack)
                             }
                             let conforming =
-                                finishedCode.returnKind.accepts(result)
-                                ? result : try conformed(result, to: caller.callee)
+                                try made
+                                ?? (finishedCode.returnKind.accepts(result)
+                                    ? result : conformed(result, to: caller.callee))
                             stack.base[caller.destination] = conforming
                             regs = stack.base + base
                             continue
@@ -579,34 +649,26 @@ extension Interpreter {
                             pc: pc,
                             statement: statement
                         )
-                        if let value = try leave(
-                            with: regs[Int(register)],
-                            &cursor,
-                            entryDepth: entryDepth,
-                            on: stack
-                        ) {
-                            return value
+                        let left: Value?
+                        do {
+                            left = try leave(
+                                with: result,
+                                &cursor,
+                                entryDepth: entryDepth,
+                                on: stack
+                            )
+                        } catch {
+                            // The frame is left before what finishes it fails: the error is the caller's.
+                            (function, code, base, pc, statement) =
+                                (
+                                    cursor.function, cursor.code, cursor.base, cursor.pc,
+                                    cursor.statement
+                                )
+                            instructions = code.program
+                            regs = stack.base + base
+                            throw error
                         }
-                        (function, code, base, pc, statement) =
-                            (cursor.function, cursor.code, cursor.base, cursor.pc, cursor.statement)
-                        instructions = code.program
-                        regs = stack.base + base
-                    case .returnNothing:
-                        var cursor = VMCursor(
-                            function: function,
-                            code: code,
-                            base: base,
-                            pc: pc,
-                            statement: statement
-                        )
-                        if let value = try leave(
-                            with: .nothing,
-                            &cursor,
-                            entryDepth: entryDepth,
-                            on: stack
-                        ) {
-                            return value
-                        }
+                        if let left { return left }
                         (function, code, base, pc, statement) =
                             (cursor.function, cursor.code, cursor.base, cursor.pc, cursor.statement)
                         instructions = code.program
@@ -614,77 +676,20 @@ extension Interpreter {
                     }
                 }
             } catch {
-                // The frames the error leaves, innermost first, each reporting it as the tree
-                // evaluator does: the statement it was in, and the call it ended. A frame that has
-                // code for it (a `catch`, a `defer`, a `try?`) goes on there instead.
-                var error = error
-                unwinding: while true {
-                    // An error caught inside an expression has not left the statement.
-                    let guarded = handler(in: code, at: pc - 1, for: error)
-                    if !code.isImplicitReturn, guarded?.isExpression != true,
-                        var runtime = error as? RuntimeError
-                    {
-                        if statement >= 0, let range = code.ranges[Int(statement)] {
-                            if runtime.range == nil {
-                                runtime.range = range
-                            } else if let last = runtime.calls.indices.last,
-                                runtime.calls[last].site == nil
-                            {
-                                runtime.calls[last].site = range
-                            }
-                        }
-                        error = runtime
-                    }
-                    if let handler = guarded {
-                        if handler.keepsError { stack.caught.append(error) }
-                        if let register = handler.register, let runtime = error as? RuntimeError {
-                            stack.base[base + Int(register)] = runtime.value
-                        }
-                        pc = handler.target
-                        regs = stack.base + base
-                        break unwinding
-                    }
-                    if !code.isImplicitReturn, !code.isProgram, var runtime = error as? RuntimeError
-                    {
-                        runtime.calls.append(
-                            RuntimeError.Call(function: function.name ?? "a closure", site: nil)
-                        )
-                        error = runtime
-                    }
-                    let leaving = function
-                    leaveFrame(function, code, base: base, stack)
-                    guard stack.callers.count > entryDepth else { throw error }
-                    let caller = stack.callers.removeLast()
-                    if caller.isMethod, stack.methodExits.removeLast().popsOwner {
-                        task.owners.removeLast()
-                    }
-                    function = caller.function
-                    code = caller.code
-                    instructions = code.program
-                    base = caller.base
-                    pc = caller.pc
-                    statement = caller.statement
-                    if let own = caller.scopes {
-                        task.scopes = own
-                    } else {
-                        setScopes(of: function, from: leaving, task)
-                    }
-                    stack.top = base + code.frameSize
-                }
+                var cursor = VMCursor(
+                    function: function,
+                    code: code,
+                    base: base,
+                    pc: pc,
+                    statement: statement
+                )
+                try unwind(error, &cursor, entryDepth: entryDepth, on: stack)
+                (function, code, base, pc, statement) =
+                    (cursor.function, cursor.code, cursor.base, cursor.pc, cursor.statement)
+                instructions = code.program
+                regs = stack.base + base
             }
         }
-    }
-
-    /// The code that deals with an error raised at instruction `pc` of `code`: the innermost handler
-    /// whose stretch has it and that catches this kind of error.
-    private func handler(in code: Code, at pc: Int, for error: Error) -> Handler? {
-        for handler in code.handlers.reversed() where handler.start <= pc && pc < handler.end {
-            switch handler.catches {
-            case .everything: return handler
-            case .runtimeErrors: if error is RuntimeError { return handler }
-            }
-        }
-        return nil
     }
 
     // swiftlint:enable cyclomatic_complexity function_body_length

@@ -50,11 +50,33 @@ final class MethodExit {
     /// The register, counted from the stack's start, a struct the method changed is stored back in;
     /// negative where it is not.
     let storeReceiverAt: Int
+    /// The cell of the caller's `self`, where a struct the method changed goes back when `self` was
+    /// the receiver.
+    let storeReceiverIn: Binding.Cell?
+    /// What an initializer's frame makes of the value it was run on when it returns.
+    let completion: Completion?
 
-    init(selfCell: Binding.Cell, popsOwner: Bool, storeReceiverAt: Int) {
+    /// The value a constructor's frame gives back in place of the initializer's result.
+    enum Completion {
+        /// A struct, its fields put in the order the type declares them.
+        case structValue(StructType)
+        /// A class's instance, which the initializer's superclass part completes; what `calledSuperInit`
+        /// was before the call, which is put back.
+        case classInstance(ClassInstance, Function, savedSuperInit: Bool)
+    }
+
+    init(
+        selfCell: Binding.Cell,
+        popsOwner: Bool,
+        storeReceiverAt: Int,
+        storeReceiverIn: Binding.Cell? = nil,
+        completion: Completion? = nil
+    ) {
         self.selfCell = selfCell
         self.popsOwner = popsOwner
         self.storeReceiverAt = storeReceiverAt
+        self.storeReceiverIn = storeReceiverIn
+        self.completion = completion
     }
 }
 

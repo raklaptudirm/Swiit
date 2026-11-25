@@ -31,9 +31,11 @@ extension Interpreter {
             setScopes(of: caller.function, from: callee, task)
         }
         stack.top = caller.base + caller.code.frameSize
-        if caller.isMethod { finishMethod(stack.methodExits.removeLast(), on: stack) }
+        var made: Value?
+        if caller.isMethod { made = try finishMethod(stack.methodExits.removeLast(), on: stack) }
         let conforming =
-            calleeCode.returnKind.accepts(result) ? result : try conformed(result, to: callee)
+            try made
+            ?? (calleeCode.returnKind.accepts(result) ? result : conformed(result, to: callee))
         stack.base[caller.destination] = conforming
         return nil
     }
@@ -75,6 +77,10 @@ extension Interpreter {
             if let binding = localBinding(name) { capture.bindings[name] = binding }
         }
         let scopes = task.scopes
+        // A name the closure's code names without writing it (`self`, which the checker puts before a
+        // member) is found where the closure was made, as the tree evaluator's closures find it.
+        let local = scopes.dropFirst(2)
+        capture.fallbacks = local.map { WeakScope(scope: $0) } + local.flatMap(\.fallbacks)
         var captured =
             scopes.count == 2 && capture.bindings.isEmpty
             ? scopes : Array(scopes.prefix(2)) + [capture]
@@ -114,9 +120,7 @@ extension Interpreter {
         } else {
             return nil
         }
-        guard only.parameters.count == arguments, let code = compiled(only), code.isPlain,
-            code.selfRegister == nil
-        else {
+        guard only.parameters.count == arguments, let code = compiled(only), code.isPlain else {
             return nil
         }
         return (only, code)
@@ -140,6 +144,11 @@ extension Interpreter {
             only = function
         } else if let set = callable as? OverloadSet, set.candidates.count == 1 {
             only = set.candidates[0]
+        } else if let set = callable as? OverloadSet, let chosen = site.overload,
+            set.candidates.indices.contains(chosen)
+        {
+            // The one the checker chose, as `narrowed` takes it.
+            only = set.candidates[chosen]
         } else {
             return nil
         }
@@ -482,21 +491,21 @@ extension Interpreter {
 }
 
 extension Interpreter {
-    /// `value.name`: a stored field of a struct is read where it is, and any other member by the
-    /// routine the tree evaluator reads them with.
+    /// `value.name` when it is a stored field of a struct or of a class's instance, read where it is as
+    /// `member(_:of:)` reads it first.
     @inline(__always)
-    func loadMember(_ name: String, _ value: Value) throws -> Value {
+    func storedField(_ name: String, of value: Value) -> Value? {
         switch value.storage {
         case .structure(let structure):
-            if let field = structure.record[name] { return field }
+            return structure.record[name]
         case .object(let object):
-            // A stored field of a class's instance, as `classMember` reads it first.
             if let instance = object as? ClassInstance, let stored = instance.storage[name] {
                 return read(stored)
             }
-        default: break
+            return nil
+        default:
+            return nil
         }
-        return try member(name, of: value)
     }
 }
 

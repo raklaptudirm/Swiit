@@ -193,7 +193,12 @@ extension Interpreter {
         defer { task.calledSuperInit = saved }
         let receiver = Receiver(.object(instance), mutable: true, initializing: true)
         try run(receiver)
-        // Without a `super.init(…)`, the superclass's `init()` runs after.
+        try completeInitialization(of: instance, by: initializer)
+    }
+
+    /// What follows an initializer's body: without a `super.init(…)` in it, the superclass's `init()`
+    /// runs on the instance.
+    func completeInitialization(of instance: ClassInstance, by initializer: Function) throws {
         if !initializer.isConvenience, !task.calledSuperInit, let owner = initializer.owner,
             let parent = owner.superclass, !task.failedInit
         {

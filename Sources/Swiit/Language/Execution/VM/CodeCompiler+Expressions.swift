@@ -59,7 +59,17 @@ extension CodeCompiler {
         case .member(let base, let name):
             let held = try operand(base)
             code.names.append(name)
-            emit(.loadMember(dst: destination, base: held, name: UInt32(code.names.count - 1)))
+            code.methods.append(
+                MethodSite(name: name, labels: [], mayMutate: false, isGetter: true)
+            )
+            emit(
+                .loadMember(
+                    dst: destination,
+                    base: held,
+                    name: UInt32(code.names.count - 1),
+                    site: UInt32(code.methods.count - 1)
+                )
+            )
         case .closure(let literal):
             try closure(literal, into: destination)
         case .await(let target, _):
@@ -68,6 +78,8 @@ extension CodeCompiler {
         case .attempt(let operand, let kind):
             try attempt(operand, kind, into: destination)
         case .bridged where try fastMember(expression, into: destination):
+            break
+        case .bridged where try bridgedCall(expression, into: destination):
             break
         case .call(.member(.variable("super"), let name), let arguments)
         where try superMethod(name, arguments, expression, into: destination):
@@ -98,6 +110,12 @@ extension CodeCompiler {
             return emit(.jumpUnlessCompare(op: op, lhs: register, value: small, offset: 0))
         }
         return emit(.jumpIfFalse(condition: try operand(condition), offset: 0))
+    }
+
+    /// The name a variable expression is, or an empty one.
+    func selfName(of expression: Expr) -> String {
+        if case .variable(let name) = expression { return name }
+        return ""
     }
 
     /// `name` is `self` in a body that keeps its cell in a register.
@@ -160,6 +178,46 @@ extension CodeCompiler {
         return true
     }
 
+    /// A call of a member of a Swift type that does not change its receiver: its receiver and arguments
+    /// are made here, so that a call among them is the loop's, and the member is run by `callBridged`.
+    /// False for what the tree evaluator must see the expressions of: a mutating member, a subscript, an
+    /// argument that is a `.case` or an `inout`.
+    mutating func bridgedCall(_ expression: Expr, into destination: Register) throws -> Bool {
+        guard case .bridged(let type, let index, let receiver, let arguments) = expression,
+            let members = bridged[type]?.lowered, index < members.count,
+            case let member = members[index], !member.isMutating, member.name != "subscript"
+        else { return false }
+        for argument in arguments {
+            switch argument.value {
+            case .caseLiteral, .inoutArgument: return false
+            default: break
+            }
+        }
+        let mark = nextTemporary
+        defer { nextTemporary = mark }
+        var held = Register.max
+        if let receiver {
+            held = try allocate()
+            try self.expression(receiver, into: held)
+        }
+        let first = Register(nextTemporary)
+        for argument in arguments {
+            try self.expression(argument.value, into: try allocate())
+        }
+        code.bridgedSites.append(
+            BridgedSite(type: type, member: index, labels: arguments.map(\.label))
+        )
+        emit(
+            .callBridged(
+                dst: destination,
+                site: UInt32(code.bridgedSites.count - 1),
+                receiver: held,
+                arguments: first
+            )
+        )
+        return true
+    }
+
     /// `super.name(arguments)` in a method: run by `callMethod` on `self` when the class above has one
     /// plain method of that name, and by the tree evaluator, which follows it, where not.
     mutating func superMethod(
@@ -217,22 +275,34 @@ extension CodeCompiler {
         case .variable(let name): held = lookup(name)
         default: break
         }
-        guard let held, !held.boxed, !weakSlots.contains(Int(held.slot)),
+        // `self.name(…)`, which a bare `name(…)` in a method is: on the value in the cell of `self`.
+        let onSelf = held == nil && namesSelfRegister(selfName(of: base))
+        guard onSelf || (held.map { !$0.boxed && !weakSlots.contains(Int($0.slot)) } ?? false),
             arguments.allSatisfy({ isPure($0.value) })
         else { return false }
         let mark = nextTemporary
+        var receiver = held?.slot ?? 0
+        if onSelf, let cell = code.selfRegister {
+            receiver = try allocate()
+            emit(.loadCell(dst: receiver, box: cell))
+        }
         let first = Register(nextTemporary)
         for argument in arguments {
             try self.expression(argument.value, into: try allocate())
         }
         code.methods.append(
-            MethodSite(name: name, labels: arguments.map(\.label), mayMutate: held.mutable)
+            MethodSite(
+                name: name,
+                labels: arguments.map(\.label),
+                mayMutate: onSelf ? changesSelf : held?.mutable ?? false,
+                receiverIsSelf: onSelf
+            )
         )
         let fast = emit(
             .callMethod(
                 dst: destination,
                 site: UInt32(code.methods.count - 1),
-                receiver: held.slot,
+                receiver: receiver,
                 arguments: first,
                 offset: 0
             )
@@ -341,7 +411,11 @@ extension CodeCompiler {
         into destination: Register
     ) throws -> Bool {
         var named = callee
-        if case .chosen(let inner, _) = callee { named = inner }
+        var overload: Int?
+        if case .chosen(let inner, let index) = callee {
+            named = inner
+            overload = index
+        }
         enum Target {
             case name(String)
             case member
@@ -396,7 +470,14 @@ extension CodeCompiler {
         }
         var name: String?
         if case .name(let called) = target { name = called }
-        code.callSites.append(CallSite(name: name, callee: callee, labels: arguments.map(\.label)))
+        code.callSites.append(
+            CallSite(
+                name: name,
+                callee: callee,
+                labels: arguments.map(\.label),
+                overload: overload
+            )
+        )
         let site = UInt32(code.callSites.count - 1)
         if case .value(let held) = target {
             emit(.callValue(dst: destination, callee: held, site: site, arguments: first))

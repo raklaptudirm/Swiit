@@ -335,4 +335,110 @@ let vmEntered: [VMSample] = [
             """,
         compiles: ["f", "run"]
     ),
+    VMSample(
+        name:
+            "constructors with initializer bodies, and overloaded functions the checker chose between",
+        source: """
+            struct P {
+                var x: Int
+                var y = 5
+                init(x: Int) { self.x = x * 2 }
+                init(a: Int, b: Int) { self.x = a; self.y = b }
+            }
+            class K {
+                var n: Int
+                var tag = "k"
+                init(n: Int) { self.n = n + 1 }
+            }
+            func show(_ n: Int) -> Int { n + 1 }
+            func show(_ s: String) -> Int { s.count }
+            func show(_ d: Double) -> Int { Int(d) * 3 }
+            func f() -> Int {
+                var t = 0
+                for i in 0..<4 {
+                    let p = P(x: i)
+                    let q = P(a: i, b: 2)
+                    let k = K(n: i)
+                    t += p.x + p.y + q.y + k.n + k.tag.count + show(i) + show("ab") + show(1.5)
+                }
+                return t
+            }
+            f()
+            """,
+        compiles: ["f"]
+    ),
+    VMSample(
+        name: "computed properties read in a loop: a struct's, a class's, one that reads another",
+        source: """
+            struct R {
+                var w: Int
+                var h: Int
+                var area: Int { w * h }
+                var doubled: Int { area * 2 }
+                var label: String { "\\(w)x\\(h)" }
+            }
+            class C {
+                var n = 3
+                var next: Int { n + 1 }
+                var both: Int { next + n }
+            }
+            func f() -> Int {
+                var r = R(w: 2, h: 3)
+                let c = C()
+                var t = 0
+                for i in 0..<4 {
+                    r.w += i
+                    c.n += 1
+                    t += r.area + r.doubled + r.label.count + c.next + c.both
+                }
+                return t
+            }
+            f()
+            """,
+        compiles: ["f"]
+    ),
+    VMSample(
+        name: "closures that name self, made in a method and called by the loop",
+        source: """
+            struct S {
+                var k = 4
+                func adder() -> (Int) -> Int { { x in x + self.k } }
+                func run(_ n: Int) -> Int {
+                    let add = adder()
+                    var t = 0
+                    for i in 0..<n { t += add(i) + self.k }
+                    return t
+                }
+            }
+            func f() -> Int {
+                let s = S()
+                let g = s.adder()
+                var t = s.run(4)
+                for i in 0..<3 { t += g(i) }
+                return t
+            }
+            f()
+            """,
+        compiles: ["f"]
+    ),
+    VMSample(
+        name: "calls among the arguments of conversions and of members of Swift types",
+        source: """
+            struct M { var k = 1; func g(_ x: Int) -> Int { (x + k) * 2 } }
+            func sq(_ n: Int) -> Int { n * n }
+            func f() -> Double {
+                let m = M()
+                var t = 0.0
+                var s = ""
+                for i in 0..<4 {
+                    t += Double(m.g(i)) + Double(sq(i))
+                    s += String(sq(i)) + "-"
+                    t += Double(max(sq(i), m.g(i)))
+                }
+                return t + Double(s.count) + Double("12".count + sq(2))
+            }
+            f()
+            """,
+        compiles: ["f"]
+    ),
 ]
