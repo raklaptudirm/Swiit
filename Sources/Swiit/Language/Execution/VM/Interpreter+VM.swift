@@ -30,7 +30,7 @@ extension Function {
     /// captured, whose parameters are taken as they come.
     var isCompilable: Bool {
         guard case .swiit(let program) = body else { return false }
-        return program.frameSize != nil && !(name != nil && captured.count > 2) && effect == .sync
+        return program.frameSize != nil && !(name != nil && captured.count > 2)
     }
 }
 
@@ -438,8 +438,8 @@ extension Interpreter {
                     case .runTree(let node):
                         _ = try runTree(code.trees[Int(node)], base: base, on: stack)
                         regs = stack.base + base
-                    case .iterate(let dst, let sequence):
-                        let iteration = try makeIteration(regs[Int(sequence)])
+                    case .iterate(let dst, let sequence, let awaiting):
+                        let iteration = try makeIteration(regs[Int(sequence)], awaiting: awaiting)
                         regs = stack.base + base
                         regs[Int(dst)] = .object(iteration)
                     case .iterateNext(let iterator, let variable, let exit):

@@ -64,7 +64,7 @@ extension Interpreter {
 
     /// What `for x in value` reads: the elements of a collection, the characters of a string, the
     /// entries of a dictionary, a task group's results, or what the value's own iterator gives.
-    func makeIteration(_ value: Value) throws -> IterationBox {
+    func makeIteration(_ value: Value, awaiting: Bool) throws -> IterationBox {
         if let read = Interpreter.taskGroupReader(of: value) { return IterationBox(read) }
         if case .dictionary(let dictionary) = value.storage {
             // In the order they are shown in, which is the same every run.
@@ -80,7 +80,7 @@ extension Interpreter {
             return IterationBox { characters.next().map { .string(String($0)) } }
         }
         if var items = Interpreter.items(of: value) { return IterationBox { items.next() } }
-        if let next = try iterator(of: value, awaiting: false) { return IterationBox(next) }
+        if let next = try iterator(of: value, awaiting: awaiting) { return IterationBox(next) }
         throw RuntimeError("can't iterate over \(value.typeName)")
     }
 }

@@ -266,7 +266,6 @@ extension CodeCompiler {
     }
 
     private mutating func forLoop(_ loop: ForLoop, _ statement: Statement) throws {
-        guard !loop.isAwait else { throw Unsupported("a for await") }
         if case .binary(let op, let lower, let upper) = loop.sequence,
             op == .closedRange || op == .halfOpenRange
         {
@@ -352,7 +351,7 @@ extension CodeCompiler {
         let iterator = try allocate()
         let element = try allocate()
         let sequence = try operand(loop.sequence)
-        emit(.iterate(dst: iterator, sequence: sequence))
+        emit(.iterate(dst: iterator, sequence: sequence, awaiting: loop.isAwait))
         let head = here
         let next = emit(
             .iterateNext(

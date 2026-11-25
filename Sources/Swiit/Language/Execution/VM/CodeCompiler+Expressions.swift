@@ -56,6 +56,9 @@ extension CodeCompiler {
             emit(.evaluate(dst: destination, expression: UInt32(code.expressions.count - 1)))
         case .closure(let literal):
             try closure(literal, into: destination)
+        case .await(let target, _):
+            // The interpreter waits at every wait, so `await f()` is what `f()` gives.
+            try self.expression(target, into: destination)
         case .attempt(let operand, let kind):
             try attempt(operand, kind, into: destination)
         case .call(let callee, let arguments):

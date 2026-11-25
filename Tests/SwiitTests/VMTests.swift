@@ -161,7 +161,7 @@ private let programs: [VMSample] = [
 /// The programs of every file, which one test runs on both engines.
 private let everyProgram: [VMSample] = [
     programs, vmControlFlow, vmMoreControlFlow, vmClosures, vmRuntimeNodes, vmKinds,
-    vmParameterKinds,
+    vmParameterKinds, vmAsync,
 ]
 .flatMap { $0 }
 
@@ -258,6 +258,7 @@ private let failing: [VMSample] = [
 
 private let everyFailingProgram: [VMSample] = [
     failing, vmFailingControlFlow, vmFailingClosures, vmFailingRuntimeNodes, vmFailingKinds,
+    vmAsyncFailing,
 ]
 .flatMap { $0 }
 

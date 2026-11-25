@@ -126,7 +126,7 @@ enum Instruction {
 
     /// `for x in s`: the iterator over a collection, a string, a dictionary or whatever `makeIterator`
     /// gives.
-    case iterate(dst: Register, sequence: Register)
+    case iterate(dst: Register, sequence: Register, awaiting: Bool)
     /// The next element into `variable`, or a jump out of the loop.
     case iterateNext(iterator: Register, variable: Register, exit: Int32)
     /// An element that did not fit the pattern of a `for`.
