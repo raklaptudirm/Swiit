@@ -40,9 +40,8 @@ struct VMCaller {
     var isMethod = false
 }
 
-/// What returning from a method the loop called undoes besides leaving its frame. A class, so that the
-/// record of a call that is not one is a word.
-final class MethodExit {
+/// What returning from a method the loop called undoes besides leaving its frame.
+struct MethodExit {
     /// The cell of `self` in the scope of the call, which the receiver is read back from.
     let selfCell: Binding.Cell
     /// The call pushed the class whose body it is, for `super`.
@@ -52,9 +51,9 @@ final class MethodExit {
     let storeReceiverAt: Int
     /// The cell of the caller's `self`, where a struct the method changed goes back when `self` was
     /// the receiver.
-    let storeReceiverIn: Binding.Cell?
+    var storeReceiverIn: Binding.Cell?
     /// What an initializer's frame makes of the value it was run on when it returns.
-    let completion: Completion?
+    var completion: Completion?
 
     /// The value a constructor's frame gives back in place of the initializer's result.
     enum Completion {
@@ -65,19 +64,6 @@ final class MethodExit {
         case classInstance(ClassInstance, Function, savedSuperInit: Bool)
     }
 
-    init(
-        selfCell: Binding.Cell,
-        popsOwner: Bool,
-        storeReceiverAt: Int,
-        storeReceiverIn: Binding.Cell? = nil,
-        completion: Completion? = nil
-    ) {
-        self.selfCell = selfCell
-        self.popsOwner = popsOwner
-        self.storeReceiverAt = storeReceiverAt
-        self.storeReceiverIn = storeReceiverIn
-        self.completion = completion
-    }
 }
 
 /// The registers of a task's compiled code, one frame after another, and where each caller was. A

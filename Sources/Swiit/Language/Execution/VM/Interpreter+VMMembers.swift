@@ -229,13 +229,15 @@ extension Interpreter {
         storeAt: Int,
         storeIn: Binding.Cell?
     ) -> MethodExit {
-        let made = Scope()
         let binding = Binding(
             value: receiver,
             mutable: target.isClass || target.function.isMutating,
             special: nil
         )
-        made.bindings["self"] = binding
+        // A scope made for a call is seen by nothing made before it, so the names are not changed.
+        var table = BindingTable(capacity: 1)
+        table["self"] = binding
+        let made = Scope(table: table)
         var inside = target.function.captured
         inside.append(made)
         task.scopes = inside
@@ -427,7 +429,7 @@ extension Interpreter {
         if site.receiverIsSelf, let register = cursor.code.selfRegister,
             case .object(let object) = stack.base[cursor.base + Int(register)].storage
         {
-            storeIn = (object as? CellBox)?.cell
+            storeIn = object as? Binding.Cell
         }
         let exit = enterMethodScope(
             target,
@@ -460,7 +462,7 @@ extension Interpreter {
             statement: -1
         )
         if let register = target.code.selfRegister {
-            stack.base[argumentBase + Int(register)] = .object(CellBox(cell: exit.selfCell))
+            stack.base[argumentBase + Int(register)] = .object(exit.selfCell)
         }
         return true
     }

@@ -419,7 +419,7 @@ extension Interpreter {
                             regs = stack.base + base
                             // A closure that names `self` has the cell of it, which it captured, in a register.
                             if let register = code.selfRegister, let binding = lookup("self") {
-                                regs[Int(register)] = .object(CellBox(cell: binding.cell))
+                                regs[Int(register)] = .object(binding.cell)
                             }
                         } else {
                             let callee = regs[Int(calleeRegister)]
@@ -428,7 +428,7 @@ extension Interpreter {
                             regs[Int(dst)] = value
                         }
                     case .box(let register):
-                        regs[Int(register)] = .object(CellBox(regs[Int(register)]))
+                        regs[Int(register)] = .object(Binding.Cell(regs[Int(register)]))
                     case .loadCell(let dst, let box):
                         regs[Int(dst)] = try cell(regs[Int(box)]).value
                     case .derefWeak(let register):
@@ -536,10 +536,10 @@ extension Interpreter {
                         }
                     case .assignSelfMember(let cell, let siteIndex, let op, let value, let offset):
                         if case .object(let object) = regs[Int(cell)].storage,
-                            let box = object as? CellBox,
+                            let cell = object as? Binding.Cell,
                             setMember(
                                 code.members[Int(siteIndex)],
-                                in: box.cell,
+                                in: cell,
                                 op,
                                 regs[Int(value)]
                             )

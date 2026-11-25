@@ -26,11 +26,11 @@ extension Interpreter {
         for local in node.locals {
             let index = base + Int(local.slot)
             if local.boxed, case .object(let object) = stack.base[index].storage,
-                let box = object as? CellBox
+                let cell = object as? Binding.Cell
             {
                 frame.bind(
                     local.name,
-                    Binding(cell: box.cell, mutable: local.mutable),
+                    Binding(cell: cell, mutable: local.mutable),
                     at: Int(local.slot)
                 )
             } else {

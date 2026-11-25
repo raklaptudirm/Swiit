@@ -52,10 +52,10 @@ extension Interpreter {
 
     /// The cell a captured local is kept in.
     func cell(_ value: Value) throws -> Binding.Cell {
-        guard case .object(let object) = value.storage, let box = object as? CellBox else {
+        guard case .object(let object) = value.storage, let cell = object as? Binding.Cell else {
             throw RuntimeError("a captured variable lost its cell")
         }
-        return box.cell
+        return cell
     }
 
     /// A closure, as the tree evaluator makes one: it keeps the global scopes, the cells of the
@@ -258,7 +258,7 @@ extension Interpreter {
         if !code.isProgram { task.callDepth += 1 }
         task.frame = nil
         if let register = code.selfRegister, let binding = lookup("self") {
-            stack.base[base + Int(register)] = .object(CellBox(cell: binding.cell))
+            stack.base[base + Int(register)] = .object(binding.cell)
         }
         defer {
             if let receiver, let changed = own?.bindings["self"]?.value { receiver.value = changed }

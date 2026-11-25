@@ -224,9 +224,10 @@ extension Interpreter {
     ) {
         let (initializer, code, receiver, completion) =
             (frame.initializer, frame.code, frame.receiver, frame.completion)
-        let made = Scope()
         let binding = Binding(value: receiver, mutable: true, special: .initializing)
-        made.bindings["self"] = binding
+        var table = BindingTable(capacity: 1)
+        table["self"] = binding
+        let made = Scope(table: table)
         let saved = task.scopes
         var inside = initializer.captured
         inside.append(made)
@@ -265,7 +266,7 @@ extension Interpreter {
             statement: -1
         )
         if let register = code.selfRegister {
-            stack.base[call.argumentBase + Int(register)] = .object(CellBox(cell: binding.cell))
+            stack.base[call.argumentBase + Int(register)] = .object(binding.cell)
         }
     }
 }
