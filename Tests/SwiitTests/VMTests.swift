@@ -162,6 +162,7 @@ private let programs: [VMSample] = [
 private let everyProgram: [VMSample] = [
     programs, vmControlFlow, vmMoreControlFlow, vmClosures, vmRuntimeNodes, vmKinds,
     vmParameterKinds, vmAsync, vmTopLevel, vmFastMembers, vmStructMembers, vmClasses, vmEntered,
+    vmCallbacks,
 ]
 .flatMap { $0 }
 
@@ -263,7 +264,7 @@ private let failing: [VMSample] = [
 private let everyFailingProgram: [VMSample] = [
     failing, vmFailingControlFlow, vmFailingClosures, vmFailingRuntimeNodes, vmFailingKinds,
     vmAsyncFailing, vmFailingTopLevel, vmFailingFastMembers, vmFailingStructMembers,
-    vmFailingClasses,
+    vmFailingClasses, vmFailingCallbacks,
 ]
 .flatMap { $0 }
 

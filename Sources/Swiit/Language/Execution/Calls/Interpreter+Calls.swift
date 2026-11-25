@@ -228,6 +228,7 @@ extension Interpreter {
     }
 
     private func callFunctionValue(_ value: Value, with arguments: [Value]) throws -> Value {
+        if let result = try callPlainClosure(value, arguments) { return result }
         let positional = arguments.map { Argument(label: nil, value: .literal($0)) }
         // A function's type has no labels, so those of the function itself are the ones to use.
         let unlabeled = self.unlabeled(positional, for: value)

@@ -442,3 +442,57 @@ let vmEntered: [VMSample] = [
         compiles: ["f"]
     ),
 ]
+
+/// Closures and functions that Swift's own members call back: `map`, `filter`, `reduce`, `sorted`,
+/// `forEach`, `contains`, which the loop is not the caller of.
+let vmCallbacks: [VMSample] = [
+    VMSample(
+        name: "closures called by map, filter, reduce, sorted, forEach and contains",
+        source: """
+            func twice(_ n: Int) -> Int { n * 2 }
+            struct W { var k: Int; func scale(_ n: Int) -> Int { n * k } }
+            func f(_ n: Int) -> Int {
+                let xs = Array(0..<n)
+                let w = W(k: 3)
+                var seen = 0
+                xs.forEach { seen += $0 }
+                let a = xs.map { $0 + 1 }.filter { $0 % 2 == 0 }.reduce(0) { $0 + $1 }
+                let b = xs.map(twice).sorted { $0 > $1 }.first ?? 0
+                let c = xs.map { w.scale($0) }.reduce(0, +)
+                let d = xs.contains { $0 == n - 1 } ? 1 : 0
+                let e = xs.map { Double($0) / 2 }.reduce(0.0) { $0 + $1 }
+                return a + b + c + d + seen + Int(e)
+            }
+            f(20)
+            """,
+        compiles: ["f", "twice"]
+    ),
+    VMSample(
+        name: "a closure that captures a variable it changes, and one that names self",
+        source: """
+            struct C {
+                var base = 10
+                func total(_ xs: [Int]) -> Int { xs.map { $0 + self.base }.reduce(0, +) }
+            }
+            func f() -> Int {
+                var count = 0
+                let xs = [1, 2, 3, 4]
+                let doubled = xs.map { x -> Int in count += 1; return x * 2 }
+                return doubled.reduce(0, +) * 100 + count + C().total(xs)
+            }
+            f()
+            """,
+        compiles: ["f"]
+    ),
+]
+
+let vmFailingCallbacks: [VMSample] = [
+    VMSample(
+        name: "a closure called by map that fails",
+        source: """
+            func f(_ d: Int) -> [Int] { [1, 2, 3].map { 6 / (d - $0) } }
+            f(2)
+            """,
+        compiles: ["f"]
+    )
+]

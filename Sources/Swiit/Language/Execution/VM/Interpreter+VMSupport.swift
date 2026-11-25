@@ -636,3 +636,37 @@ extension Interpreter {
         }
     }
 }
+
+extension Interpreter {
+    /// A closure or function a native body calls with `arguments`, run by the VM from the values and not
+    /// through a table of names: when it is one the loop runs (`Code.isPlain`) and takes as many
+    /// arguments as it is given. What `invoke` does, in the same steps; nil, with nothing done,
+    /// where it is not that.
+    func callPlainClosure(_ value: Value, _ arguments: [Value]) throws -> Value? {
+        guard engine == .vm, case .function(let callable) = value.storage else { return nil }
+        let function: Function
+        if let single = callable as? Function {
+            function = single
+        } else if let set = callable as? OverloadSet, set.candidates.count == 1 {
+            function = set.candidates[0]
+        } else {
+            return nil
+        }
+        guard case .swiit = function.body, function.parameters.count == arguments.count,
+            function.inoutNames.isEmpty, let code = compiled(function), code.isPlain
+        else { return nil }
+        let maxCallDepth = task.run.maxCallDepth
+        guard task.callDepth < maxCallDepth else {
+            throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
+        }
+        try checkInterrupt()
+        defer { task.lastCallee = function }
+        // The arguments are written where the parameters of the new frame will be.
+        let stack = task.vm
+        let base = stack.top
+        stack.ensure(base + max(code.frameSize, arguments.count))
+        for (index, argument) in arguments.enumerated() { stack.base[base + index] = argument }
+        try checkArguments(of: function, code, at: base)
+        return try runCompiled(function, code, with: [:], argumentsAt: base)
+    }
+}
