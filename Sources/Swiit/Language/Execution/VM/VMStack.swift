@@ -2,17 +2,30 @@ import Foundation
 
 /// Where a frame is: the function, its code, its registers, and the next instruction.
 struct VMCursor {
-    var function: Function
-    var code: Code
+    // Not counted: the frame that is running is held by the `VMCaller` above it (or by the entry).
+    unowned(unsafe) var function: Function
+    unowned(unsafe) var code: Code
     var base: Int
     var pc: Int
     var statement: Int32
 }
 
+/// What a call site calls, found without leaving the loop.
+struct VMTarget {
+    let function: Function
+    let code: Code
+    /// It runs in the scopes the caller does, which are then left as they are.
+    let sharesScopes: Bool
+}
+
 /// A caller's place while the function it called runs.
 struct VMCaller {
-    var code: Code
-    var function: Function
+    // Not counted: the caller is held by the frame under this one, or is the entry.
+    unowned(unsafe) var code: Code
+    unowned(unsafe) var function: Function
+    /// The function this call runs, which keeps it alive while it does: the loop does not count the
+    /// function it is in.
+    var callee: Function
     var pc: Int
     var base: Int
     var statement: Int32
@@ -21,6 +34,8 @@ struct VMCaller {
     /// The scopes the caller ran in, when it had a scope of its own (a method's `self`, a generic
     /// function's types) that is not what it captured; nil otherwise.
     var scopes: [Scope]?
+    /// The call left the scopes as they were, so returning leaves them so.
+    var sameScopes = false
 }
 
 /// The registers of a task's compiled code, one frame after another, and where each caller was. A
@@ -46,6 +61,18 @@ final class VMStack {
     deinit {
         base.deinitialize(count: capacity)
         base.deallocate()
+    }
+
+    /// The registers `first..<first + count` let go. One that holds a number, a Bool or nothing holds no
+    /// reference, and is left as it is.
+    @inline(__always)
+    static func clear(_ first: UnsafeMutablePointer<Value>, count: Int) {
+        for index in 0..<count {
+            switch first[index].storage {
+            case .nothing, .bool, .int, .double: continue
+            default: first[index] = .nothing
+            }
+        }
     }
 
     /// Room for `needed` registers. A stack that grows moves, so a pointer into it is taken again

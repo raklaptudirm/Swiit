@@ -41,6 +41,8 @@ enum Instruction {
     // MARK: Operators
 
     case binary(op: BinaryOperator, dst: Register, lhs: Register, rhs: Register)
+    /// `binary` whose right operand is the integer written in it, so that a constant is not loaded.
+    case binaryImmediate(op: BinaryOperator, dst: Register, lhs: Register, value: Int32)
     case unary(op: UnaryOperator, dst: Register, src: Register)
     /// `a && b` and `a || b`: the left operand must be a Bool, and when it settles the result the
     /// code jumps over the right one, leaving it in the register.
@@ -58,6 +60,9 @@ enum Instruction {
     case jump(offset: Int32)
     /// A condition: jumps when it is false, and it must be a Bool.
     case jumpIfFalse(condition: Register, offset: Int32)
+    /// `jumpIfFalse` of a comparison of a register with an integer written in the code, in one
+    /// instruction: `op` is one of the six comparisons.
+    case jumpUnlessCompare(op: BinaryOperator, lhs: Register, value: Int32, offset: Int32)
     case jumpIfTrue(condition: Register, offset: Int32)
     /// `for i in a..<b`: reads the Int bounds from `lower` and `upper` and leaves the range in the two
     /// registers from `counter` (the next value and the end).
@@ -229,6 +234,22 @@ final class CallSite {
     /// calls the same function nearly every time.
     @exclusivity(unchecked) var lastFunction: Function?
     @exclusivity(unchecked) var lastFits = false
+    /// What it called, and from which function when the scopes had this version: while neither has
+    /// changed, the name need not be looked up again.
+    @exclusivity(unchecked) var cached: Cached?
+
+    /// The same, in what the loop reads without counting a reference: `cached` keeps them alive.
+    @exclusivity(unchecked) var cachedCaller: ObjectIdentifier?
+    @exclusivity(unchecked) var cachedVersion = -1
+    @exclusivity(unchecked) var cachedCallee: Unmanaged<Function>?
+    @exclusivity(unchecked) var cachedCode: Unmanaged<Code>?
+    @exclusivity(unchecked) var cachedSharesScopes = false
+
+    struct Cached {
+        let caller: Function
+        let callee: Function
+        let code: Code
+    }
 
     init(name: String?, callee: Expr, labels: [String?]) {
         self.name = name
@@ -293,42 +314,78 @@ enum ParameterKind: UInt8 {
         default: false
         }
     }
+
+    /// `accepts` for the value in a register, which is not copied to be looked at.
+    @inline(__always)
+    func accepts(at register: UnsafeMutablePointer<Value>) -> Bool {
+        switch self {
+        case .any: true
+        case .int: if case .int = register.pointee.storage { true } else { false }
+        case .double: if case .double = register.pointee.storage { true } else { false }
+        case .bool: if case .bool = register.pointee.storage { true } else { false }
+        case .string: if case .string = register.pointee.storage { true } else { false }
+        case .other: false
+        }
+    }
 }
 
 /// What a function body compiled to.
 final class Code {
-    var instructions: [Instruction] = []
-    var constants: [Value] = []
-    var names: [String] = []
-    var types: [TypeExpression] = []
-    var statements: [Statement] = []
-    var expressions: [Expr] = []
-    var callSites: [CallSite] = []
-    var patterns: [PatternSite] = []
-    var closures: [ClosureSite] = []
-    var trees: [TreeNode] = []
+    @exclusivity(unchecked) var instructions: [Instruction] = []
+    /// The instructions again, in memory the loop reads without counting a reference: made by `seal`
+    /// when the compiler is done, and alive as long as the code is.
+    @exclusivity(unchecked) private(set) var program = UnsafeMutablePointer<Instruction>
+        .allocate(capacity: 1)
+    private var programCount = 1
+
+    /// The compiler is done: `instructions` will not change.
+    func seal() {
+        program.deallocate()
+        programCount = instructions.count
+        program = .allocate(capacity: max(1, programCount))
+        program.initialize(from: instructions, count: programCount)
+    }
+
+    deinit {
+        program.deallocate()
+    }
+    @exclusivity(unchecked) var constants: [Value] = []
+    @exclusivity(unchecked) var names: [String] = []
+    @exclusivity(unchecked) var types: [TypeExpression] = []
+    @exclusivity(unchecked) var statements: [Statement] = []
+    @exclusivity(unchecked) var expressions: [Expr] = []
+    @exclusivity(unchecked) var callSites: [CallSite] = [] {
+        didSet { callSiteTable = callSites.map(Unmanaged.passUnretained) }
+    }
+    /// `callSites`, read without counting a reference: the sites are kept alive by `callSites`.
+    @exclusivity(unchecked) private(set) var callSiteTable: [Unmanaged<CallSite>] = []
+    @exclusivity(unchecked) var patterns: [PatternSite] = []
+    @exclusivity(unchecked) var closures: [ClosureSite] = []
+    @exclusivity(unchecked) var trees: [TreeNode] = []
     /// Assignments to what is not a local, which `assignByName` makes with the value it is given.
-    var assignments: [Assignment] = []
+    @exclusivity(unchecked) var assignments: [Assignment] = []
     /// Innermost last: those that start later are inside those that start earlier.
-    var handlers: [Handler] = []
+    @exclusivity(unchecked) var handlers: [Handler] = []
     /// The source range of each statement a `step` or `at` names; nil where the program had none.
-    var ranges: [SourceRange?] = []
+    @exclusivity(unchecked) var ranges: [SourceRange?] = []
     /// How many registers a run of it uses: the locals the frame resolver counted, then temporaries.
-    var frameSize = 0
-    var parameterCount = 0
+    @exclusivity(unchecked) var frameSize = 0
+    @exclusivity(unchecked) var parameterCount = 0
     /// What each parameter asks of an argument, for the common types a call can check at a glance.
-    var parameterKinds: [ParameterKind] = []
+    @exclusivity(unchecked) var parameterKinds: [ParameterKind] = []
+    /// What the function says it gives back, when a result of that kind needs no `conform`.
+    @exclusivity(unchecked) var returnKind = ParameterKind.any
     /// The body is one expression that is the result (a closure's, or a short function's), which the
     /// tree evaluator runs without counting a statement: so does the VM.
-    var isImplicitReturn = false
+    @exclusivity(unchecked) var isImplicitReturn = false
     /// The VM's loop may call it with the arguments as written, in registers, and it runs in the
     /// scopes it captured: false for what has a scope of its own (a method's `self`, a generic
     /// function's types) and for what binds its arguments in a way of its own (a variadic parameter
     /// gathers them in a list, an `@autoclosure` one wraps the argument).
-    var isPlain = true
+    @exclusivity(unchecked) var isPlain = true
     /// An initializer that may fail, whose `return nil` ends the construction.
-    var isFailable = false
+    @exclusivity(unchecked) var isFailable = false
     /// A statement of a program's own code, not a function: it is no call, so it adds no entry to an
     /// error's calls and no depth to the call stack.
-    var isProgram = false
+    @exclusivity(unchecked) var isProgram = false
 }

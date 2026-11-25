@@ -19,7 +19,7 @@ public final class Interpreter: @unchecked Sendable {
     /// What `await` waits for, if the host has anything to wait for.
 
     /// The task running now: its call stack and cancellation (TaskContext.swift).
-    var task: TaskContext
+    @exclusivity(unchecked) var task: TaskContext
     /// The first task: the host's own (the host's prompt, an embedder's `eval`).
     let mainTask = TaskContext(globals: [Scope(), Scope()])
     /// What Swiit code runs under, one task at a time (InterpreterLock.swift).

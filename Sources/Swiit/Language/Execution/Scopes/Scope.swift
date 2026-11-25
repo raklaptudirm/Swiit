@@ -70,10 +70,17 @@ struct Binding {
     }
 }
 
+// safe: touched only holding the interpreter lock, as the scopes are
+/// Counts every change to the names of any scope, so that what a call site worked out from the names
+/// (the function a name is bound to) is known to hold while it has not moved.
+@exclusivity(unchecked) nonisolated(unsafe) var scopeVersion = 0
+
 /// A reference type so closures share variables with the scope they
 /// captured, as in Swift.
 final class Scope {
-    var bindings: BindingTable
+    var bindings: BindingTable {
+        didSet { scopeVersion &+= 1 }
+    }
     /// For a closure's scope: where it was made, held weakly so it can't
     /// keep them alive, for names bound there after it was made (a local
     /// function declared further down).

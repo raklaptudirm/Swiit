@@ -14,7 +14,8 @@ extension Interpreter {
         on stack: VMStack
     ) throws -> Value? {
         let callee = cursor.function
-        leaveFrame(callee, cursor.code, base: cursor.base, stack)
+        let calleeCode = cursor.code
+        leaveFrame(callee, calleeCode, base: cursor.base, stack)
         if stack.callers.count == entryDepth { return result }
         let caller = stack.callers.removeLast()
         cursor = VMCursor(
@@ -26,13 +27,24 @@ extension Interpreter {
         )
         if let own = caller.scopes {
             task.scopes = own
-        } else {
+        } else if !caller.sameScopes {
             setScopes(of: caller.function, from: callee, task)
         }
         stack.top = caller.base + caller.code.frameSize
-        let conforming = try conformed(result, to: callee)
+        let conforming =
+            calleeCode.returnKind.accepts(result) ? result : try conformed(result, to: callee)
         stack.base[caller.destination] = conforming
         return nil
+    }
+
+    /// `checkInterrupt` for the loop, which has the task and its run in hand.
+    @inline(__always)
+    func tick(_ task: TaskContext, _ run: RunState) throws {
+        if hasPendingDeinits { runPendingDeinits() }
+        run.steps += 1
+        if task.cancellation.isSet { throw Cancelled() }
+        run.stepsUntilCheck -= 1
+        if run.stepsUntilCheck <= 0 { try checkLimits() }
     }
 
     /// The cell a captured local is kept in.
@@ -109,7 +121,7 @@ extension Interpreter {
 
     /// The function a call site calls, when the VM can call it without leaving its loop: the one
     /// function the name is bound to, compiled, taking these arguments as written.
-    func vmTarget(of site: CallSite) -> (Function, Code)? {
+    func vmTarget(of site: CallSite, from caller: Function) -> VMTarget? {
         guard let name = site.name, let binding = lookup(name),
             case .function(let callable) = binding.value.storage
         else { return nil }
@@ -132,7 +144,20 @@ extension Interpreter {
         let fits =
             binding.isFunction
             ? site.lastFits : only.parameters.count == site.labels.count
-        return fits ? (only, code) : nil
+        guard fits else { return nil }
+        let shares =
+            only.captured.count == caller.captured.count
+            && zip(only.captured, caller.captured).allSatisfy { $0 === $1 }
+        // A variable that holds a function can be assigned another without the names changing.
+        if binding.isFunction {
+            site.cached = CallSite.Cached(caller: caller, callee: only, code: code)
+            site.cachedCaller = ObjectIdentifier(caller)
+            site.cachedVersion = scopeVersion
+            site.cachedCallee = Unmanaged.passUnretained(only)
+            site.cachedCode = Unmanaged.passUnretained(code)
+            site.cachedSharesScopes = shares
+        }
+        return VMTarget(function: only, code: code, sharesScopes: shares)
     }
 }
 
@@ -168,5 +193,92 @@ extension Interpreter {
         vmLoops += 1
         _ = try runCompiled(function, code, with: [:])
         return true
+    }
+}
+
+extension Interpreter {
+    /// Runs a function the VM has code for, called from the tree evaluator or from outside: the
+    /// arguments are in `arguments`, and what it gives is the result, conformed to its return type.
+    func runCompiled(
+        _ function: Function,
+        _ code: Code,
+        with arguments: BindingTable,
+        receiver: Receiver? = nil
+    ) throws -> Value {
+        let task = self.task
+        let stack = task.vm
+        let base = stack.top
+        stack.ensure(base + code.frameSize)
+        for (index, parameter) in function.parameters.enumerated() {
+            stack.base[base + index] = arguments[parameter.name]?.value ?? .nothing
+        }
+        stack.top = base + code.frameSize
+        let saved = (scopes: task.scopes, frame: task.frame, frameBase: task.frameBase)
+        task.scopes = function.captured
+        // A method has `self`, and a generic function its type parameters, in a scope of the call.
+        var own: Scope?
+        if receiver != nil || !code.isPlain {
+            let made = Scope()
+            openTypeParameters(of: function, arguments, in: made)
+            if let receiver {
+                made.bindings["self"] = Binding(
+                    value: receiver.value,
+                    mutable: receiver.mutable,
+                    special: receiver.initializing ? .initializing : nil
+                )
+            }
+            task.scopes.append(made)
+            own = made
+        }
+        if let owner = function.owner { task.owners.append(owner) }
+        if !code.isProgram { task.callDepth += 1 }
+        task.frame = nil
+        defer {
+            if let receiver, let changed = own?.bindings["self"]?.value { receiver.value = changed }
+            task.scopes = saved.scopes
+            task.frame = saved.frame
+            task.frameBase = saved.frameBase
+            if function.owner != nil { task.owners.removeLast() }
+            stack.top = base
+        }
+        let result = try execute(function, code, base: base, on: stack)
+        return try conformed(result, to: function)
+    }
+
+    /// `result` as the function's return type says, or the error the tree evaluator gives.
+    func conformed(_ result: Value, to function: Function) throws -> Value {
+        guard let returnType = function.returnType else { return result }
+        guard let conforming = conform(result, to: returnType) else {
+            let what = result == .nothing ? "nothing" : result.typeName
+            throw RuntimeError(
+                "\(function.name ?? "closure") must return \(returnType), but returned \(what)"
+            )
+        }
+        return conforming
+    }
+
+    /// What a frame does as it ends, however it ends: its registers are let go, its call is over, and
+    /// the tasks it started are closed.
+    func leaveFrame(_ function: Function, _ code: Code, base: Int, _ stack: VMStack) {
+        VMStack.clear(stack.base + base, count: code.frameSize)
+        let task = self.task
+        if !code.isProgram { task.callDepth -= 1 }
+        if !task.children.isEmpty, let last = task.children.last, last.depth > task.callDepth {
+            closeTasks(above: task.callDepth)
+        }
+    }
+
+    /// Makes the scopes of `callee` the task's, which are those of `caller` already when both are
+    /// functions of the global scopes: the task's scopes are always its running function's.
+    func setScopes(of callee: Function, from caller: Function, _ task: TaskContext) {
+        let wanted = callee.captured
+        let current = caller.captured
+        if task.scopes.count == current.count, wanted.count == current.count, wanted.count <= 2,
+            wanted.isEmpty
+                || (wanted[0] === current[0] && (wanted.count < 2 || wanted[1] === current[1]))
+        {
+            return
+        }
+        task.scopes = wanted
     }
 }

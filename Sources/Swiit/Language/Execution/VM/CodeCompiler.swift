@@ -83,6 +83,7 @@ struct CodeCompiler {
         } catch {
             return .failure(Unsupported("\(error)"))
         }
+        compiler.code.seal()
         return .success(compiler.code)
     }
 
@@ -98,6 +99,7 @@ struct CodeCompiler {
         code.isFailable = function.isFailable
         code.parameterCount = function.parameters.count
         code.parameterKinds = function.parameters.map { ParameterKind($0.type) }
+        code.returnKind = function.returnType.map(ParameterKind.init) ?? .any
         capturedSlots = body.capturedSlots
         localCount = frameSize
         var parameters = Scope()
@@ -140,6 +142,13 @@ struct CodeCompiler {
         case .jump: code.instructions[index] = .jump(offset: offset)
         case .jumpIfFalse(let condition, _):
             code.instructions[index] = .jumpIfFalse(condition: condition, offset: offset)
+        case .jumpUnlessCompare(let op, let lhs, let value, _):
+            code.instructions[index] = .jumpUnlessCompare(
+                op: op,
+                lhs: lhs,
+                value: value,
+                offset: offset
+            )
         case .jumpIfTrue(let condition, _):
             code.instructions[index] = .jumpIfTrue(condition: condition, offset: offset)
         case .jumpIfWhereFalse(let condition, _):

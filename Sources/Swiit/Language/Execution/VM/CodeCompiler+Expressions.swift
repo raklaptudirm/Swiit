@@ -72,6 +72,20 @@ extension CodeCompiler {
         }
     }
 
+    /// A jump taken when `condition` is false, to be patched: a comparison with a small integer is one
+    /// instruction.
+    mutating func jumpUnless(_ condition: Expr) throws -> Int {
+        if case .binary(let op, let lhs, .literal(let literal)) = condition,
+            [.less, .lessEqual, .greater, .greaterEqual, .equal, .notEqual].contains(op),
+            case .int(let number) = literal.storage, let small = Int32(exactly: number),
+            !Interpreter.isCaseLiteral(lhs)
+        {
+            let register = try operand(lhs)
+            return emit(.jumpUnlessCompare(op: op, lhs: register, value: small, offset: 0))
+        }
+        return emit(.jumpIfFalse(condition: try operand(condition), offset: 0))
+    }
+
     /// Whether an expression names only globals and types, so that the tree evaluator can run it
     /// without the registers: `Oops.bad`, `Direction.north`.
     func isConstant(_ value: Expr) -> Bool {
@@ -107,6 +121,12 @@ extension CodeCompiler {
             preconditionFailure("a range is made by the tree evaluator")
         default:
             let a = try operand(lhs)
+            if case .literal(let literal) = rhs, case .int(let number) = literal.storage,
+                let small = Int32(exactly: number)
+            {
+                emit(.binaryImmediate(op: op, dst: destination, lhs: a, value: small))
+                return
+            }
             let b = try operand(rhs)
             emit(.binary(op: op, dst: destination, lhs: a, rhs: b))
         }

@@ -246,8 +246,7 @@ extension CodeCompiler {
         let head = here
         emit(.at(range: range))
         let mark = nextTemporary
-        let test = try operand(loop.condition)
-        let exit = emit(.jumpIfFalse(condition: test, offset: 0))
+        let exit = try jumpUnless(loop.condition)
         nextTemporary = mark
         breakables.append(
             Breakable(

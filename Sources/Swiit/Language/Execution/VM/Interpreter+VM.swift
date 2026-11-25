@@ -55,92 +55,6 @@ extension Interpreter {
         }
     }
 
-    /// Runs a function the VM has code for, called from the tree evaluator or from outside: the
-    /// arguments are in `arguments`, and what it gives is the result, conformed to its return type.
-    func runCompiled(
-        _ function: Function,
-        _ code: Code,
-        with arguments: BindingTable,
-        receiver: Receiver? = nil
-    ) throws -> Value {
-        let task = self.task
-        let stack = task.vm
-        let base = stack.top
-        stack.ensure(base + code.frameSize)
-        for (index, parameter) in function.parameters.enumerated() {
-            stack.base[base + index] = arguments[parameter.name]?.value ?? .nothing
-        }
-        stack.top = base + code.frameSize
-        let saved = (scopes: task.scopes, frame: task.frame, frameBase: task.frameBase)
-        task.scopes = function.captured
-        // A method has `self`, and a generic function its type parameters, in a scope of the call.
-        var own: Scope?
-        if receiver != nil || !code.isPlain {
-            let made = Scope()
-            openTypeParameters(of: function, arguments, in: made)
-            if let receiver {
-                made.bindings["self"] = Binding(
-                    value: receiver.value,
-                    mutable: receiver.mutable,
-                    special: receiver.initializing ? .initializing : nil
-                )
-            }
-            task.scopes.append(made)
-            own = made
-        }
-        if let owner = function.owner { task.owners.append(owner) }
-        if !code.isProgram { task.callDepth += 1 }
-        task.frame = nil
-        defer {
-            if let receiver, let changed = own?.bindings["self"]?.value { receiver.value = changed }
-            task.scopes = saved.scopes
-            task.frame = saved.frame
-            task.frameBase = saved.frameBase
-            if function.owner != nil { task.owners.removeLast() }
-            stack.top = base
-        }
-        let result = try execute(function, code, base: base, on: stack)
-        return try conformed(result, to: function)
-    }
-
-    /// `result` as the function's return type says, or the error the tree evaluator gives.
-    func conformed(_ result: Value, to function: Function) throws -> Value {
-        guard let returnType = function.returnType else { return result }
-        guard let conforming = conform(result, to: returnType) else {
-            let what = result == .nothing ? "nothing" : result.typeName
-            throw RuntimeError(
-                "\(function.name ?? "closure") must return \(returnType), but returned \(what)"
-            )
-        }
-        return conforming
-    }
-
-    /// What a frame does as it ends, however it ends: its registers are let go, its call is over, and
-    /// the tasks it started are closed.
-    func leaveFrame(_ function: Function, _ code: Code, base: Int, _ stack: VMStack) {
-        for index in 0..<code.frameSize { stack.base[base + index] = .nothing }
-        let task = self.task
-        if !code.isProgram { task.callDepth -= 1 }
-        if task.lastCallee !== function { task.lastCallee = function }
-        if !task.children.isEmpty, let last = task.children.last, last.depth > task.callDepth {
-            closeTasks(above: task.callDepth)
-        }
-    }
-
-    /// Makes the scopes of `callee` the task's, which are those of `caller` already when both are
-    /// functions of the global scopes: the task's scopes are always its running function's.
-    func setScopes(of callee: Function, from caller: Function, _ task: TaskContext) {
-        let wanted = callee.captured
-        let current = caller.captured
-        if task.scopes.count == current.count, wanted.count == current.count, wanted.count <= 2,
-            wanted.isEmpty
-                || (wanted[0] === current[0] && (wanted.count < 2 || wanted[1] === current[1]))
-        {
-            return
-        }
-        task.scopes = wanted
-    }
-
     // swiftlint:disable cyclomatic_complexity function_body_length - one case for each instruction
     /// The instructions of one run: the entry frame, and the frames it calls, which are pushed on
     /// `stack` and run by this loop and not by Swift's stack.
@@ -151,14 +65,16 @@ extension Interpreter {
         on stack: VMStack
     ) throws -> Value {
         let task = self.task
+        let run = task.run
+        let maxCallDepth = run.maxCallDepth
         let entryDepth = stack.callers.count
-        var function = entry
-        var code = entryCode
+        unowned(unsafe) var function = entry
+        unowned(unsafe) var code = entryCode
         var base = entryBase
         var pc = 0
         var statement: Int32 = -1
         var regs = stack.base + base
-        var instructions = code.instructions
+        var instructions = code.program
         let observing = host.didFinishStatement != nil
 
         while true {
@@ -169,12 +85,12 @@ extension Interpreter {
                     switch instruction {
                     case .step(let range):
                         statement = range
-                        try checkInterrupt()
+                        try tick(task, run)
                         regs = stack.base + base
                     case .at(let range):
                         statement = range
                     case .tick:
-                        try checkInterrupt()
+                        try tick(task, run)
                         regs = stack.base + base
                     case .finished(let index, let value):
                         if observing, observesStatements {
@@ -239,6 +155,37 @@ extension Interpreter {
                         let value = try apply(op, regs[Int(lhs)], regs[Int(rhs)])
                         regs = stack.base + base
                         regs[Int(dst)] = value
+                    case .binaryImmediate(let op, let dst, let lhs, let value):
+                        if case .int(let x) = regs[Int(lhs)].storage {
+                            let y = Int(value)
+                            switch op {
+                            case .add:
+                                let (sum, overflow) = x.addingReportingOverflow(y)
+                                guard !overflow else { throw RuntimeError("arithmetic overflow") }
+                                regs[Int(dst)] = .int(sum)
+                                continue
+                            case .subtract:
+                                let (difference, overflow) = x.subtractingReportingOverflow(y)
+                                guard !overflow else { throw RuntimeError("arithmetic overflow") }
+                                regs[Int(dst)] = .int(difference)
+                                continue
+                            case .multiply:
+                                let (product, overflow) = x.multipliedReportingOverflow(by: y)
+                                guard !overflow else { throw RuntimeError("arithmetic overflow") }
+                                regs[Int(dst)] = .int(product)
+                                continue
+                            case .less: regs[Int(dst)] = .bool(x < y); continue
+                            case .lessEqual: regs[Int(dst)] = .bool(x <= y); continue
+                            case .greater: regs[Int(dst)] = .bool(x > y); continue
+                            case .greaterEqual: regs[Int(dst)] = .bool(x >= y); continue
+                            case .equal: regs[Int(dst)] = .bool(x == y); continue
+                            case .notEqual: regs[Int(dst)] = .bool(x != y); continue
+                            default: break
+                            }
+                        }
+                        let value = try apply(op, regs[Int(lhs)], .int(Int(value)))
+                        regs = stack.base + base
+                        regs[Int(dst)] = value
                     case .unary(let op, let dst, let src):
                         let value = try apply(op, regs[Int(src)])
                         regs = stack.base + base
@@ -288,6 +235,29 @@ extension Interpreter {
                             throw RuntimeError(
                                 "condition must be a Bool, not \(regs[Int(condition)].typeName)"
                             )
+                        }
+                        if !truth { pc += Int(offset) }
+                    case .jumpUnlessCompare(let op, let lhs, let value, let offset):
+                        let truth: Bool
+                        if case .int(let x) = regs[Int(lhs)].storage {
+                            let y = Int(value)
+                            switch op {
+                            case .less: truth = x < y
+                            case .lessEqual: truth = x <= y
+                            case .greater: truth = x > y
+                            case .greaterEqual: truth = x >= y
+                            case .equal: truth = x == y
+                            default: truth = x != y
+                            }
+                        } else {
+                            let result = try apply(op, regs[Int(lhs)], .int(Int(value)))
+                            regs = stack.base + base
+                            guard case .bool(let held) = result.storage else {
+                                throw RuntimeError(
+                                    "condition must be a Bool, not \(result.typeName)"
+                                )
+                            }
+                            truth = held
                         }
                         if !truth { pc += Int(offset) }
                     case .jumpIfTrue(let condition, let offset):
@@ -374,19 +344,36 @@ extension Interpreter {
                     case .quietEnd:
                         observesStatements = stack.quiet.removeLast()
                     case .call(let dst, let siteIndex, let arguments):
-                        let site = code.callSites[Int(siteIndex)]
+                        unowned(unsafe) let site = code.callSiteTable[Int(siteIndex)]
+                            .takeUnretainedValue()
                         let argumentBase = base + Int(arguments)
-                        if let (callee, calleeCode) = vmTarget(of: site) {
-                            let maxCallDepth = task.run.limits.maxCallDepth
+                        // What the site called last time, while the names are as they were.
+                        unowned(unsafe) var callee = function
+                        unowned(unsafe) var calleeCode = code
+                        var sharesScopes = false
+                        var found = false
+                        if site.cachedVersion == scopeVersion,
+                            site.cachedCaller == ObjectIdentifier(function)
+                        {
+                            callee = site.cachedCallee.unsafelyUnwrapped.takeUnretainedValue()
+                            calleeCode = site.cachedCode.unsafelyUnwrapped.takeUnretainedValue()
+                            sharesScopes = site.cachedSharesScopes
+                            found = true
+                        } else if let target = vmTarget(of: site, from: function) {
+                            (callee, calleeCode, sharesScopes) =
+                                (target.function, target.code, target.sharesScopes)
+                            found = true
+                        }
+                        if found {
+                            // The scopes are the caller's own and stay so: nothing to save or set.
+                            let sameScopes = sharesScopes && code.isPlain
                             guard task.callDepth < maxCallDepth else {
                                 throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
                             }
-                            try checkInterrupt()
+                            try tick(task, run)
                             for index in 0..<calleeCode.parameterCount
                             where !calleeCode.parameterKinds[index]
-                                .accepts(
-                                    stack.base[argumentBase + index]
-                                )
+                                .accepts(at: stack.base + argumentBase + index)
                             {
                                 stack.base[argumentBase + index] = try checked(
                                     stack.base[argumentBase + index],
@@ -398,21 +385,24 @@ extension Interpreter {
                                 VMCaller(
                                     code: code,
                                     function: function,
+                                    callee: callee,
                                     pc: pc,
                                     base: base,
                                     statement: statement,
                                     destination: base + Int(dst),
-                                    scopes: task.scopes.count == function.captured.count
-                                        ? nil : task.scopes
+                                    scopes: sameScopes
+                                        || task.scopes.count == function.captured.count
+                                        ? nil : task.scopes,
+                                    sameScopes: sameScopes
                                 )
                             )
                             stack.ensure(argumentBase + calleeCode.frameSize)
                             stack.top = argumentBase + calleeCode.frameSize
-                            setScopes(of: callee, from: function, task)
+                            if !sameScopes { setScopes(of: callee, from: function, task) }
                             task.callDepth += 1
                             function = callee
                             code = calleeCode
-                            instructions = calleeCode.instructions
+                            instructions = calleeCode.program
                             base = argumentBase
                             pc = 0
                             statement = -1
@@ -465,16 +455,13 @@ extension Interpreter {
                             ofValue: regs[Int(calleeRegister)],
                             arguments: site.labels.count
                         ) {
-                            let maxCallDepth = task.run.limits.maxCallDepth
                             guard task.callDepth < maxCallDepth else {
                                 throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
                             }
-                            try checkInterrupt()
+                            try tick(task, run)
                             for index in 0..<calleeCode.parameterCount
                             where !calleeCode.parameterKinds[index]
-                                .accepts(
-                                    stack.base[argumentBase + index]
-                                )
+                                .accepts(at: stack.base + argumentBase + index)
                             {
                                 stack.base[argumentBase + index] = try checked(
                                     stack.base[argumentBase + index],
@@ -486,6 +473,7 @@ extension Interpreter {
                                 VMCaller(
                                     code: code,
                                     function: function,
+                                    callee: callee,
                                     pc: pc,
                                     base: base,
                                     statement: statement,
@@ -500,7 +488,7 @@ extension Interpreter {
                             task.callDepth += 1
                             function = callee
                             code = calleeCode
-                            instructions = calleeCode.instructions
+                            instructions = calleeCode.program
                             base = argumentBase
                             pc = 0
                             statement = -1
@@ -561,6 +549,33 @@ extension Interpreter {
                             task.failedInit = true
                         }
                     case .returnValue(let register):
+                        // The common return, to a frame of this loop with no task started: what `leave`
+                        // does, without building a cursor.
+                        if stack.callers.count > entryDepth, task.children.isEmpty {
+                            let result = regs[Int(register)]
+                            unowned(unsafe) let finishedCode = code
+                            VMStack.clear(regs, count: finishedCode.frameSize)
+                            task.callDepth -= 1
+                            let caller = stack.callers.removeLast()
+                            function = caller.function
+                            code = caller.code
+                            instructions = code.program
+                            base = caller.base
+                            pc = caller.pc
+                            statement = caller.statement
+                            if let own = caller.scopes {
+                                task.scopes = own
+                            } else if !caller.sameScopes {
+                                setScopes(of: function, from: caller.callee, task)
+                            }
+                            stack.top = base + code.frameSize
+                            let conforming =
+                                finishedCode.returnKind.accepts(result)
+                                ? result : try conformed(result, to: caller.callee)
+                            stack.base[caller.destination] = conforming
+                            regs = stack.base + base
+                            continue
+                        }
                         var cursor = VMCursor(
                             function: function,
                             code: code,
@@ -578,7 +593,7 @@ extension Interpreter {
                         }
                         (function, code, base, pc, statement) =
                             (cursor.function, cursor.code, cursor.base, cursor.pc, cursor.statement)
-                        instructions = code.instructions
+                        instructions = code.program
                         regs = stack.base + base
                     case .returnNothing:
                         var cursor = VMCursor(
@@ -598,7 +613,7 @@ extension Interpreter {
                         }
                         (function, code, base, pc, statement) =
                             (cursor.function, cursor.code, cursor.base, cursor.pc, cursor.statement)
-                        instructions = code.instructions
+                        instructions = code.program
                         regs = stack.base + base
                     }
                 }
@@ -646,7 +661,7 @@ extension Interpreter {
                     let caller = stack.callers.removeLast()
                     function = caller.function
                     code = caller.code
-                    instructions = code.instructions
+                    instructions = code.program
                     base = caller.base
                     pc = caller.pc
                     statement = caller.statement

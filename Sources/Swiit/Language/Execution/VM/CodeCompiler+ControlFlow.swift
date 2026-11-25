@@ -66,8 +66,7 @@ extension CodeCompiler {
         let skip: Int
         switch node.condition {
         case .expression(let condition):
-            let test = try operand(condition)
-            skip = emit(.jumpIfFalse(condition: test, offset: 0))
+            skip = try jumpUnless(condition)
         case .binding(let name, let mutable, let value):
             let held = try allocate()
             try expression(value, into: held)
@@ -117,7 +116,7 @@ extension CodeCompiler {
         var bound: [String: Local] = [:]
         switch condition {
         case .expression(let test):
-            fail = emit(.jumpIfFalse(condition: try operand(test), offset: 0))
+            fail = try jumpUnless(test)
         case .binding(let name, let mutable, let value):
             let held = try allocate()
             try expression(value, into: held)
