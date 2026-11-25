@@ -31,6 +31,18 @@ enum Instruction {
     case move(dst: Register, src: Register)
     /// A name looked up in the scopes: a global, a function, a type.
     case loadVariable(dst: Register, name: UInt32)
+    /// `loadVariable` of a global, which finds the variable's cell once and keeps it while the names
+    /// stay as they were.
+    case loadGlobal(dst: Register, site: UInt32)
+    /// A member of a list or a string, made here when the receiver and argument are plainly of the
+    /// kinds it knows; the next `offset` instructions, which make it the long way, are skipped then.
+    case fastMember(
+        kind: FastMember,
+        dst: Register,
+        receiver: Register,
+        argument: Register,
+        offset: Int32
+    )
     /// An expression that names only globals and types, evaluated by the tree evaluator: `Oops.bad`.
     case evaluate(dst: Register, expression: UInt32)
     /// Sets `count` registers from `first` to nothing: the locals of a block that has ended.
@@ -118,6 +130,9 @@ enum Instruction {
     case makeClosure(dst: Register, site: UInt32)
     /// Assigns a variable that is not a local, by name: a global, or one a closure captured.
     case assignByName(site: UInt32, value: Register)
+    /// `assignByName` of a whole variable, which sets a number held in a number's cell directly and
+    /// leaves the rest to the assignment.
+    case assignGlobal(global: UInt32, site: UInt32, value: Register)
 
     // MARK: What the tree evaluator runs
 
@@ -258,6 +273,31 @@ final class CallSite {
     }
 }
 
+/// The members of Swift's `Array` and `String` that the loop makes itself.
+enum FastMember: UInt8 {
+    /// `xs.append(x)`, of a list whose elements are of the kind `x` is.
+    case append
+    /// `xs.count`
+    case listCount
+    /// `xs[i]` of an index within the list.
+    case element
+    /// `s.count`
+    case stringCount
+}
+
+/// A global variable a body names, and the cell it was found to be in last time.
+final class GlobalSite {
+    let name: String
+    /// The cell, when the names had this version and the variable can be read and set through it.
+    @exclusivity(unchecked) var cell: Binding.Cell?
+    @exclusivity(unchecked) var version = -1
+    @exclusivity(unchecked) var isMutable = false
+    /// Which function's scopes it was found in: a body shared by closures is looked up for each.
+    @exclusivity(unchecked) var function: ObjectIdentifier?
+
+    init(name: String) { self.name = name }
+}
+
 /// A pattern and where each name it binds goes.
 final class PatternSite {
     let pattern: Pattern
@@ -357,6 +397,11 @@ final class Code {
     @exclusivity(unchecked) var callSites: [CallSite] = [] {
         didSet { callSiteTable = callSites.map(Unmanaged.passUnretained) }
     }
+    @exclusivity(unchecked) var globals: [GlobalSite] = [] {
+        didSet { globalTable = globals.map(Unmanaged.passUnretained) }
+    }
+    /// `globals`, read without counting a reference.
+    @exclusivity(unchecked) private(set) var globalTable: [Unmanaged<GlobalSite>] = []
     /// `callSites`, read without counting a reference: the sites are kept alive by `callSites`.
     @exclusivity(unchecked) private(set) var callSiteTable: [Unmanaged<CallSite>] = []
     @exclusivity(unchecked) var patterns: [PatternSite] = []

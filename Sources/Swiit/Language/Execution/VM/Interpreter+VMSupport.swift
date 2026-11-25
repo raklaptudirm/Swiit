@@ -282,3 +282,143 @@ extension Interpreter {
         task.scopes = wanted
     }
 }
+
+extension Interpreter {
+    /// Finds the cell of the variable `site` names, from the scopes `function` runs in, and keeps it
+    /// until a name changes. Nothing is kept for a variable that is worked out when read, or for a
+    /// body that has a scope of its own.
+    func findGlobal(_ site: GlobalSite, _ function: Function, _ code: Code) {
+        site.version = scopeVersion
+        site.function = ObjectIdentifier(function)
+        site.cell = nil
+        guard code.isPlain, let binding = lookup(site.name), !binding.isComputed else { return }
+        site.cell = binding.cell
+        site.isMutable = binding.mutable && binding.special == nil
+    }
+
+    /// `cell = value` or `cell op= value` when both are plainly numbers of one kind: false when the
+    /// assignment is for the general one to make (another kind, an operator a type defines, a check
+    /// of the value against the variable's type).
+    @inline(__always)
+    func setNumber(in cell: Binding.Cell, _ op: BinaryOperator?, to value: Value) -> Bool {
+        switch (cell.value.storage, value.storage) {
+        case (.int(let current), .int(let new)):
+            switch op {
+            case nil: cell.value = .int(new)
+            case .add?:
+                let (sum, overflow) = current.addingReportingOverflow(new)
+                guard !overflow else { return false }
+                cell.value = .int(sum)
+            case .subtract?:
+                let (difference, overflow) = current.subtractingReportingOverflow(new)
+                guard !overflow else { return false }
+                cell.value = .int(difference)
+            case .multiply?:
+                let (product, overflow) = current.multipliedReportingOverflow(by: new)
+                guard !overflow else { return false }
+                cell.value = .int(product)
+            default: return false
+            }
+            return true
+        case (.double(let current), .double(let new)):
+            switch op {
+            case nil: cell.value = .double(new)
+            case .add?: cell.value = .double(current + new)
+            case .subtract?: cell.value = .double(current - new)
+            case .multiply?: cell.value = .double(current * new)
+            default: return false
+            }
+            return true
+        default: return false
+        }
+    }
+}
+
+extension Value {
+    /// Whether this is a list whose first element is of the kind `element` is.
+    func isList(likeElement element: Value) -> Bool {
+        guard case .list(let items) = storage, let first = items.first else { return false }
+        switch (first.storage, element.storage) {
+        case (.int, .int), (.double, .double), (.bool, .bool), (.string, .string): return true
+        default: return false
+        }
+    }
+
+    /// Appends `element` to this list when its first element is of the kind `element` is (a number,
+    /// a Bool or a string, each its own), so that no conversion to the list's element type is in
+    /// question. The list is changed where it is, not copied. False, and nothing changed, otherwise.
+    mutating func appendLikeElements(_ element: Value) -> Bool {
+        guard case .list(var items) = storage, let first = items.first else { return false }
+        switch (first.storage, element.storage) {
+        case (.int, .int), (.double, .double), (.bool, .bool), (.string, .string): break
+        default: return false
+        }
+        storage = .nothing
+        items.append(element)
+        storage = .list(items)
+        return true
+    }
+}
+
+extension Interpreter {
+    /// An operation on two integers that needs no general `apply`: nil for one that does (a division,
+    /// a shift), which gives what `apply` gives; an overflow is an error, as there.
+    @inline(__always)
+    static func arithmetic(_ op: BinaryOperator, _ x: Int, _ y: Int) throws -> Value? {
+        switch op {
+        case .add:
+            let (sum, overflow) = x.addingReportingOverflow(y)
+            guard !overflow else { throw RuntimeError("arithmetic overflow") }
+            return .int(sum)
+        case .subtract:
+            let (difference, overflow) = x.subtractingReportingOverflow(y)
+            guard !overflow else { throw RuntimeError("arithmetic overflow") }
+            return .int(difference)
+        case .multiply:
+            let (product, overflow) = x.multipliedReportingOverflow(by: y)
+            guard !overflow else { throw RuntimeError("arithmetic overflow") }
+            return .int(product)
+        case .less: return .bool(x < y)
+        case .lessEqual: return .bool(x <= y)
+        case .greater: return .bool(x > y)
+        case .greaterEqual: return .bool(x >= y)
+        case .equal: return .bool(x == y)
+        case .notEqual: return .bool(x != y)
+        default: return nil
+        }
+    }
+
+    /// What a member of a list or a string the loop makes itself gives, when the receiver and argument
+    /// are plainly of the kinds it knows; nil, with nothing changed, otherwise. Each but a subscript
+    /// makes the one step the tree evaluator's call of the member does.
+    func fastMember(
+        _ kind: FastMember,
+        _ registers: UnsafeMutablePointer<Value>,
+        _ receiver: Register,
+        _ argument: Register
+    ) throws -> Value? {
+        switch kind {
+        case .append:
+            guard registers[Int(receiver)].isList(likeElement: registers[Int(argument)]) else {
+                return nil
+            }
+            try checkInterrupt()
+            _ = registers[Int(receiver)].appendLikeElements(registers[Int(argument)])
+            return .nothing
+        case .listCount:
+            guard case .list(let items) = registers[Int(receiver)].storage else { return nil }
+            try checkInterrupt()
+            return .int(items.count)
+        case .element:
+            guard case .list(let items) = registers[Int(receiver)].storage,
+                case .int(let index) = registers[Int(argument)].storage,
+                index >= 0, index < items.count
+            else { return nil }
+            return items[index]
+        case .stringCount:
+            guard case .string(let text) = registers[Int(receiver)].storage else { return nil }
+            try checkInterrupt()
+            return .int(text.count)
+        }
+    }
+}

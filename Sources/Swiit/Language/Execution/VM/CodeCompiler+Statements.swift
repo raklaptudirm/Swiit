@@ -215,7 +215,15 @@ extension CodeCompiler {
             }
         } else {
             code.assignments.append(assignment)
-            emit(.assignByName(site: UInt32(code.assignments.count - 1), value: value))
+            let site = UInt32(code.assignments.count - 1)
+            if assignment.path.isEmpty {
+                code.globals.append(GlobalSite(name: assignment.root))
+                emit(
+                    .assignGlobal(global: UInt32(code.globals.count - 1), site: site, value: value)
+                )
+            } else {
+                emit(.assignByName(site: site, value: value))
+            }
         }
         nextTemporary = mark
     }

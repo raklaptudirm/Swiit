@@ -42,7 +42,7 @@ extension Interpreter {
         case .code(let code): return code
         case .unsupported: return nil
         case .untried:
-            switch CodeCompiler.compile(function) {
+            switch CodeCompiler.compile(function, bridged: bridged) {
             case .success(let code):
                 function.vmCode = .code(code)
                 return code
@@ -125,63 +125,21 @@ extension Interpreter {
                         regs[Int(dst)] = conforming
                     case .binary(let op, let dst, let lhs, let rhs):
                         if case .int(let x) = regs[Int(lhs)].storage,
-                            case .int(let y) = regs[Int(rhs)].storage
+                            case .int(let y) = regs[Int(rhs)].storage,
+                            let result = try Interpreter.arithmetic(op, x, y)
                         {
-                            switch op {
-                            case .add:
-                                let (sum, overflow) = x.addingReportingOverflow(y)
-                                guard !overflow else { throw RuntimeError("arithmetic overflow") }
-                                regs[Int(dst)] = .int(sum)
-                                continue
-                            case .subtract:
-                                let (difference, overflow) = x.subtractingReportingOverflow(y)
-                                guard !overflow else { throw RuntimeError("arithmetic overflow") }
-                                regs[Int(dst)] = .int(difference)
-                                continue
-                            case .multiply:
-                                let (product, overflow) = x.multipliedReportingOverflow(by: y)
-                                guard !overflow else { throw RuntimeError("arithmetic overflow") }
-                                regs[Int(dst)] = .int(product)
-                                continue
-                            case .less: regs[Int(dst)] = .bool(x < y); continue
-                            case .lessEqual: regs[Int(dst)] = .bool(x <= y); continue
-                            case .greater: regs[Int(dst)] = .bool(x > y); continue
-                            case .greaterEqual: regs[Int(dst)] = .bool(x >= y); continue
-                            case .equal: regs[Int(dst)] = .bool(x == y); continue
-                            case .notEqual: regs[Int(dst)] = .bool(x != y); continue
-                            default: break
-                            }
+                            regs[Int(dst)] = result
+                            continue
                         }
                         let value = try apply(op, regs[Int(lhs)], regs[Int(rhs)])
                         regs = stack.base + base
                         regs[Int(dst)] = value
                     case .binaryImmediate(let op, let dst, let lhs, let value):
-                        if case .int(let x) = regs[Int(lhs)].storage {
-                            let y = Int(value)
-                            switch op {
-                            case .add:
-                                let (sum, overflow) = x.addingReportingOverflow(y)
-                                guard !overflow else { throw RuntimeError("arithmetic overflow") }
-                                regs[Int(dst)] = .int(sum)
-                                continue
-                            case .subtract:
-                                let (difference, overflow) = x.subtractingReportingOverflow(y)
-                                guard !overflow else { throw RuntimeError("arithmetic overflow") }
-                                regs[Int(dst)] = .int(difference)
-                                continue
-                            case .multiply:
-                                let (product, overflow) = x.multipliedReportingOverflow(by: y)
-                                guard !overflow else { throw RuntimeError("arithmetic overflow") }
-                                regs[Int(dst)] = .int(product)
-                                continue
-                            case .less: regs[Int(dst)] = .bool(x < y); continue
-                            case .lessEqual: regs[Int(dst)] = .bool(x <= y); continue
-                            case .greater: regs[Int(dst)] = .bool(x > y); continue
-                            case .greaterEqual: regs[Int(dst)] = .bool(x >= y); continue
-                            case .equal: regs[Int(dst)] = .bool(x == y); continue
-                            case .notEqual: regs[Int(dst)] = .bool(x != y); continue
-                            default: break
-                            }
+                        if case .int(let x) = regs[Int(lhs)].storage,
+                            let result = try Interpreter.arithmetic(op, x, Int(value))
+                        {
+                            regs[Int(dst)] = result
+                            continue
                         }
                         let value = try apply(op, regs[Int(lhs)], .int(Int(value)))
                         regs = stack.base + base
@@ -532,6 +490,53 @@ extension Interpreter {
                         let made = try makeClosure(code.closures[Int(site)], regs)
                         regs = stack.base + base
                         regs[Int(dst)] = made
+                    case .fastMember(let kind, let dst, let receiver, let argument, let offset):
+                        if let result = try fastMember(kind, regs, receiver, argument) {
+                            regs[Int(dst)] = result
+                            pc += Int(offset)
+                        }
+                    case .loadGlobal(let dst, let siteIndex):
+                        unowned(unsafe) let site = code.globalTable[Int(siteIndex)]
+                            .takeUnretainedValue()
+                        if !(site.version == scopeVersion
+                            && site.function == ObjectIdentifier(function))
+                        {
+                            findGlobal(site, function, code)
+                        }
+                        if let cell = site.cell {
+                            let value = cell.value
+                            if case .object(is WeakReference) = value.storage {
+                                // Gives what it refers to: the tree evaluator's.
+                                regs[Int(dst)] = try evaluate(.variable(site.name))
+                                regs = stack.base + base
+                            } else {
+                                regs[Int(dst)] = value
+                            }
+                        } else {
+                            regs[Int(dst)] = try evaluate(.variable(site.name))
+                            regs = stack.base + base
+                        }
+                    case .assignGlobal(let global, let assignmentIndex, let value):
+                        unowned(unsafe) let site = code.globalTable[Int(global)]
+                            .takeUnretainedValue()
+                        if !(site.version == scopeVersion
+                            && site.function == ObjectIdentifier(function))
+                        {
+                            findGlobal(site, function, code)
+                        }
+                        if site.isMutable, let cell = site.cell,
+                            setNumber(
+                                in: cell,
+                                code.assignments[Int(assignmentIndex)].op,
+                                to: regs[Int(value)]
+                            )
+                        {
+                            continue
+                        }
+                        var assignment = code.assignments[Int(assignmentIndex)]
+                        assignment.value = .literal(regs[Int(value)])
+                        try assign(assignment)
+                        regs = stack.base + base
                     case .assignByName(let site, let value):
                         var assignment = code.assignments[Int(site)]
                         assignment.value = .literal(regs[Int(value)])

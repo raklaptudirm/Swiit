@@ -31,8 +31,8 @@ extension CodeCompiler {
             if let local = lookup(name) {
                 read(local.slot, boxed: local.boxed, into: destination)
             } else {
-                code.names.append(name)
-                emit(.loadVariable(dst: destination, name: UInt32(code.names.count - 1)))
+                code.globals.append(GlobalSite(name: name))
+                emit(.loadGlobal(dst: destination, site: UInt32(code.globals.count - 1)))
             }
         case .binary(let op, let lhs, let rhs):
             // A `.case` operand takes its enum from the other side, and a range is a value of its own:
@@ -61,6 +61,8 @@ extension CodeCompiler {
             try self.expression(target, into: destination)
         case .attempt(let operand, let kind):
             try attempt(operand, kind, into: destination)
+        case .bridged where try fastMember(expression, into: destination):
+            break
         case .call(let callee, let arguments):
             if !(try call(callee, arguments, into: destination)) {
                 treeExpression(expression, into: destination)
@@ -84,6 +86,61 @@ extension CodeCompiler {
             return emit(.jumpUnlessCompare(op: op, lhs: register, value: small, offset: 0))
         }
         return emit(.jumpIfFalse(condition: try operand(condition), offset: 0))
+    }
+
+    /// Whether an expression changes nothing and calls nothing, so that making it twice (once for
+    /// the fast member, and again if that does not apply) is the same as once.
+    func isPure(_ value: Expr) -> Bool {
+        switch value {
+        case .literal, .local: true
+        case .variable(let name): lookup(name) != nil
+        case .unary(_, let operand): isPure(operand)
+        case .binary(let op, let lhs, let rhs):
+            op != .closedRange && op != .halfOpenRange && isPure(lhs) && isPure(rhs)
+        default: false
+        }
+    }
+
+    /// A member of an `Array` or a `String` held in a local, made by `fastMember` where the kinds fit
+    /// and by the tree evaluator, which follows it, where they do not. False if it is not one of those.
+    mutating func fastMember(_ expression: Expr, into destination: Register) throws -> Bool {
+        guard case .bridged(let type, let member, let receiver?, let arguments) = expression,
+            let found = bridged[type]?.lowered, member < found.count
+        else { return false }
+        let named = found[member]
+        let kind: FastMember
+        switch (type, named.name, named.kind, arguments.count) {
+        case ("Array", "append", .method, 1) where named.isMutating: kind = .append
+        case ("Array", "count", .property, 0): kind = .listCount
+        case ("Array", "subscript", .method, 1): kind = .element
+        case ("String", "count", .property, 0): kind = .stringCount
+        default: return false
+        }
+        var held: Local?
+        switch receiver {
+        case .local(let local): held = lookup(local.name)
+        case .variable(let name): held = lookup(name)
+        default: break
+        }
+        guard let held, !held.boxed, !weakSlots.contains(Int(held.slot)),
+            kind != .append || held.mutable,
+            arguments.allSatisfy({ $0.label == nil && isPure($0.value) })
+        else { return false }
+        let mark = nextTemporary
+        let argument = try arguments.first.map { try operand($0.value) } ?? held.slot
+        let fast = emit(
+            .fastMember(
+                kind: kind,
+                dst: destination,
+                receiver: held.slot,
+                argument: argument,
+                offset: 0
+            )
+        )
+        nextTemporary = mark
+        treeExpression(expression, into: destination)
+        patch(fast, to: here)
+        return true
     }
 
     /// Whether an expression names only globals and types, so that the tree evaluator can run it

@@ -22,13 +22,13 @@ public struct Value: Sendable {
         case string(String)
         case list([Value])
         /// A tuple: elements in order, each labeled or not: `(name: "x", 2)`.
-        case tuple(Value.Tuple)
+        indirect case tuple(Value.Tuple)
         /// A struct's value: its type's name, and its fields in the order the type declares them.
-        case structure(Value.Structure)
+        indirect case structure(Value.Structure)
         /// `["a": 1]`: keys to values, as Swift's Dictionary, unordered.
         case dictionary([Value: Value])
         /// A case of an enum: `.directory`, or `.failed(code: 2)`.
-        case enumValue(Value.EnumCase)
+        indirect case enumValue(Value.EnumCase)
         /// A live value with members of its own: a background job, an enum type,
         /// and later bridged Swift objects.
         case object(any LanguageObject)

@@ -49,6 +49,8 @@ struct CodeCompiler {
     }
 
     var code = Code()
+    /// The Swift members a script's calls and reads can name, which tell what a `bridged` node is.
+    var bridged: [String: ImplementedType] = [:]
     /// How many slots the function's locals have: what a frame for the tree evaluator needs.
     var localCount = 0
     /// The slots of the locals a closure names: those are boxed.
@@ -63,7 +65,10 @@ struct CodeCompiler {
     var highest = 0
 
     /// The code for `function`, or why it is not one the VM runs.
-    static func compile(_ function: Function) -> Result<Code, Unsupported> {
+    static func compile(
+        _ function: Function,
+        bridged: [String: ImplementedType]
+    ) -> Result<Code, Unsupported> {
         guard case .swiit(let body) = function.body else {
             return .failure(Unsupported("not a function of the script"))
         }
@@ -76,6 +81,7 @@ struct CodeCompiler {
             return .failure(Unsupported("a named function with more than the global scopes"))
         }
         var compiler = CodeCompiler()
+        compiler.bridged = bridged
         do {
             try compiler.function(function, body, frameSize: frameSize)
         } catch let unsupported as Unsupported {
@@ -147,6 +153,14 @@ struct CodeCompiler {
                 op: op,
                 lhs: lhs,
                 value: value,
+                offset: offset
+            )
+        case .fastMember(let kind, let dst, let receiver, let argument, _):
+            code.instructions[index] = .fastMember(
+                kind: kind,
+                dst: dst,
+                receiver: receiver,
+                argument: argument,
                 offset: offset
             )
         case .jumpIfTrue(let condition, _):
