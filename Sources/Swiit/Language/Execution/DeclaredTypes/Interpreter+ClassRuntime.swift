@@ -103,8 +103,14 @@ extension Interpreter {
     }
 
     /// What a stored property starts as: its default, or nil if an optional `var`.
-    private func initialValue(of property: PropertyDecl) throws -> Value? {
+    func initialValue(of property: PropertyDecl) throws -> Value? {
         if property.isLazy { return nil }
+        // A literal of the kind the property says it is: what evaluating and conforming it gives.
+        if case .literal(let value)? = property.defaultValue, !property.isWeak,
+            property.type.map({ ParameterKind($0).accepts(value) }) ?? true
+        {
+            return value
+        }
         if let defaultValue = property.defaultValue {
             let value = try evaluate(defaultValue, expecting: property.type)
             if let expected = property.type, let conforming = conform(value, to: expected) {
@@ -159,7 +165,9 @@ extension Interpreter {
                 try self.bind(values, to: $0)
             }
             task.failedInit = false
-            try initialize(instance, with: initializer, bindings)
+            try initialize(instance, with: initializer) { receiver in
+                _ = try self.invoke(initializer, with: bindings, receiver: receiver)
+            }
             if task.failedInit {
                 task.failedInit = false
                 return .nothing
@@ -174,16 +182,17 @@ extension Interpreter {
 
     /// Runs one initializer on an instance; a designated one then makes sure the superclass is
     /// initialized.
-    private func initialize(
+    /// `run` is what runs the initializer, given the receiver it runs on.
+    func initialize(
         _ instance: ClassInstance,
         with initializer: Function,
-        _ bindings: Arguments
+        run: (Receiver) throws -> Void
     ) throws {
         let saved = task.calledSuperInit
         task.calledSuperInit = false
         defer { task.calledSuperInit = saved }
         let receiver = Receiver(.object(instance), mutable: true, initializing: true)
-        _ = try invoke(initializer, with: bindings, receiver: receiver)
+        try run(receiver)
         // Without a `super.init(…)`, the superclass's `init()` runs after.
         if !initializer.isConvenience, !task.calledSuperInit, let owner = initializer.owner,
             let parent = owner.superclass, !task.failedInit
@@ -192,7 +201,10 @@ extension Interpreter {
             if let zero = inherited.first(where: {
                 $0.parameters.allSatisfy { $0.hasDefault || $0.variadic }
             }) {
-                try initialize(instance, with: zero, try bind([], to: zero).bindings)
+                let zeroBindings = try bind([], to: zero).bindings
+                try initialize(instance, with: zero) { receiver in
+                    _ = try self.invoke(zero, with: zeroBindings, receiver: receiver)
+                }
             } else if !inherited.isEmpty {
                 throw RuntimeError("\(owner.name).init must call super.init")
             }
@@ -223,14 +235,16 @@ extension Interpreter {
             try self.bind(values, to: $0)
         }
         if isSuper { task.calledSuperInit = true }
-        try initialize(instance, with: initializer, bindings)
+        try initialize(instance, with: initializer) { receiver in
+            _ = try self.invoke(initializer, with: bindings, receiver: receiver)
+        }
     }
 
     // MARK: Releasing
 
     /// An instance went away: its `deinit` runs at the next statement, not here, where the
     /// interpreter may be in the middle of changing its scopes.
-    private func release(_ released: ClassInstance) {
+    func release(_ released: ClassInstance) {
         let clone = ClassInstance(type: released.type, storage: released.storage)
         pendingDeinits.withLock {
             $0.append(clone)

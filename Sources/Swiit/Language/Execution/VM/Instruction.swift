@@ -296,6 +296,10 @@ final class CallSite {
     @exclusivity(unchecked) var constructedType: StructType?
     @exclusivity(unchecked) var constructedVersion = -1
     @exclusivity(unchecked) var constructedCaller: ObjectIdentifier?
+    /// The same for a class, with the one initializer it was found to run, and its code.
+    @exclusivity(unchecked) var constructedClass: ClassType?
+    @exclusivity(unchecked) var constructedInitializer: Function?
+    @exclusivity(unchecked) var constructedCode: Code?
 
     struct Cached {
         let caller: Function

@@ -275,11 +275,11 @@ extension Value {
 }
 
 extension Interpreter {
-    /// `Point(x: 1, y: 2)` of a struct, made from the registers from `arguments` on, when the type is
+    /// `Point(x: 1, y: 2)` of a struct or `Dog(name: "Rex")` of a class, made from the registers from `arguments` on, when the type is
     /// plain: the memberwise initializer taking every field, or one initializer of its own that takes
     /// its arguments as written and does not fail. The value is what `construct` makes of the same
     /// arguments; nil, with nothing done, where the site is not that, which `construct` then makes.
-    func constructStruct(
+    func constructValue(
         _ site: CallSite,
         from function: Function,
         arguments: Int
@@ -290,12 +290,17 @@ extension Interpreter {
         {
             site.constructedVersion = scopeVersion
             site.constructedCaller = ObjectIdentifier(function)
-            if case .object(let type as StructType)? = lookup(name)?.value.storage {
-                site.constructedType = type
-            } else {
-                site.constructedType = nil
+            site.constructedType = nil
+            site.constructedClass = nil
+            site.constructedInitializer = nil
+            site.constructedCode = nil
+            switch lookup(name)?.value.storage {
+            case .object(let type as StructType)?: site.constructedType = type
+            case .object(let type as ClassType)?: findClassInitializer(of: type, site)
+            default: break
             }
         }
+        if let type = site.constructedClass { return try constructClass(type, site, arguments) }
         guard let type = site.constructedType, typeExtensions[type.name]?.initializers == nil
         else { return nil }
         let made: Value
@@ -396,5 +401,76 @@ extension Interpreter {
             record[property.name] = value
         }
         return Value(record: record)
+    }
+}
+
+extension Interpreter {
+    /// What a site that makes an instance of `type` runs: its one initializer, when it has just one that
+    /// is designated, not failable and takes the call's arguments as written, or none when the call has
+    /// no arguments. The site keeps the class only when that is so.
+    private func findClassInitializer(of type: ClassType, _ site: CallSite) {
+        let candidates = initializers(of: type)
+        if candidates.isEmpty {
+            if site.labels.isEmpty { site.constructedClass = type }
+            return
+        }
+        guard candidates.count == 1, case let initializer = candidates[0],
+            !initializer.isFailable, !initializer.isConvenience,
+            initializer.parameters.count == site.labels.count,
+            zip(initializer.parameters, site.labels).allSatisfy({ $0.label == $1 }),
+            let code = compiled(initializer), code.takesArgumentsAsWritten
+        else { return }
+        site.constructedClass = type
+        site.constructedInitializer = initializer
+        site.constructedCode = code
+    }
+
+    /// An instance of `type`, made as `construct` makes one: its properties start as they are declared,
+    /// the initializer runs on it from the registers, and each property must be set after.
+    private func constructClass(
+        _ type: ClassType,
+        _ site: CallSite,
+        _ arguments: Int
+    ) throws -> Value? {
+        let stack = task.vm
+        if let code = site.constructedCode {
+            for index in 0..<code.parameterCount
+            where !code.parameterKinds[index].accepts(at: stack.base + arguments + index) {
+                return nil
+            }
+        }
+        let maxCallDepth = task.run.maxCallDepth
+        guard task.callDepth < maxCallDepth else {
+            throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
+        }
+        let instance = ClassInstance(type: type)
+        for property in type.allStored {
+            if let value = try initialValue(of: property) {
+                instance.storage[property.name] = value
+            }
+        }
+        if type.chain.contains(where: { $0.deinitializer != nil }) {
+            instance.onRelease = { [weak self] released in self?.release(released) }
+        }
+        if let initializer = site.constructedInitializer, let code = site.constructedCode {
+            task.failedInit = false
+            try initialize(instance, with: initializer) { receiver in
+                try self.checkInterrupt()
+                defer { self.task.lastCallee = initializer }
+                _ = try self.runCompiled(
+                    initializer,
+                    code,
+                    with: [:],
+                    receiver: receiver,
+                    argumentsAt: arguments
+                )
+            }
+        }
+        for property in type.allStored
+        where instance.storage[property.name] == nil && !property.isLazy {
+            throw RuntimeError("\(type.name).init must set '\(property.name)'")
+        }
+        for index in 0..<site.labels.count { stack.base[arguments + index] = .nothing }
+        return .object(instance)
     }
 }

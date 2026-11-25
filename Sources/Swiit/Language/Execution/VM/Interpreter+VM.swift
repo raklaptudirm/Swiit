@@ -333,7 +333,7 @@ extension Interpreter {
                             pc = 0
                             statement = -1
                             regs = stack.base + base
-                        } else if let made = try constructStruct(
+                        } else if let made = try constructValue(
                             site,
                             from: function,
                             arguments: argumentBase

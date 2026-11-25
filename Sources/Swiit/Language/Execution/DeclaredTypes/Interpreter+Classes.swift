@@ -43,19 +43,30 @@ final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {
         symbol = Symbol.Nominal(name: name, kind: isActor ? .actor : .class, typeRef: self.typeRef)
     }
 
-    /// This class and each it comes from, nearest first.
+    @exclusivity(unchecked) private var chainCache: [ClassType]?
+    @exclusivity(unchecked) private var allStoredCache: [PropertyDecl]?
+
+    /// This class and each it comes from, nearest first. Made once: where a class comes from does not
+    /// change.
     var chain: [ClassType] {
+        if let chainCache { return chainCache }
         var result: [ClassType] = []
         var current: ClassType? = self
         while let next = current {
             result.append(next)
             current = next.superclass
         }
+        chainCache = result
         return result
     }
 
     /// Every stored property, those of the oldest class first.
-    var allStored: [PropertyDecl] { chain.reversed().flatMap(\.stored) }
+    var allStored: [PropertyDecl] {
+        if let allStoredCache { return allStoredCache }
+        let result = chain.reversed().flatMap(\.stored)
+        allStoredCache = result
+        return result
+    }
 
     /// The protocols named by it and the classes it comes from.
     var allConformances: [String] { chain.flatMap(\.conformances) }

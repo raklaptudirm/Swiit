@@ -136,6 +136,14 @@ let cases = [
             """
     ),
     Case(
+        name: "fn: class constructor, 100k",
+        source: """
+            class D { var a: Int; var b = 2; init(a: Int) { self.a = a } }
+            func run() -> Int { var s = 0; for i in 0..<100_000 { let d = D(a: i); s += d.a + d.b }; return s }
+            run()
+            """
+    ),
+    Case(
         name: "fn: struct make and read, 200k",
         source: """
             struct P { var x: Int; var y: Int; func sum() -> Int { x + y } }

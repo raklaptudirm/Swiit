@@ -176,6 +176,35 @@ let vmClasses: [VMSample] = [
         compiles: ["f"]
     ),
     VMSample(
+        name:
+            "classes made with defaults only, an inherited initializer, a deinit and a lazy property",
+        source: """
+            var log: [String] = []
+            class Plain { var n = 1; var tags: [String] = [] }
+            class Named {
+                var name: String
+                lazy var shout: String = name + "!"
+                init(_ name: String) { self.name = name }
+                deinit { log.append("bye \\(name)") }
+            }
+            class Sub: Named { var extra = 7 }
+            func f(_ k: Int) -> Int {
+                var t = 0
+                for i in 0..<k {
+                    let a = Plain()
+                    let b = Named("n\\(i)")
+                    let c = Sub("s\\(i)")
+                    t += a.n + b.name.count + c.extra + b.shout.count
+                }
+                return t
+            }
+            let r = f(4)
+            print(log.count)
+            r
+            """,
+        compiles: ["f"]
+    ),
+    VMSample(
         name: "an instance changed through another reference, and a class held in a struct",
         source: """
             class Cell { var n = 0; func inc() { n += 1 } }
@@ -195,6 +224,20 @@ let vmClasses: [VMSample] = [
 ]
 
 let vmFailingClasses: [VMSample] = [
+    VMSample(
+        name:
+            "a class's initializer that leaves a property unset, and a call to a class with no initializer",
+        source: """
+            class Half {
+                var a: Int
+                var b: Int
+                init(a: Int) { self.a = a }
+            }
+            func f() -> Int { Half(a: 1).a }
+            f()
+            """,
+        compiles: ["f"]
+    ),
     VMSample(
         name:
             "an initializer that leaves a field unset, and one that sets a field of the wrong type",

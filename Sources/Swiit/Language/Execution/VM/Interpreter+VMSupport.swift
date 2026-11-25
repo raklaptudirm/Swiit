@@ -125,7 +125,8 @@ extension Interpreter {
     /// function the name is bound to, compiled, taking these arguments as written.
     func vmTarget(of site: CallSite, from caller: Function) -> VMTarget? {
         // A name found to be a struct's is not looked up again for a function.
-        if site.constructedType != nil, site.constructedVersion == scopeVersion,
+        if site.constructedType != nil || site.constructedClass != nil,
+            site.constructedVersion == scopeVersion,
             site.constructedCaller == ObjectIdentifier(caller)
         {
             return nil

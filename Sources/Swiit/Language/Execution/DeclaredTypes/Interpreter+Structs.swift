@@ -153,6 +153,12 @@ extension Interpreter {
         for property: PropertyDecl,
         of type: StructType
     ) throws -> Value {
+        // A literal of the kind the property says it is needs neither.
+        if case .literal(let literal) = expr,
+            property.type.map({ ParameterKind($0).accepts(literal) }) ?? true
+        {
+            return literal
+        }
         let value = try evaluate(expr, expecting: property.type)
         return try checked(value, as: property, of: type)
     }
