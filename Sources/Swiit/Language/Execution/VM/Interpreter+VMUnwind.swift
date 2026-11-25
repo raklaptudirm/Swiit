@@ -50,7 +50,7 @@ extension Interpreter {
             leaveFrame(function, code, base: cursor.base, stack)
             guard stack.callers.count > entryDepth else { throw error }
             let caller = stack.callers.removeLast()
-            if caller.isMethod { abandonMethod(stack.methodExits.removeLast()) }
+            if caller.isMethod { abandonMethod(stack.methodExits.removeLast(), on: stack) }
             cursor = VMCursor(
                 function: caller.function,
                 code: caller.code,

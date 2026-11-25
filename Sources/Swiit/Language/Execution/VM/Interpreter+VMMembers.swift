@@ -192,10 +192,9 @@ extension Interpreter {
         if exit.popsOwner { task.owners.removeLast() }
         if exit.storeReceiverAt >= 0 { stack.base[exit.storeReceiverAt] = exit.selfCell.value }
         exit.storeReceiverIn?.value = exit.selfCell.value
-        switch exit.completion {
-        case nil:
-            return nil
-        case .structValue(let type)?:
+        guard exit.isConstructor else { return nil }
+        switch stack.completions.removeLast() {
+        case .structValue(let type):
             guard let made = exit.selfCell.value.record else {
                 throw RuntimeError("\(type.name).init must leave self a \(type.name)")
             }
@@ -208,7 +207,7 @@ extension Interpreter {
                 record[property.name] = value
             }
             return Value(record: record)
-        case .classInstance(let instance, let initializer, let saved)?:
+        case .classInstance(let instance, let initializer, let saved):
             defer { task.calledSuperInit = saved }
             try completeInitialization(of: instance, by: initializer)
             try checkAllSet(instance)
@@ -217,9 +216,12 @@ extension Interpreter {
     }
 
     /// An error left a method's frame: what it pushed is undone, and nothing is stored.
-    func abandonMethod(_ exit: MethodExit) {
+    func abandonMethod(_ exit: MethodExit, on stack: VMStack) {
         if exit.popsOwner { task.owners.removeLast() }
-        if case .classInstance(_, _, let saved)? = exit.completion { task.calledSuperInit = saved }
+        if exit.isConstructor, case .classInstance(_, _, let saved) = stack.completions.removeLast()
+        {
+            task.calledSuperInit = saved
+        }
     }
 
     /// The scope a method call runs in, with `self` bound in it: after what the method captured.

@@ -253,9 +253,10 @@ extension Interpreter {
                 selfCell: binding.cell,
                 popsOwner: initializer.owner != nil,
                 storeReceiverAt: -1,
-                completion: completion
+                isConstructor: true
             )
         )
+        stack.completions.append(completion)
         stack.ensure(call.argumentBase + code.frameSize)
         stack.top = call.argumentBase + code.frameSize
         cursor = VMCursor(
@@ -298,5 +299,5 @@ struct ConstructorFrame {
     let initializer: Function
     let code: Code
     let receiver: Value
-    let completion: MethodExit.Completion
+    let completion: VMStack.Completion
 }

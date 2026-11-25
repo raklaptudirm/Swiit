@@ -52,17 +52,8 @@ struct MethodExit {
     /// The cell of the caller's `self`, where a struct the method changed goes back when `self` was
     /// the receiver.
     var storeReceiverIn: Binding.Cell?
-    /// What an initializer's frame makes of the value it was run on when it returns.
-    var completion: Completion?
-
-    /// The value a constructor's frame gives back in place of the initializer's result.
-    enum Completion {
-        /// A struct, its fields put in the order the type declares them.
-        case structValue(StructType)
-        /// A class's instance, which the initializer's superclass part completes; what `calledSuperInit`
-        /// was before the call, which is put back.
-        case classInstance(ClassInstance, Function, savedSuperInit: Bool)
-    }
+    /// The frame is an initializer's: what it makes is the last of `VMStack.completions`.
+    var isConstructor = false
 
 }
 
@@ -75,6 +66,19 @@ final class VMStack {
     /// The first register no frame uses.
     @exclusivity(unchecked) var top = 0
     @exclusivity(unchecked) var callers: [VMCaller] = []
+    /// What the initializers the loop is in the middle of calling make of the value they were run on when
+    /// they return, innermost last.
+    @exclusivity(unchecked) var completions: [Completion] = []
+
+    /// The value a constructor's frame gives back in place of the initializer's result.
+    enum Completion {
+        /// A struct, its fields put in the order the type declares them.
+        case structValue(StructType)
+        /// A class's instance, which the initializer's superclass part completes; what `calledSuperInit`
+        /// was before the call, which is put back.
+        case classInstance(ClassInstance, Function, savedSuperInit: Bool)
+    }
+
     /// What the methods the loop is in the middle of calling undo as they return, innermost last.
     @exclusivity(unchecked) var methodExits: [MethodExit] = []
     /// Errors a handler caught, kept for the code it jumped to: the last is the one it is about.
