@@ -34,6 +34,14 @@ enum Instruction {
     /// `loadVariable` of a global, which finds the variable's cell once and keeps it while the names
     /// stay as they were.
     case loadGlobal(dst: Register, site: UInt32)
+    /// `assignMember` of `self`, whose cell is in `cell`: in a method that changes its receiver.
+    case assignSelfMember(
+        cell: Register,
+        site: UInt32,
+        op: BinaryOperator?,
+        value: Register,
+        offset: Int32
+    )
     /// `local.name(arguments)` of a struct's method that is plain (not mutating, taking its arguments
     /// as written): run from the registers, without the tree evaluator's lookups and tables. The next
     /// `offset` instructions, which do it the long way, are skipped when it ran.
@@ -316,10 +324,13 @@ final class MethodSite {
     @exclusivity(unchecked) var version = -1
     @exclusivity(unchecked) var function: Function?
     @exclusivity(unchecked) var code: Code?
+    /// The receiver is a variable that may be changed, so a method that changes it may be called.
+    let mayMutate: Bool
 
-    init(name: String, labels: [String?]) {
+    init(name: String, labels: [String?], mayMutate: Bool) {
         self.name = name
         self.labels = labels
+        self.mayMutate = mayMutate
     }
 }
 
@@ -479,6 +490,13 @@ final class Code {
     /// function's types) and for what binds its arguments in a way of its own (a variadic parameter
     /// gathers them in a list, an `@autoclosure` one wraps the argument).
     @exclusivity(unchecked) var isPlain = true
+    /// Its arguments are taken as written, in registers, whether or not it changes its receiver: what a
+    /// method the loop calls itself must be.
+    @exclusivity(unchecked) var takesArgumentsAsWritten = true
+    /// The register that holds the cell of `self`, for a body that names it: filled as the call
+    /// begins, so that it is not looked up by name each time. Such code is entered by a call that has
+    /// the receiver, never by the loop's own.
+    @exclusivity(unchecked) var selfRegister: Register?
     /// An initializer that may fail, whose `return nil` ends the construction.
     @exclusivity(unchecked) var isFailable = false
     /// A statement of a program's own code, not a function: it is no call, so it adds no entry to an

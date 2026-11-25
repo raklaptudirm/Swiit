@@ -113,7 +113,9 @@ extension Interpreter {
         } else {
             return nil
         }
-        guard only.parameters.count == arguments, let code = compiled(only), code.isPlain else {
+        guard only.parameters.count == arguments, let code = compiled(only), code.isPlain,
+            code.selfRegister == nil
+        else {
             return nil
         }
         return (only, code)
@@ -133,7 +135,7 @@ extension Interpreter {
         } else {
             return nil
         }
-        guard let code = compiled(only), code.isPlain else { return nil }
+        guard let code = compiled(only), code.isPlain, code.selfRegister == nil else { return nil }
         if site.lastFunction !== only {
             site.lastFunction = only
             site.lastFits =
@@ -236,6 +238,9 @@ extension Interpreter {
         if let owner = function.owner { task.owners.append(owner) }
         if !code.isProgram { task.callDepth += 1 }
         task.frame = nil
+        if let register = code.selfRegister, let binding = lookup("self") {
+            stack.base[base + Int(register)] = .object(CellBox(cell: binding.cell))
+        }
         defer {
             if let receiver, let changed = own?.bindings["self"]?.value { receiver.value = changed }
             task.scopes = saved.scopes
@@ -447,6 +452,19 @@ extension Interpreter {
         return local.setField(site.name, op, value)
     }
 
+    /// `setMember` of the struct a cell holds.
+    func setMember(
+        _ site: MemberSite,
+        in cell: Binding.Cell,
+        _ op: BinaryOperator?,
+        _ value: Value
+    ) -> Bool {
+        var held = cell.value
+        cell.value = .nothing
+        defer { cell.value = held }
+        return setMember(site, &held, op, value)
+    }
+
     /// Whether the field `name` of a value of the struct type of `record` may be set where it is: the
     /// tree evaluator's own conditions for changing a place in place (`plainPlace`).
     private func isDirectlySettable(_ record: Value.Record, _ name: String) -> Bool {
@@ -499,7 +517,11 @@ extension Interpreter {
     /// `arguments` on, when the site has found it to be one and the arguments are plainly of the types
     /// it takes; nil, with nothing done, otherwise. What the tree evaluator's call of it does, in the
     /// same steps, without finding the method again by name or binding its arguments in a table.
-    func callMethod(_ site: MethodSite, receiver: Value, arguments: Int) throws -> Value? {
+    func callMethod(
+        _ site: MethodSite,
+        receiver: Value,
+        arguments: Int
+    ) throws -> (result: Value, receiver: Value?)? {
         guard case .structure(let structure) = receiver.storage,
             let typeRef = structure.record.typeRef
         else { return nil }
@@ -520,24 +542,27 @@ extension Interpreter {
         }
         try checkInterrupt()
         defer { task.lastCallee = function }
-        return try runCompiled(
+        let held = Receiver(receiver, mutable: function.isMutating)
+        let result = try runCompiled(
             function,
             code,
             with: [:],
-            receiver: Receiver(receiver, mutable: false),
+            receiver: held,
             argumentsAt: arguments
         )
+        return (result, function.isMutating ? held.value : nil)
     }
 
     /// The method `site` calls on a struct of the type of `record`, if it is the only one of that
-    /// name, takes these arguments as written, and is one the loop can run (`Code.isPlain`).
+    /// name, takes these arguments as written, and is one the loop can run (`Code.takesArgumentsAsWritten`).
     private func plainMethod(_ site: MethodSite, of record: Value.Record) -> (Function?, Code?) {
         guard record[site.name] == nil, let type = structType(of: record),
             let methods = type.members.methods[site.name], methods.candidates.count == 1,
-            case let method = methods.candidates[0], !method.isMutating, !method.isThrowing,
+            case let method = methods.candidates[0], !method.isMutating || site.mayMutate,
+            !method.isThrowing,
             method.parameters.count == site.labels.count,
             zip(method.parameters, site.labels).allSatisfy({ $0.label == $1 }),
-            let code = compiled(method), code.isPlain
+            let code = compiled(method), code.takesArgumentsAsWritten
         else { return (nil, nil) }
         return (method, code)
     }

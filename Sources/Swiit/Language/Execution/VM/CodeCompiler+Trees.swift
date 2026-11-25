@@ -9,6 +9,12 @@ private struct Mentions {
 
     mutating func collect(_ subject: Any) {
         if subject is Value || subject is String { return }
+        if let assignment = subject as? Assignment {
+            names.insert(assignment.root)
+            collect(assignment.value)
+            collect(assignment.path)
+            return
+        }
         if let local = subject as? Program.Local {
             slots[local.slot] = local.name
             return
@@ -32,6 +38,13 @@ private struct Mentions {
 }
 
 extension CodeCompiler {
+    /// Whether a body names `self`, in its own code or in a closure's.
+    func mentionsSelf(_ body: Program) -> Bool {
+        var mentions = Mentions()
+        mentions.collect(body)
+        return mentions.names.contains("self")
+    }
+
     /// The locals a piece of code mentions, as the frame it is run in gets them.
     private func mentioned(by subject: Any, plus roots: [String] = []) -> [TreeLocal] {
         var mentions = Mentions()

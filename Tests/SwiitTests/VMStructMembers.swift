@@ -101,6 +101,23 @@ let vmStructMembers: [VMSample] = [
 
 let vmFailingStructMembers: [VMSample] = [
     VMSample(
+        name: "a mutating method that fails half way leaves the struct as it was",
+        source: """
+            struct S {
+                var v = 1
+                mutating func risky(_ d: Int) { v += 100; v = 10 / d }
+            }
+            func f() -> Int {
+                var s = S()
+                s.risky(5)
+                s.risky(0)
+                return s.v
+            }
+            f()
+            """,
+        compiles: ["f"]
+    ),
+    VMSample(
         name: "a method called with an argument of the wrong type",
         source: """
             struct V { var x: Int; func plus(_ n: Int) -> Int { x + n } }

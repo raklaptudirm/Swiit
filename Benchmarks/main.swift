@@ -128,6 +128,14 @@ let cases = [
             """
     ),
     Case(
+        name: "fn: method reading self, 200k",
+        source: """
+            struct P { var x: Int; var y: Int; func sum() -> Int { x + y } }
+            func run() -> Int { let p = P(x: 1, y: 2); var t = 0; for _ in 0..<200_000 { t += p.sum() }; return t }
+            run()
+            """
+    ),
+    Case(
         name: "fn: struct make and read, 200k",
         source: """
             struct P { var x: Int; var y: Int; func sum() -> Int { x + y } }

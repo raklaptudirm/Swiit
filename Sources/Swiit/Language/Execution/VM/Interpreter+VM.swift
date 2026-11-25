@@ -483,13 +483,26 @@ extension Interpreter {
                         let arguments,
                         let offset
                     ):
-                        if let value = try callMethod(
+                        if let done = try callMethod(
                             code.methods[Int(siteIndex)],
                             receiver: regs[Int(receiver)],
                             arguments: base + Int(arguments)
                         ) {
                             regs = stack.base + base
-                            regs[Int(dst)] = value
+                            if let changed = done.receiver { regs[Int(receiver)] = changed }
+                            regs[Int(dst)] = done.result
+                            pc += Int(offset)
+                        }
+                    case .assignSelfMember(let cell, let siteIndex, let op, let value, let offset):
+                        if case .object(let object) = regs[Int(cell)].storage,
+                            let box = object as? CellBox,
+                            setMember(
+                                code.members[Int(siteIndex)],
+                                in: box.cell,
+                                op,
+                                regs[Int(value)]
+                            )
+                        {
                             pc += Int(offset)
                         }
                     case .loadGlobal(let dst, let siteIndex):

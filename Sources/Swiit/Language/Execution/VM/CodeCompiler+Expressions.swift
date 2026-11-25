@@ -30,6 +30,8 @@ extension CodeCompiler {
             // A name the frame resolver left in what it does not look into (a `where`) may be a local.
             if let local = lookup(name) {
                 read(local.slot, boxed: local.boxed, into: destination)
+            } else if name == "self", let register = code.selfRegister {
+                emit(.loadCell(dst: destination, box: register))
             } else {
                 code.globals.append(GlobalSite(name: name))
                 emit(.loadGlobal(dst: destination, site: UInt32(code.globals.count - 1)))
@@ -95,12 +97,17 @@ extension CodeCompiler {
         return emit(.jumpIfFalse(condition: try operand(condition), offset: 0))
     }
 
+    /// `name` is `self` in a body that keeps its cell in a register.
+    func namesSelfRegister(_ name: String) -> Bool {
+        name == "self" && code.selfRegister != nil
+    }
+
     /// Whether an expression changes nothing and calls nothing, so that making it twice (once for
     /// the fast member, and again if that does not apply) is the same as once.
     func isPure(_ value: Expr) -> Bool {
         switch value {
         case .literal, .local: true
-        case .variable(let name): lookup(name) != nil
+        case .variable(let name): lookup(name) != nil || namesSelfRegister(name)
         case .unary(_, let operand): isPure(operand)
         case .binary(let op, let lhs, let rhs):
             op != .closedRange && op != .halfOpenRange && isPure(lhs) && isPure(rhs)
@@ -174,7 +181,9 @@ extension CodeCompiler {
         for argument in arguments {
             try self.expression(argument.value, into: try allocate())
         }
-        code.methods.append(MethodSite(name: name, labels: arguments.map(\.label)))
+        code.methods.append(
+            MethodSite(name: name, labels: arguments.map(\.label), mayMutate: held.mutable)
+        )
         let fast = emit(
             .callMethod(
                 dst: destination,
@@ -195,7 +204,7 @@ extension CodeCompiler {
     func isConstant(_ value: Expr) -> Bool {
         switch value {
         case .literal: true
-        case .variable(let name): lookup(name) == nil
+        case .variable(let name): lookup(name) == nil && !namesSelfRegister(name)
         case .unary(_, let operand): isConstant(operand)
         case .binary(_, let lhs, let rhs): isConstant(lhs) && isConstant(rhs)
         case .member(let base, _): isConstant(base)

@@ -8,6 +8,9 @@ final class CellBox: LanguageObject, @unchecked Sendable {
 
     init(_ value: Value) { cell = Binding.Cell(value) }
 
+    /// A box for a cell that exists already, such as the one a binding of `self` has.
+    init(cell: Binding.Cell) { self.cell = cell }
+
     var typeName: String { "Variable" }
     var memberNames: [String] { [] }
     func member(_ name: String) -> Value? { nil }

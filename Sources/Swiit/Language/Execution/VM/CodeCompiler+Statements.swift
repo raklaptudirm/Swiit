@@ -197,7 +197,14 @@ extension CodeCompiler {
         // A weak variable stays weak when it is assigned, which the tree evaluator sees to.
         let isWeak = known.map { weakSlots.contains(Int($0.slot)) } ?? false
         guard assignment.path.isEmpty, known?.mutable ?? true, !isWeak else {
-            try member(of: known, assignment, statement)
+            if known == nil, assignment.root == "self", let register = code.selfRegister,
+                changesSelf, assignment.path.count == 1, isPure(assignment.value),
+                case .member(let name) = assignment.path[0]
+            {
+                try selfMember(name, register, assignment, statement)
+            } else {
+                try member(of: known, assignment, statement)
+            }
             return
         }
         let mark = nextTemporary
@@ -248,6 +255,31 @@ extension CodeCompiler {
         let fast = emit(
             .assignMember(
                 local: known.slot,
+                site: UInt32(code.members.count - 1),
+                op: assignment.op,
+                value: value,
+                offset: 0
+            )
+        )
+        nextTemporary = mark
+        treeStatement(statement, roots: [assignment.root])
+        patch(fast, to: here)
+    }
+
+    /// `self.x = v` and `self.x += v` in a method that changes its receiver: set in the cell of `self`
+    /// where the field may be, and by the tree evaluator, which follows it, where not.
+    private mutating func selfMember(
+        _ name: String,
+        _ cell: Register,
+        _ assignment: Assignment,
+        _ statement: Statement
+    ) throws {
+        let mark = nextTemporary
+        let value = try operand(assignment.value)
+        code.members.append(MemberSite(name: name))
+        let fast = emit(
+            .assignSelfMember(
+                cell: cell,
                 site: UInt32(code.members.count - 1),
                 op: assignment.op,
                 value: value,
