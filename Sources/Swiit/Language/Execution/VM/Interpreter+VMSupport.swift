@@ -31,6 +31,7 @@ extension Interpreter {
             setScopes(of: caller.function, from: callee, task)
         }
         stack.top = caller.base + caller.code.frameSize
+        if caller.isMethod { finishMethod(stack.methodExits.removeLast(), on: stack) }
         let conforming =
             calleeCode.returnKind.accepts(result) ? result : try conformed(result, to: callee)
         stack.base[caller.destination] = conforming
@@ -145,20 +146,21 @@ extension Interpreter {
         guard let code = compiled(only), code.isPlain, code.selfRegister == nil else { return nil }
         if site.lastFunction !== only {
             site.lastFunction = only
-            site.lastFits =
-                only.parameters.count == site.labels.count
-                && zip(only.parameters, site.labels).allSatisfy { $0.label == $1 }
+            site.lastMapping = argumentMapping(of: only, labels: site.labels)
+            site.lastDefaults = site.lastMapping?.contains(-1) ?? false
+            site.lastFits = site.lastMapping != nil
         }
         // A value of function type is called with its arguments in order, whatever they are labeled.
         let fits =
             binding.isFunction
             ? site.lastFits : only.parameters.count == site.labels.count
-        guard fits else { return nil }
+        // A variable that holds a function does not have the defaults its parameters had.
+        guard fits, binding.isFunction || !site.lastDefaults else { return nil }
         let shares =
             only.captured.count == caller.captured.count
             && zip(only.captured, caller.captured).allSatisfy { $0 === $1 }
         // A variable that holds a function can be assigned another without the names changing.
-        if binding.isFunction {
+        if binding.isFunction, !site.lastDefaults {
             site.cached = CallSite.Cached(caller: caller, callee: only, code: code)
             site.cachedCaller = ObjectIdentifier(caller)
             site.cachedVersion = scopeVersion
@@ -217,6 +219,7 @@ extension Interpreter {
     ) throws -> Value {
         let task = self.task
         let stack = task.vm
+        vmEntries += 1
         let base = stack.top
         stack.ensure(base + code.frameSize)
         for (index, parameter) in function.parameters.enumerated() {
@@ -501,6 +504,7 @@ extension Interpreter {
     /// A call the loop does not make itself: the tree evaluator's, with the arguments in the registers
     /// from `arguments` on, which it takes.
     func evaluateCall(_ site: CallSite, _ callee: Expr, _ arguments: Int) throws -> Value {
+        noteSlowCall(site)
         let stack = task.vm
         var given: [Argument] = []
         for index in 0..<site.labels.count {
@@ -513,5 +517,113 @@ extension Interpreter {
             stack.base[arguments + index] = .nothing
         }
         return try evaluateCall(callee, given)
+    }
+}
+
+extension Interpreter {
+    /// Counts a call the loop hands to the tree evaluator by what it calls.
+    func noteSlowCall(_ site: CallSite) {
+        var kind = "a call on a value"
+        if let name = site.name {
+            switch lookup(name)?.value.storage {
+            case .function(let callable)?:
+                if let set = callable as? OverloadSet {
+                    if set.candidates.count != 1 {
+                        kind = "overloaded function"
+                    } else if argumentMapping(of: set.candidates[0], labels: site.labels) == nil {
+                        kind = "function, arguments that do not fit (variadic, trailing closure)"
+                    } else if set.candidates[0].effect == .async {
+                        kind = "async function"
+                    } else if case .native = set.candidates[0].body {
+                        kind = "native function"
+                    } else if compiled(set.candidates[0]) == nil {
+                        kind = "function the VM does not compile"
+                    } else {
+                        kind = "function, not plain (generic, variadic, labels)"
+                    }
+                } else if let function = callable as? Function {
+                    if case .native = function.body {
+                        kind = "native closure"
+                    } else {
+                        kind = "closure value"
+                    }
+                } else {
+                    kind = "other callable"
+                }
+            case .object(let object)?:
+                kind =
+                    object is StructType
+                    ? "struct type" : object is ClassType ? "class type" : "other type"
+            default: kind = "unknown name"
+            }
+        }
+        vmSlowCalls[kind, default: 0] += 1
+    }
+}
+
+extension Interpreter {
+    /// How a call with these labels is bound to the parameters of `function` as `bind` does it, for a
+    /// function whose parameters are plain: each parameter takes the next argument if the label is its,
+    /// and otherwise its default. Nil where it does not fit, or a parameter is variadic or filled by
+    /// the host.
+    func argumentMapping(of function: Function, labels: [String?]) -> [Int]? {
+        var mapping: [Int] = []
+        var index = 0
+        for parameter in function.parameters {
+            if parameter.variadic || parameter.externalDefault != nil { return nil }
+            if index < labels.count, labels[index] == parameter.label {
+                mapping.append(index)
+                index += 1
+            } else if parameter.defaultValue != nil {
+                mapping.append(-1)
+            } else {
+                return nil
+            }
+        }
+        return index == labels.count ? mapping : nil
+    }
+
+    /// Puts the arguments of a call in the places of the parameters they are for, from the registers
+    /// at `base`, and the defaults of the parameters left out, as `bind` evaluates them.
+    func placeArguments(_ mapping: [Int], of function: Function, at base: Int) throws {
+        let stack = task.vm
+        let needed = base + mapping.count
+        stack.ensure(needed)
+        for position in stride(from: mapping.count - 1, through: 0, by: -1)
+        where mapping[position] >= 0 && mapping[position] != position {
+            stack.base[base + position] = stack.base[base + mapping[position]]
+        }
+        // What the defaults run may use the stack above the caller's registers.
+        let savedTop = stack.top
+        stack.top = max(stack.top, needed)
+        defer { stack.top = savedTop }
+        for (position, parameter) in function.parameters.enumerated() where mapping[position] < 0 {
+            guard let expression = parameter.defaultValue else { continue }
+            let value: Value
+            if case .literal(let literal) = expression,
+                ParameterKind(parameter.type).accepts(literal)
+            {
+                value = literal
+            } else {
+                value = try defaultArgument(expression, for: parameter, of: function)
+            }
+            stack.base[base + position] = value
+        }
+    }
+}
+
+extension Interpreter {
+    /// Makes each argument of a call the type its parameter has, where it is not plainly of it already.
+    @inline(__always)
+    func checkArguments(of callee: Function, _ code: Code, at argumentBase: Int) throws {
+        let stack = task.vm
+        for index in 0..<code.parameterCount
+        where !code.parameterKinds[index].accepts(at: stack.base + argumentBase + index) {
+            stack.base[argumentBase + index] = try checked(
+                stack.base[argumentBase + index],
+                for: callee.parameters[index],
+                of: callee.name ?? "closure"
+            )
+        }
     }
 }

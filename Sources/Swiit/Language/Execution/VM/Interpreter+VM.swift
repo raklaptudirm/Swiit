@@ -289,6 +289,11 @@ extension Interpreter {
                             (callee, calleeCode, sharesScopes) =
                                 (target.function, target.code, target.sharesScopes)
                             found = true
+                            // Not cached: a call that leaves out parameters places its arguments.
+                            if site.lastDefaults, let mapping = site.lastMapping {
+                                try placeArguments(mapping, of: callee, at: argumentBase)
+                                regs = stack.base + base
+                            }
                         }
                         if found {
                             // The scopes are the caller's own and stay so: nothing to save or set.
@@ -297,16 +302,7 @@ extension Interpreter {
                                 throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
                             }
                             try tick(task, run)
-                            for index in 0..<calleeCode.parameterCount
-                            where !calleeCode.parameterKinds[index]
-                                .accepts(at: stack.base + argumentBase + index)
-                            {
-                                stack.base[argumentBase + index] = try checked(
-                                    stack.base[argumentBase + index],
-                                    for: callee.parameters[index],
-                                    of: callee.name ?? "closure"
-                                )
-                            }
+                            try checkArguments(of: callee, calleeCode, at: argumentBase)
                             stack.callers.append(
                                 VMCaller(
                                     code: code,
@@ -382,16 +378,7 @@ extension Interpreter {
                                 throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
                             }
                             try tick(task, run)
-                            for index in 0..<calleeCode.parameterCount
-                            where !calleeCode.parameterKinds[index]
-                                .accepts(at: stack.base + argumentBase + index)
-                            {
-                                stack.base[argumentBase + index] = try checked(
-                                    stack.base[argumentBase + index],
-                                    for: callee.parameters[index],
-                                    of: callee.name ?? "closure"
-                                )
-                            }
+                            try checkArguments(of: callee, calleeCode, at: argumentBase)
                             stack.callers.append(
                                 VMCaller(
                                     code: code,
@@ -470,15 +457,27 @@ extension Interpreter {
                         let arguments,
                         let offset
                     ):
-                        if let done = try callMethod(
-                            code.methods[Int(siteIndex)],
-                            receiver: regs[Int(receiver)],
-                            arguments: base + Int(arguments)
-                        ) {
+                        var cursor = VMCursor(
+                            function: function,
+                            code: code,
+                            base: base,
+                            pc: pc,
+                            statement: statement
+                        )
+                        let operands = CallOperands(
+                            dst: dst,
+                            receiver: receiver,
+                            arguments: arguments,
+                            offset: offset
+                        )
+                        if try enterMethod(code.methods[Int(siteIndex)], operands, &cursor, stack) {
+                            (function, code, base, pc, statement) =
+                                (
+                                    cursor.function, cursor.code, cursor.base, cursor.pc,
+                                    cursor.statement
+                                )
+                            instructions = code.program
                             regs = stack.base + base
-                            if let changed = done.receiver { regs[Int(receiver)] = changed }
-                            regs[Int(dst)] = done.result
-                            pc += Int(offset)
                         }
                     case .assignSelfMember(let cell, let siteIndex, let op, let value, let offset):
                         if case .object(let object) = regs[Int(cell)].storage,
@@ -563,6 +562,9 @@ extension Interpreter {
                                 setScopes(of: function, from: caller.callee, task)
                             }
                             stack.top = base + code.frameSize
+                            if caller.isMethod {
+                                finishMethod(stack.methodExits.removeLast(), on: stack)
+                            }
                             let conforming =
                                 finishedCode.returnKind.accepts(result)
                                 ? result : try conformed(result, to: caller.callee)
@@ -653,6 +655,9 @@ extension Interpreter {
                     leaveFrame(function, code, base: base, stack)
                     guard stack.callers.count > entryDepth else { throw error }
                     let caller = stack.callers.removeLast()
+                    if caller.isMethod, stack.methodExits.removeLast().popsOwner {
+                        task.owners.removeLast()
+                    }
                     function = caller.function
                     code = caller.code
                     instructions = code.program

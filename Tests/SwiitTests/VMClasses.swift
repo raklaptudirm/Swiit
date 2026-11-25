@@ -281,3 +281,58 @@ let vmFailingClasses: [VMSample] = [
         compiles: ["f"]
     ),
 ]
+
+/// Programs whose calls are all the loop's own: a global function, a method of a struct and of a class, a
+/// mutating one, one that calls another, and a method with an owner that calls `super`.
+let vmEntered: [VMSample] = [
+    VMSample(
+        name: "global functions and methods called in a loop",
+        source: """
+            func sq(_ n: Int) -> Int { n * n }
+            struct V {
+                var x = 1
+                func plus(_ n: Int) -> Int { x + n }
+                mutating func bump() { x += 1 }
+            }
+            class A { var n = 0; func inc(_ by: Int) -> Int { n += by; return n } }
+            class B: A { override func inc(_ by: Int) -> Int { super.inc(by * 2) } }
+            func f() -> Int {
+                var v = V()
+                let a = A()
+                let b = B()
+                var t = 0
+                for i in 0..<5 {
+                    t += sq(i) + v.plus(i) + a.inc(1) + b.inc(1)
+                    v.bump()
+                }
+                return t + v.x
+            }
+            f()
+            """,
+        compiles: ["f"]
+    ),
+    VMSample(
+        name: "calls that leave out parameters that have defaults, and a method that does",
+        source: """
+            var base = 10
+            func f(_ a: Int, b: Int = 2, c: Double = 0, d: String = "d", e: Int = base) -> Double {
+                Double(a + b + e) + c + Double(d.count)
+            }
+            struct M { var k = 1; func g(_ x: Int, scale: Int = 3) -> Int { (x + k) * scale } }
+            func run() -> Double {
+                var t = 0.0
+                let m = M()
+                for i in 0..<4 {
+                    base += i
+                    t += f(i) + f(i, b: 5) + f(i, c: 1.5) + f(i, d: "xyz") + f(i, b: 1, e: 2)
+                    let g1 = m.g(i)
+                    let g2 = m.g(i, scale: 2)
+                    t += Double(g1 + g2)
+                }
+                return t
+            }
+            run()
+            """,
+        compiles: ["f", "run"]
+    ),
+]

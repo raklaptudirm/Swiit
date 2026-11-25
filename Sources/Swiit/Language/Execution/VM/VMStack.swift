@@ -36,6 +36,26 @@ struct VMCaller {
     var scopes: [Scope]?
     /// The call left the scopes as they were, so returning leaves them so.
     var sameScopes = false
+    /// A method the loop called with a scope of its own: its `MethodExit` is the last of `methodExits`.
+    var isMethod = false
+}
+
+/// What returning from a method the loop called undoes besides leaving its frame. A class, so that the
+/// record of a call that is not one is a word.
+final class MethodExit {
+    /// The cell of `self` in the scope of the call, which the receiver is read back from.
+    let selfCell: Binding.Cell
+    /// The call pushed the class whose body it is, for `super`.
+    let popsOwner: Bool
+    /// The register, counted from the stack's start, a struct the method changed is stored back in;
+    /// negative where it is not.
+    let storeReceiverAt: Int
+
+    init(selfCell: Binding.Cell, popsOwner: Bool, storeReceiverAt: Int) {
+        self.selfCell = selfCell
+        self.popsOwner = popsOwner
+        self.storeReceiverAt = storeReceiverAt
+    }
 }
 
 /// The registers of a task's compiled code, one frame after another, and where each caller was. A
@@ -47,6 +67,8 @@ final class VMStack {
     /// The first register no frame uses.
     @exclusivity(unchecked) var top = 0
     @exclusivity(unchecked) var callers: [VMCaller] = []
+    /// What the methods the loop is in the middle of calling undo as they return, innermost last.
+    @exclusivity(unchecked) var methodExits: [MethodExit] = []
     /// Errors a handler caught, kept for the code it jumped to: the last is the one it is about.
     var caught: [Error] = []
     /// What `observesStatements` was before each deferred block that is running began.
@@ -88,4 +110,13 @@ final class VMStack {
         base = moved
         capacity = larger
     }
+}
+
+/// A method the loop is to call: what the site found, and whether its receiver is a class's instance.
+struct MethodTarget {
+    let function: Function
+    let code: Code
+    let isClass: Bool
+    /// The arguments to place, when the call leaves out parameters that have defaults.
+    let mapping: [Int]?
 }

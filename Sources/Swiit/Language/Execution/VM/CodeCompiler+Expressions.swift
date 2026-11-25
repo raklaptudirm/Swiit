@@ -69,6 +69,9 @@ extension CodeCompiler {
             try attempt(operand, kind, into: destination)
         case .bridged where try fastMember(expression, into: destination):
             break
+        case .call(.member(.variable("super"), let name), let arguments)
+        where try superMethod(name, arguments, expression, into: destination):
+            break
         case .call(.member(let base, let name), let arguments)
         where try method(base, name, arguments, expression, into: destination):
             break
@@ -148,6 +151,47 @@ extension CodeCompiler {
                 dst: destination,
                 receiver: held.slot,
                 argument: argument,
+                offset: 0
+            )
+        )
+        nextTemporary = mark
+        treeExpression(expression, into: destination)
+        patch(fast, to: here)
+        return true
+    }
+
+    /// `super.name(arguments)` in a method: run by `callMethod` on `self` when the class above has one
+    /// plain method of that name, and by the tree evaluator, which follows it, where not.
+    mutating func superMethod(
+        _ name: String,
+        _ arguments: [Argument],
+        _ expression: Expr,
+        into destination: Register
+    ) throws -> Bool {
+        guard let selfRegister = code.selfRegister, name != "init",
+            arguments.allSatisfy({ isPure($0.value) })
+        else { return false }
+        let mark = nextTemporary
+        let held = try allocate()
+        emit(.loadCell(dst: held, box: selfRegister))
+        let first = Register(nextTemporary)
+        for argument in arguments {
+            try self.expression(argument.value, into: try allocate())
+        }
+        code.methods.append(
+            MethodSite(
+                name: name,
+                labels: arguments.map(\.label),
+                mayMutate: false,
+                isSuper: true
+            )
+        )
+        let fast = emit(
+            .callMethod(
+                dst: destination,
+                site: UInt32(code.methods.count - 1),
+                receiver: held,
+                arguments: first,
                 offset: 0
             )
         )

@@ -64,6 +64,12 @@ public final class Interpreter: @unchecked Sendable {
     var vmFallbacks: [String] = []
     /// How many loops of a program's own code the VM has run, which a test counts on.
     var vmLoops = 0
+    /// How many times the VM has been entered from outside it: a call from the tree evaluator, from a
+    /// native body or from the host. A call the loop makes itself is not one, and a task whose Swift
+    /// stack holds only the loop is one that could be parked (`Docs/vm.md`).
+    var vmEntries = 0
+    /// Calls the loop handed to the tree evaluator, by what they were (a test counts them).
+    var vmSlowCalls: [String: Int] = [:]
 
     /// What bounds a run (steps, depth, time, output) unless the run is given limits of its own.
     var limits = Interpreter.Limits()

@@ -161,7 +161,7 @@ private let programs: [VMSample] = [
 /// The programs of every file, which one test runs on both engines.
 private let everyProgram: [VMSample] = [
     programs, vmControlFlow, vmMoreControlFlow, vmClosures, vmRuntimeNodes, vmKinds,
-    vmParameterKinds, vmAsync, vmTopLevel, vmFastMembers, vmStructMembers, vmClasses,
+    vmParameterKinds, vmAsync, vmTopLevel, vmFastMembers, vmStructMembers, vmClasses, vmEntered,
 ]
 .flatMap { $0 }
 
@@ -309,4 +309,13 @@ private func anErrorIsReportedAsOnTheTreeEvaluator(_ program: VMSample) {
     #expect(result.outcome.value == "40100")
     #expect(ContinuousClock.now - start < .seconds(10), "took \(ContinuousClock.now - start)")
     #expect(vmCompiled(["build"], in: result.swiit) == [])
+}
+
+/// A call the loop makes itself is a frame of the loop, not a run of it on Swift's stack, which is
+/// what a task needs to be parked: the loop is entered once for these, from the program's call of `f`.
+@Test(arguments: vmEntered)
+private func aCallOfTheLoopIsNotANestedRun(_ program: VMSample) {
+    let vm = vmRun(program.source, on: .vm)
+    #expect(vm.outcome.failure == nil, "\(program.name) failed: \(vm.outcome.failure ?? "")")
+    #expect(vm.swiit.vmEntries == 1, "\(program.name) entered the VM \(vm.swiit.vmEntries) times")
 }

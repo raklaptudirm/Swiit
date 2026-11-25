@@ -42,7 +42,7 @@ extension CodeCompiler {
     func mentionsSelf(_ body: Program) -> Bool {
         var mentions = Mentions()
         mentions.collect(body)
-        return mentions.names.contains("self")
+        return mentions.names.contains("self") || mentions.names.contains("super")
     }
 
     /// The locals a piece of code mentions, as the frame it is run in gets them.

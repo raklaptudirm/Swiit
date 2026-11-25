@@ -280,6 +280,10 @@ final class CallSite {
     /// calls the same function nearly every time.
     @exclusivity(unchecked) var lastFunction: Function?
     @exclusivity(unchecked) var lastFits = false
+    /// For each parameter of `lastFunction`, the argument it takes, or -1 where its default is used; nil
+    /// where the arguments do not fit it. It has a -1 only when `lastDefaults`.
+    @exclusivity(unchecked) var lastMapping: [Int]?
+    @exclusivity(unchecked) var lastDefaults = false
     /// What it called, and from which function when the scopes had this version: while neither has
     /// changed, the name need not be looked up again.
     @exclusivity(unchecked) var cached: Cached?
@@ -337,11 +341,16 @@ final class MethodSite {
     @exclusivity(unchecked) var code: Code?
     /// The receiver is a variable that may be changed, so a method that changes it may be called.
     let mayMutate: Bool
+    /// `super.name(…)`: the method is the one the class above the running method's has.
+    let isSuper: Bool
+    /// For the method found, which argument each parameter takes (-1: its default), when some are left out.
+    @exclusivity(unchecked) var mapping: [Int]?
 
-    init(name: String, labels: [String?], mayMutate: Bool) {
+    init(name: String, labels: [String?], mayMutate: Bool, isSuper: Bool = false) {
         self.name = name
         self.labels = labels
         self.mayMutate = mayMutate
+        self.isSuper = isSuper
     }
 }
 

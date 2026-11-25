@@ -126,53 +126,93 @@ extension Interpreter {
     /// `arguments` on, when the site has found it to be one and the arguments are plainly of the types
     /// it takes; nil, with nothing done, otherwise. What the tree evaluator's call of it does, in the
     /// same steps, without finding the method again by name or binding its arguments in a table.
-    func callMethod(
+    func methodTarget(
         _ site: MethodSite,
         receiver: Value,
-        arguments: Int
-    ) throws -> (result: Value, receiver: Value?)? {
-        switch receiver.storage {
-        case .structure(let structure):
-            guard let typeRef = structure.record.typeRef else { return nil }
-            if site.version != scopeVersion || site.type != typeRef {
-                site.version = scopeVersion
-                site.type = typeRef
-                site.classType = nil
-                (site.function, site.code) = plainMethod(site, of: structure.record)
+        arguments: Int,
+        owner: ClassType?
+    ) throws -> MethodTarget? {
+        if site.isSuper {
+            guard let parent = owner?.superclass, case .object = receiver.storage else {
+                return nil
             }
-        case .object(let object):
-            guard let instance = object as? ClassInstance else { return nil }
-            if site.version != scopeVersion || site.classType != ObjectIdentifier(instance.type) {
+            if site.version != scopeVersion || site.classType != ObjectIdentifier(parent) {
                 site.version = scopeVersion
                 site.type = nil
-                site.classType = ObjectIdentifier(instance.type)
-                (site.function, site.code) = plainMethod(site, of: instance.type)
+                site.classType = ObjectIdentifier(parent)
+                (site.function, site.code) = plainMethod(site, of: parent)
             }
-        default:
-            return nil
+        } else {
+            switch receiver.storage {
+            case .structure(let structure):
+                guard let typeRef = structure.record.typeRef else { return nil }
+                if site.version != scopeVersion || site.type != typeRef {
+                    site.version = scopeVersion
+                    site.type = typeRef
+                    site.classType = nil
+                    (site.function, site.code) = plainMethod(site, of: structure.record)
+                }
+            case .object(let object):
+                guard let instance = object as? ClassInstance else { return nil }
+                if site.version != scopeVersion || site.classType != ObjectIdentifier(instance.type)
+                {
+                    site.version = scopeVersion
+                    site.type = nil
+                    site.classType = ObjectIdentifier(instance.type)
+                    (site.function, site.code) = plainMethod(site, of: instance.type)
+                }
+            default:
+                return nil
+            }
         }
         guard let function = site.function, let code = site.code else { return nil }
         let stack = task.vm
-        for index in 0..<code.parameterCount
-        where !code.parameterKinds[index].accepts(at: stack.base + arguments + index) {
-            return nil
+        // With defaults the arguments are not in the places of the parameters yet: they are checked as
+        // they are placed.
+        if site.mapping == nil {
+            for index in 0..<code.parameterCount
+            where !code.parameterKinds[index].accepts(at: stack.base + arguments + index) {
+                return nil
+            }
         }
         let maxCallDepth = task.run.maxCallDepth
         guard task.callDepth < maxCallDepth else {
             throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
         }
-        try checkInterrupt()
-        defer { task.lastCallee = function }
-        let isClass = site.classType != nil
-        let held = Receiver(receiver, mutable: isClass || function.isMutating)
-        let result = try runCompiled(
-            function,
-            code,
-            with: [:],
-            receiver: held,
-            argumentsAt: arguments
+        return MethodTarget(
+            function: function,
+            code: code,
+            isClass: site.classType != nil,
+            mapping: site.mapping
         )
-        return (result, function.isMutating && !isClass ? held.value : nil)
+    }
+
+    /// What returning from a method the loop called undoes: the class pushed for `super` is popped,
+    /// and a struct the method changed goes back in the register it was called on.
+    func finishMethod(_ exit: MethodExit, on stack: VMStack) {
+        if exit.popsOwner { task.owners.removeLast() }
+        if exit.storeReceiverAt >= 0 { stack.base[exit.storeReceiverAt] = exit.selfCell.value }
+    }
+
+    /// The scope a method call runs in, with `self` bound in it: after what the method captured.
+    func enterMethodScope(_ target: MethodTarget, receiver: Value, storeAt: Int) -> MethodExit {
+        let made = Scope()
+        let binding = Binding(
+            value: receiver,
+            mutable: target.isClass || target.function.isMutating,
+            special: nil
+        )
+        made.bindings["self"] = binding
+        var inside = target.function.captured
+        inside.append(made)
+        task.scopes = inside
+        if let owner = target.function.owner { task.owners.append(owner) }
+        task.callDepth += 1
+        return MethodExit(
+            selfCell: binding.cell,
+            popsOwner: target.function.owner != nil,
+            storeReceiverAt: target.function.isMutating && !target.isClass ? storeAt : -1
+        )
     }
 
     /// The method `site` calls on an instance of `type`: the one method of that name it has or
@@ -180,10 +220,10 @@ extension Interpreter {
     private func plainMethod(_ site: MethodSite, of type: ClassType) -> (Function?, Code?) {
         let methods = type.allMethods(site.name)
         guard methods.count == 1, case let method = methods[0], !method.isThrowing,
-            method.parameters.count == site.labels.count,
-            zip(method.parameters, site.labels).allSatisfy({ $0.label == $1 }),
+            let mapping = argumentMapping(of: method, labels: site.labels),
             let code = compiled(method), code.takesArgumentsAsWritten
         else { return (nil, nil) }
+        site.mapping = mapping.contains(-1) ? mapping : nil
         return (method, code)
     }
 
@@ -194,10 +234,10 @@ extension Interpreter {
             let methods = type.members.methods[site.name], methods.candidates.count == 1,
             case let method = methods.candidates[0], !method.isMutating || site.mayMutate,
             !method.isThrowing,
-            method.parameters.count == site.labels.count,
-            zip(method.parameters, site.labels).allSatisfy({ $0.label == $1 }),
+            let mapping = argumentMapping(of: method, labels: site.labels),
             let code = compiled(method), code.takesArgumentsAsWritten
         else { return (nil, nil) }
+        site.mapping = mapping.contains(-1) ? mapping : nil
         return (method, code)
     }
 }
@@ -472,5 +512,95 @@ extension Interpreter {
         }
         for index in 0..<site.labels.count { stack.base[arguments + index] = .nothing }
         return .object(instance)
+    }
+}
+
+extension Interpreter {
+    /// A call that leaves out parameters with defaults: the arguments go where the parameters are, the
+    /// defaults are made, and each is made the type its parameter has, as `bind` does.
+    func placeAndCheckArguments(
+        _ mapping: [Int],
+        of function: Function,
+        at base: Int
+    ) throws {
+        try placeArguments(mapping, of: function, at: base)
+        let stack = task.vm
+        for (index, parameter) in function.parameters.enumerated()
+        where !ParameterKind(parameter.type).accepts(at: stack.base + base + index) {
+            stack.base[base + index] = try checked(
+                stack.base[base + index],
+                for: parameter,
+                of: function.name ?? "closure"
+            )
+        }
+    }
+}
+
+/// The registers a `callMethod` instruction names.
+struct CallOperands {
+    let dst: Register
+    let receiver: Register
+    let arguments: Register
+    let offset: Int32
+}
+
+extension Interpreter {
+    /// A call of a method the loop makes: when the site is one it can, the frame of the method is
+    /// pushed and the cursor is that of its first instruction, and the caller's resumes after the code
+    /// that makes the call the long way. False, with nothing done, otherwise.
+    func enterMethod(
+        _ site: MethodSite,
+        _ operands: CallOperands,
+        _ cursor: inout VMCursor,
+        _ stack: VMStack
+    ) throws -> Bool {
+        let regs = stack.base + cursor.base
+        let argumentBase = cursor.base + Int(operands.arguments)
+        guard
+            let target = try methodTarget(
+                site,
+                receiver: regs[Int(operands.receiver)],
+                arguments: argumentBase,
+                owner: cursor.function.owner
+            )
+        else { return false }
+        try checkInterrupt()
+        if let mapping = target.mapping {
+            try placeAndCheckArguments(mapping, of: target.function, at: argumentBase)
+        }
+        let saved = task.scopes
+        let exit = enterMethodScope(
+            target,
+            receiver: stack.base[cursor.base + Int(operands.receiver)],
+            storeAt: cursor.base + Int(operands.receiver)
+        )
+        stack.callers.append(
+            VMCaller(
+                code: cursor.code,
+                function: cursor.function,
+                callee: target.function,
+                pc: cursor.pc + Int(operands.offset),
+                base: cursor.base,
+                statement: cursor.statement,
+                destination: cursor.base + Int(operands.dst),
+                scopes: saved,
+                sameScopes: false,
+                isMethod: true
+            )
+        )
+        stack.methodExits.append(exit)
+        stack.ensure(argumentBase + target.code.frameSize)
+        stack.top = argumentBase + target.code.frameSize
+        cursor = VMCursor(
+            function: target.function,
+            code: target.code,
+            base: argumentBase,
+            pc: 0,
+            statement: -1
+        )
+        if let register = target.code.selfRegister {
+            stack.base[argumentBase + Int(register)] = .object(CellBox(cell: exit.selfCell))
+        }
+        return true
     }
 }

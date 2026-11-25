@@ -101,11 +101,15 @@ func runTheGivenSource() {
 func theFunctionsTheVMLeavesToTheTree() {
     var reasons: [String: Int] = [:]
     var loops = 0
+    var slow: [String: Int] = [:]
+    var entries = 0
     for item in parityCases where item.status == "ok" {
         let interpreter = Interpreter(host: Interpreter.Host(), limits: Interpreter.Limits())
         interpreter.engine = .vm
         _ = try? interpreter.evaluate(item.source)
         loops += interpreter.vmLoops
+        entries += interpreter.vmEntries
+        for (kind, count) in interpreter.vmSlowCalls { slow[kind, default: 0] += count }
         for fallback in interpreter.vmFallbacks {
             reasons[String(fallback.drop { $0 != ":" }.dropFirst(2)), default: 0] += 1
         }
@@ -113,5 +117,9 @@ func theFunctionsTheVMLeavesToTheTree() {
     print("VM: \(loops) top-level loops compiled; left to the tree: \(reasons.values.reduce(0, +))")
     for (reason, count) in reasons.sorted(by: { $0.value > $1.value }) {
         print("  \(count) × \(reason)")
+    }
+    print("VM entered from outside \(entries) times; calls the loop gave the tree evaluator:")
+    for (kind, count) in slow.sorted(by: { $0.value > $1.value }) {
+        print("  \(count) × \(kind)")
     }
 }
