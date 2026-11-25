@@ -135,3 +135,38 @@ extension Interpreter {
         return fits ? (only, code) : nil
     }
 }
+
+extension Interpreter {
+    /// A loop of a program's own code, run compiled: what it does to the globals it names, it does by
+    /// name, and its own locals are registers. False if it is not one the VM takes, or the program's
+    /// blocks have no frame, and the tree evaluator runs it.
+    ///
+    /// The one statement is compiled as a body with no parameters, its range the statement's own, so
+    /// that an error and a step count are the tree evaluator's. It runs over the scopes the program is
+    /// in, as a closure called where it is made would.
+    func runCompiledLoop(of program: Program, at index: Int) throws -> Bool {
+        guard engine == .vm, let frameSize = program.frameSize else { return false }
+        switch program.statements[index] {
+        case .forLoop, .whileLoop: break
+        default: return false
+        }
+        var body = Program(
+            statements: [program.statements[index]],
+            ranges: index < program.ranges.count ? [program.ranges[index]] : []
+        )
+        body.frameSize = frameSize
+        body.capturedSlots = program.capturedSlots
+        let function = Function(
+            name: nil,
+            parameters: [],
+            returnType: nil,
+            body: .swiit(body),
+            captured: task.scopes
+        )
+        guard let code = compiled(function) else { return false }
+        code.isProgram = true
+        vmLoops += 1
+        _ = try runCompiled(function, code, with: [:])
+        return true
+    }
+}

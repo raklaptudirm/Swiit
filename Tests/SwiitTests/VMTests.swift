@@ -161,7 +161,7 @@ private let programs: [VMSample] = [
 /// The programs of every file, which one test runs on both engines.
 private let everyProgram: [VMSample] = [
     programs, vmControlFlow, vmMoreControlFlow, vmClosures, vmRuntimeNodes, vmKinds,
-    vmParameterKinds, vmAsync,
+    vmParameterKinds, vmAsync, vmTopLevel,
 ]
 .flatMap { $0 }
 
@@ -176,6 +176,10 @@ private func aProgramGivesTheSameOnBothEngines(_ program: VMSample) {
     )
     let missed = vmCompiled(program.compiles, in: vm.swiit)
     #expect(missed == [], "\(program.name) was not compiled: \(missed)")
+    #expect(
+        vm.swiit.vmLoops == program.loops,
+        "\(program.name) ran \(vm.swiit.vmLoops) loops compiled"
+    )
     if program.entirely {
         #expect(
             vm.swiit.vmFallbacks == [],
@@ -258,7 +262,7 @@ private let failing: [VMSample] = [
 
 private let everyFailingProgram: [VMSample] = [
     failing, vmFailingControlFlow, vmFailingClosures, vmFailingRuntimeNodes, vmFailingKinds,
-    vmAsyncFailing,
+    vmAsyncFailing, vmFailingTopLevel,
 ]
 .flatMap { $0 }
 
@@ -268,6 +272,7 @@ private func anErrorIsReportedAsOnTheTreeEvaluator(_ program: VMSample) {
     let vm = vmRun(program.source, on: .vm)
     #expect(tree.outcome.failure != nil, "\(program.name) did not fail on the tree evaluator")
     #expect(vm.outcome == tree.outcome, "\(program.name)")
+    #expect(vm.swiit.vmLoops == program.loops, "\(program.name) ran \(vm.swiit.vmLoops) loops")
     let missed = vmCompiled(program.compiles, in: vm.swiit)
     #expect(
         missed == [],

@@ -62,6 +62,8 @@ public final class Interpreter: @unchecked Sendable {
     var engine = Engine.initial
     /// The functions the VM's compiler left to the tree evaluator, each with why, as they were met.
     var vmFallbacks: [String] = []
+    /// How many loops of a program's own code the VM has run, which a test counts on.
+    var vmLoops = 0
 
     /// What bounds a run (steps, depth, time, output) unless the run is given limits of its own.
     var limits = Interpreter.Limits()

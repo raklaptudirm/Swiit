@@ -88,4 +88,6 @@ struct VMSample {
     let compiles: [String]
     /// Every function of it that runs is compiled: the VM left none to the tree evaluator.
     var entirely = false
+    /// How many loops of the program's own code the VM runs.
+    var loops = 0
 }

@@ -64,9 +64,17 @@ struct CodeCompiler {
 
     /// The code for `function`, or why it is not one the VM runs.
     static func compile(_ function: Function) -> Result<Code, Unsupported> {
-        guard function.isCompilable, case .swiit(let body) = function.body,
-            let frameSize = body.frameSize
-        else { return .failure(Unsupported("not a function the VM takes")) }
+        guard case .swiit(let body) = function.body else {
+            return .failure(Unsupported("not a function of the script"))
+        }
+        guard let frameSize = body.frameSize else {
+            return .failure(
+                Unsupported("a body with no frame: a function or type declared in a block")
+            )
+        }
+        guard function.isCompilable else {
+            return .failure(Unsupported("a named function with more than the global scopes"))
+        }
         var compiler = CodeCompiler()
         do {
             try compiler.function(function, body, frameSize: frameSize)

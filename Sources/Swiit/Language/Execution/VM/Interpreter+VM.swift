@@ -6,13 +6,13 @@ enum Engine: Sendable {
     case tree
     case vm
 
-    /// The engine a new interpreter starts with. Building with `-Xswiftc -DSWIIT_VM_ENGINE` makes it
-    /// the VM, which runs the test suites against it.
+    /// The engine a new interpreter starts with: the VM. Building with `-Xswiftc -DSWIIT_TREE_ENGINE`
+    /// makes it the tree evaluator, which runs the test suites as the reference.
     static var initial: Engine {
-        #if SWIIT_VM_ENGINE
-        .vm
-        #else
+        #if SWIIT_TREE_ENGINE
         .tree
+        #else
+        .vm
         #endif
     }
 }
@@ -48,6 +48,7 @@ extension Interpreter {
                 return code
             case .failure(let unsupported):
                 function.vmCode = .unsupported(unsupported.reason)
+                guard case .swiit = function.body else { return nil }
                 vmFallbacks.append("\(function.name ?? "a closure"): \(unsupported.reason)")
                 return nil
             }
@@ -88,7 +89,7 @@ extension Interpreter {
             own = made
         }
         if let owner = function.owner { task.owners.append(owner) }
-        task.callDepth += 1
+        if !code.isProgram { task.callDepth += 1 }
         task.frame = nil
         defer {
             if let receiver, let changed = own?.bindings["self"]?.value { receiver.value = changed }
@@ -119,7 +120,7 @@ extension Interpreter {
     func leaveFrame(_ function: Function, _ code: Code, base: Int, _ stack: VMStack) {
         for index in 0..<code.frameSize { stack.base[base + index] = .nothing }
         let task = self.task
-        task.callDepth -= 1
+        if !code.isProgram { task.callDepth -= 1 }
         if task.lastCallee !== function { task.lastCallee = function }
         if !task.children.isEmpty, let last = task.children.last, last.depth > task.callDepth {
             closeTasks(above: task.callDepth)
@@ -632,7 +633,8 @@ extension Interpreter {
                         regs = stack.base + base
                         break unwinding
                     }
-                    if !code.isImplicitReturn, var runtime = error as? RuntimeError {
+                    if !code.isImplicitReturn, !code.isProgram, var runtime = error as? RuntimeError
+                    {
                         runtime.calls.append(
                             RuntimeError.Call(function: function.name ?? "a closure", site: nil)
                         )

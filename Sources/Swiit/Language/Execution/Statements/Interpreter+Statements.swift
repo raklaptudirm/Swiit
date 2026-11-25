@@ -29,6 +29,20 @@ extension Interpreter {
                 continue
             }
             if statement.declaresType { continue }  // Hoisted.
+            // A loop the VM runs counts its own steps, the first of which is the statement's.
+            var compiledLoop = false
+            do {
+                compiledLoop = try runCompiledLoop(of: program, at: index)
+            } catch let caught {
+                let error = located(caught, at: index, in: program)
+                if let handle, error is RuntimeError || error is FatalError,
+                    handle(Diagnostic.of(error))
+                {
+                    continue
+                }
+                throw error
+            }
+            if compiledLoop { continue }
             try checkInterrupt()
             do {
                 if case .expression(let expression) = statement {
@@ -42,18 +56,7 @@ extension Interpreter {
                     try run(statement)
                 }
             } catch let caught {
-                var error = caught
-                if var runtime = error as? RuntimeError, index < program.ranges.count {
-                    if runtime.range == nil {
-                        // The innermost statement is where it happened.
-                        runtime.range = program.ranges[index]
-                    } else if let last = runtime.calls.indices.last, runtime.calls[last].site == nil
-                    {
-                        // The statement the function was called from.
-                        runtime.calls[last].site = program.ranges[index]
-                    }
-                    error = runtime
-                }
+                let error = located(caught, at: index, in: program)
                 // The host may carry on with the next statement after an error a script could have
                 // caught.
                 if let handle,
@@ -69,6 +72,21 @@ extension Interpreter {
         // Whatever the last statement let go of.
         if hasPendingDeinits { runPendingDeinits() }
         return result
+    }
+
+    /// An error of the program's statement `index`, given where it happened if it has not been.
+    private func located(_ error: Error, at index: Int, in program: Program) -> Error {
+        guard var runtime = error as? RuntimeError, index < program.ranges.count else {
+            return error
+        }
+        if runtime.range == nil {
+            // The innermost statement is where it happened.
+            runtime.range = program.ranges[index]
+        } else if let last = runtime.calls.indices.last, runtime.calls[last].site == nil {
+            // The statement the function was called from.
+            runtime.calls[last].site = program.ranges[index]
+        }
+        return runtime
     }
 
     /// The branch of an `if` its condition picks, with what the condition

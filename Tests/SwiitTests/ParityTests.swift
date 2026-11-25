@@ -95,3 +95,23 @@ func runTheGivenSource() {
         print("RENDERED:\n" + diagnostic.rendered(in: source))
     } catch {}
 }
+
+/// How much of the programs the VM runs: each function it left to the tree evaluator, by reason.
+@Test(.enabled(if: ProcessInfo.processInfo.environment["PARITY_REPORT"] != nil))
+func theFunctionsTheVMLeavesToTheTree() {
+    var reasons: [String: Int] = [:]
+    var loops = 0
+    for item in parityCases where item.status == "ok" {
+        let interpreter = Interpreter(host: Interpreter.Host(), limits: Interpreter.Limits())
+        interpreter.engine = .vm
+        _ = try? interpreter.evaluate(item.source)
+        loops += interpreter.vmLoops
+        for fallback in interpreter.vmFallbacks {
+            reasons[String(fallback.drop { $0 != ":" }.dropFirst(2)), default: 0] += 1
+        }
+    }
+    print("VM: \(loops) top-level loops compiled; left to the tree: \(reasons.values.reduce(0, +))")
+    for (reason, count) in reasons.sorted(by: { $0.value > $1.value }) {
+        print("  \(count) × \(reason)")
+    }
+}

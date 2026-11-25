@@ -328,4 +328,7 @@ final class Code {
     var isPlain = true
     /// An initializer that may fail, whose `return nil` ends the construction.
     var isFailable = false
+    /// A statement of a program's own code, not a function: it is no call, so it adds no entry to an
+    /// error's calls and no depth to the call stack.
+    var isProgram = false
 }

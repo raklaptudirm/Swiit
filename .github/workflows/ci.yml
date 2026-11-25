@@ -105,10 +105,10 @@ jobs:
       - name: Unit tests
         run: swift test
 
-  # The same suites with the bytecode VM as the default engine (Docs/vm.md): a body the compiler
-  # takes must give what the tree evaluator gives. The tests that name an engine still run on it.
-  macos-vm:
-    name: macOS (VM engine)
+  # The same suites with the tree evaluator as the default engine, the reference the bytecode VM
+  # (Docs/vm.md) must agree with. The tests that name an engine still run on it.
+  macos-tree:
+    name: macOS (tree engine)
     if: ${{ vars.MACOS_RUNNERS == 'true' }}
     runs-on: macos-15
     timeout-minutes: 60
@@ -122,15 +122,15 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: |
-            .build-vm
-          key: macos-vm-${{ runner.arch }}-swift-${{ hashFiles('Package.swift', 'Package.resolved') }}
-          restore-keys: macos-vm-${{ runner.arch }}-swift-
+            .build-tree
+          key: macos-tree-${{ runner.arch }}-swift-${{ hashFiles('Package.swift', 'Package.resolved') }}
+          restore-keys: macos-tree-${{ runner.arch }}-swift-
 
       - name: Unit tests
-        run: swift test --scratch-path .build-vm -Xswiftc -DSWIIT_VM_ENGINE
+        run: swift test --scratch-path .build-tree -Xswiftc -DSWIIT_TREE_ENGINE
 
-  linux-vm:
-    name: Linux (VM engine)
+  linux-tree:
+    name: Linux (tree engine)
     runs-on: ubuntu-latest
     container: swift:6.2
     timeout-minutes: 60
@@ -140,12 +140,12 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: |
-            .build-vm
-          key: linux-vm-${{ runner.arch }}-swift-${{ hashFiles('Package.swift', 'Package.resolved') }}
-          restore-keys: linux-vm-${{ runner.arch }}-swift-
+            .build-tree
+          key: linux-tree-${{ runner.arch }}-swift-${{ hashFiles('Package.swift', 'Package.resolved') }}
+          restore-keys: linux-tree-${{ runner.arch }}-swift-
 
       - name: Unit tests
-        run: swift test --scratch-path .build-vm -Xswiftc -DSWIIT_VM_ENGINE
+        run: swift test --scratch-path .build-tree -Xswiftc -DSWIIT_TREE_ENGINE
 
   # The bridges (Sources/Swiit/SwiftLibraryBridges/Generated) are made from symbol graphs,
   # and a graph is read on the platform it's made on. Each platform's members
