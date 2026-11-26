@@ -135,7 +135,7 @@ extension Interpreter {
                         if regs[Int(register)] != .nothing { pc += Int(offset) }
                     case .assign(let local, let op, let value):
                         guard let op else {
-                            regs[Int(local)] = regs[Int(value)]
+                            VMStack.put(regs[Int(value)], at: regs + Int(local))
                             continue
                         }
                         if case .int(let x) = regs[Int(local)].storage,
@@ -143,7 +143,7 @@ extension Interpreter {
                         {
                             let result = try integerArithmetic(op, x, y)
                             regs = stack.base + base
-                            regs[Int(local)] = result
+                            VMStack.put(result, at: regs + Int(local))
                             continue
                         }
                         // What a place changes in place is moved out while it does, so that a
@@ -198,8 +198,8 @@ extension Interpreter {
                     case .rangeStart(let op, let counter, let lower, let upper):
                         let range = try intRange(op, regs[Int(lower)], regs[Int(upper)])
                         regs = stack.base + base
-                        regs[Int(counter)] = .int(range.lowerBound)
-                        regs[Int(counter) + 1] = .int(range.upperBound)
+                        VMStack.put(.int(range.lowerBound), at: regs + Int(counter))
+                        VMStack.put(.int(range.upperBound), at: regs + Int(counter) + 1)
                     case .rangeNext(let counter, let variable, let exit):
                         guard case .int(let next) = regs[Int(counter)].storage,
                             case .int(let end) = regs[Int(counter) + 1].storage, next < end
@@ -207,8 +207,8 @@ extension Interpreter {
                             pc += Int(exit)
                             continue
                         }
-                        regs[Int(variable)] = .int(next)
-                        regs[Int(counter)] = .int(next + 1)
+                        VMStack.put(.int(next), at: regs + Int(variable))
+                        VMStack.put(.int(next + 1), at: regs + Int(counter))
                     case .match(let patternIndex, let value, let fail):
                         let site = code.patterns[Int(patternIndex)]
                         var bindings: [String: Binding] = [:]
