@@ -455,7 +455,6 @@ extension Interpreter {
         if hasPendingDeinits { runPendingDeinits() }
         let task = self.task
         let run = task.run
-        run.steps += 1
         // A task that is cancelled stops at its next step, even before it has begun: that is every
         // step's.
         if task.cancellation.isSet { throw Cancelled() }
@@ -483,11 +482,12 @@ extension Interpreter {
         {
             throw LimitExceeded("output limit (\(maximum) bytes) exceeded")
         }
-        run.stepsUntilCheck = Interpreter.stepsBetweenChecks
+        var window = Interpreter.stepsBetweenChecks
         if let maximum = run.limits.maxSteps {
             if run.steps > maximum { throw LimitExceeded("step limit (\(maximum)) exceeded") }
-            run.stepsUntilCheck = min(run.stepsUntilCheck, maximum - run.steps + 1)
+            window = min(window, maximum - run.steps + 1)
         }
+        run.startWindow(window)
     }
 }
 

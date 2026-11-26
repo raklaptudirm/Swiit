@@ -42,10 +42,9 @@ extension Interpreter {
 
     /// `checkInterrupt` for the loop, which has the task and its run in hand.
     @inline(__always)
-    func tick(_ cancellation: Interpreter.Cancellation, _ run: RunState) throws {
+    func tick(_ stop: UnsafeMutablePointer<Int32>, _ run: RunState) throws {
         if hasPendingDeinits { runPendingDeinits() }
-        run.steps += 1
-        if cancellation.isSet { throw Cancelled() }
+        if stop.pointee != 0 { throw Cancelled() }
         run.stepsUntilCheck -= 1
         if run.stepsUntilCheck <= 0 { try checkLimits() }
     }

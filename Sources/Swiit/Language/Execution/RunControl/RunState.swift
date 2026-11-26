@@ -11,10 +11,25 @@ final class RunState {
     }
     /// `limits.maxCallDepth`, kept apart so that a call does not copy the limits to read it.
     @exclusivity(unchecked) private(set) var maxCallDepth: Int
-    @exclusivity(unchecked) var steps = 0
+    /// The steps taken before the window `stepsUntilCheck` counts down began.
+    private var stepsBeforeWindow = 0
+    /// How many steps the window `stepsUntilCheck` counts down began with.
+    private var window = 0
     /// Steps left before `checkLimits` runs again; nothing at the start of a run, so its first step
-    /// checks.
+    /// checks. A step is one count down of this and nothing else, which is why `steps` is worked out
+    /// from it.
     @exclusivity(unchecked) var stepsUntilCheck = 0
+
+    /// The steps the run has taken.
+    var steps: Int { stepsBeforeWindow + window - stepsUntilCheck }
+
+    /// Begins counting `size` steps to the next check, from the steps taken so far.
+    func startWindow(_ size: Int) {
+        stepsBeforeWindow = steps
+        window = size
+        stepsUntilCheck = size
+    }
+
     var deadline: ContinuousClock.Instant?
     /// The references reserved for the types the program being run declares at its top level, by
     /// name, until each declaration takes its own (`Interpreter.takeReservedRef`).

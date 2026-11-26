@@ -34,6 +34,9 @@ extension Interpreter {
 
         public var isSet: Bool { readFlag() != 0 }
 
+        /// The word `isSet` reads, for a loop that asks every step and holds it where it is.
+        var word: UnsafeMutablePointer<Int32> { flag }
+
         /// Not inlined, so that a loop asking again reads the word again.
         @inline(never)
         private func readFlag() -> Int32 { flag.pointee }

@@ -35,7 +35,8 @@ extension Interpreter {
         let task = self.task
         let run = task.run
         let maxCallDepth = run.maxCallDepth
-        let cancellation = task.cancellation
+        // The task holds the cancellation, so its word lives as long as the loop does.
+        let stop = task.cancellation.word
         let entryDepth = stack.callers.count
         unowned(unsafe) var function = entry
         unowned(unsafe) var code = entryCode
@@ -54,12 +55,12 @@ extension Interpreter {
                     switch instruction {
                     case .step(let range):
                         statement = range
-                        try tick(cancellation, run)
+                        try tick(stop, run)
                         regs = stack.base + base
                     case .at(let range):
                         statement = range
                     case .tick:
-                        try tick(cancellation, run)
+                        try tick(stop, run)
                         regs = stack.base + base
                     case .finished(let index, let value):
                         if observing, observesStatements {
@@ -302,7 +303,7 @@ extension Interpreter {
                             guard task.callDepth < maxCallDepth else {
                                 throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
                             }
-                            try tick(cancellation, run)
+                            try tick(stop, run)
                             let kinds = calleeCode.kindTable
                             for index in 0..<calleeCode.parameterCount
                             where !kinds[index].accepts(at: stack.base + argumentBase + index) {
@@ -402,7 +403,7 @@ extension Interpreter {
                             guard task.callDepth < maxCallDepth else {
                                 throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
                             }
-                            try tick(cancellation, run)
+                            try tick(stop, run)
                             let kinds = calleeCode.kindTable
                             for index in 0..<calleeCode.parameterCount
                             where !kinds[index].accepts(at: stack.base + argumentBase + index) {
