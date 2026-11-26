@@ -117,15 +117,32 @@ func fromValue(_ value: String, _ type: SType) -> String {
         let typed = zip(names, parameters).map { "\($0): \(spelling($1))" }.joined(separator: ", ")
         // A closure Swift calls as `async` runs on a thread of the interpreter's
         // (`bridgeAsyncClosure`), as the task that passed it.
-        let call =
-            isAsync
-            ? "(try await Value.Bridging.asyncClosure(for: \(value), in: interpreter)([\(arguments)]))"
-            : "try Value.Bridging.closure(for: \(value), in: interpreter)([\(arguments)])"
-        let effects = isAsync ? "async throws" : "throws"
-        if case .tuple(let elements) = result, elements.isEmpty {
-            return "{ (\(typed)) \(effects) -> Void in _ = \(call) }"
+        if isAsync {
+            let call =
+                "(try await Value.Bridging.asyncClosure(for: \(value), in: interpreter)([\(arguments)]))"
+            if case .tuple(let elements) = result, elements.isEmpty {
+                return "{ (\(typed)) async throws -> Void in _ = \(call) }"
+            }
+            return
+                "{ (\(typed)) async throws -> \(spelling(result)) in \(fromValue(call, result)) }"
         }
-        return "{ (\(typed)) \(effects) -> \(spelling(result)) in \(fromValue(call, result)) }"
+        // Prepared once, where the closure is passed, so that each call Swift makes finds the function
+        // already: one or two arguments make no array.
+        let values = zip(names, parameters).map { toValue($0, $1) }
+        let call =
+            values.count == 1 || values.count == 2
+            ? "try call(\(values.joined(separator: ", ")))"
+            : "try call([\(values.joined(separator: ", "))] as [Value])"
+        let body: String
+        if case .tuple(let elements) = result, elements.isEmpty {
+            body = "{ (\(typed)) throws -> Void in _ = \(call) }"
+        } else {
+            body = "{ (\(typed)) throws -> \(spelling(result)) in \(fromValue(call, result)) }"
+        }
+        let closureType =
+            "(\(parameters.map(spelling).joined(separator: ", "))) throws -> \(spelling(result))"
+        return
+            "({ () -> \(closureType) in let call = Value.Bridging.callback(for: \(value), in: interpreter); return \(body) })()"
     case .inOut, .held: fatalError("unsupported \(type)")
     case .member: fatalError("unsupported \(type)")
     }

@@ -120,9 +120,13 @@ struct CodeCompiler {
             isInitializer = function.isInitializer
             code.isMethodBody = isMethod
             code.isInitializerBody = isInitializer
+            code.selfByValue =
+                function.name != nil && function.owner == nil && !function.isMutating
+                && !function.isInitializer && !assignsToSelf(body)
         }
         code.isFailable = function.isFailable
         code.hasOwner = function.owner != nil
+        code.capturedCount = function.captured.count
         code.parameterCount = function.parameters.count
         code.parameterKinds = function.parameters.map { ParameterKind($0.type) }
         code.returnKind = function.returnType.map(ParameterKind.init) ?? .any

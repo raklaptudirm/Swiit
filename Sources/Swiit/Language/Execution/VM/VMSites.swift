@@ -150,6 +150,10 @@ final class MethodSite {
     let global: GlobalSite?
     /// For the method found, which argument each parameter takes (-1: its default), when some are left out.
     @exclusivity(unchecked) var mapping: [Int]?
+    /// The function whose scopes the site compared with those of its method, and whether they are the
+    /// same, so that a call leaves them as they are.
+    @exclusivity(unchecked) var sharesCaller: ObjectIdentifier?
+    @exclusivity(unchecked) var sharesScopes = false
 
     init(
         name: String,

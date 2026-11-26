@@ -13,6 +13,12 @@ extension CodeCompiler {
         {
             return local.slot
         }
+        // The value of `self` is read where it is.
+        if case .variable("self") = expression, code.selfByValue, lookup("self") == nil,
+            let register = code.selfRegister
+        {
+            return register
+        }
         let result = try allocate()
         try self.expression(expression, into: result)
         return result
@@ -31,7 +37,11 @@ extension CodeCompiler {
             if let local = lookup(name) {
                 read(local.slot, boxed: local.boxed, into: destination)
             } else if name == "self", let register = code.selfRegister {
-                emit(.loadCell(dst: destination, box: register))
+                emit(
+                    code.selfByValue
+                        ? .move(dst: destination, src: register)
+                        : .loadCell(dst: destination, box: register)
+                )
             } else {
                 code.globals.append(GlobalSite(name: name))
                 emit(.loadGlobal(dst: destination, site: UInt32(code.globals.count - 1)))
@@ -334,7 +344,7 @@ extension CodeCompiler {
         _ expression: Expr,
         into destination: Register
     ) throws -> Bool {
-        guard let selfRegister = code.selfRegister, name != "init",
+        guard let selfRegister = code.selfRegister, !code.selfByValue, name != "init",
             arguments.allSatisfy({ isPure($0.value) })
         else { return false }
         let mark = nextTemporary
@@ -398,8 +408,12 @@ extension CodeCompiler {
         let mark = nextTemporary
         var receiver = held?.slot ?? 0
         if onSelf, let cell = code.selfRegister {
-            receiver = try allocate()
-            emit(.loadCell(dst: receiver, box: cell))
+            if code.selfByValue {
+                receiver = cell
+            } else {
+                receiver = try allocate()
+                emit(.loadCell(dst: receiver, box: cell))
+            }
         }
         var global: GlobalSite?
         if let globalName {

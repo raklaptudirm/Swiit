@@ -56,6 +56,11 @@ final class TaskContext {
     /// Whether its scopes are these, the same objects in the same order.
     func scopes(are wanted: [Scope]) -> Bool {
         guard scopes.count == wanted.count else { return false }
+        // The same array, as a closure made where the task is running has: no scope is looked at.
+        let sameBuffer = scopes.withUnsafeBufferPointer { mine in
+            wanted.withUnsafeBufferPointer { theirs in mine.baseAddress == theirs.baseAddress }
+        }
+        if sameBuffer { return true }
         for index in wanted.indices where scopes[index] !== wanted[index] { return false }
         return true
     }

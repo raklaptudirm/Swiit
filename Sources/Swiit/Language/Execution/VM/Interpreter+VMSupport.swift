@@ -259,7 +259,8 @@ extension Interpreter {
         if !code.isProgram { task.callDepth += 1 }
         task.frame = nil
         if let register = code.selfRegister, let binding = lookup("self") {
-            stack.base[base + Int(register)] = .object(binding.cell)
+            stack.base[base + Int(register)] =
+                code.selfByValue ? binding.value : .object(binding.cell)
         }
         defer {
             if let receiver, let changed = own?.bindings["self"]?.value { receiver.value = changed }
@@ -641,40 +642,6 @@ extension Interpreter {
                 of: callee.name ?? "closure"
             )
         }
-    }
-}
-
-extension Interpreter {
-    /// A closure or function a native body calls with `arguments`, run by the VM from the values and not
-    /// through a table of names: when it is one the loop runs (`Code.isPlain`) and takes as many
-    /// arguments as it is given. What `invoke` does, in the same steps; nil, with nothing done,
-    /// where it is not that.
-    func callPlainClosure(_ value: Value, _ arguments: [Value]) throws -> Value? {
-        guard engine == .vm, case .function(let callable) = value.storage else { return nil }
-        let function: Function
-        if let single = callable as? Function {
-            function = single
-        } else if let set = callable as? OverloadSet, set.candidates.count == 1 {
-            function = set.candidates[0]
-        } else {
-            return nil
-        }
-        guard function.parameters.count == arguments.count, function.inoutNames.isEmpty,
-            let code = compiled(function), code.isPlain
-        else { return nil }
-        let maxCallDepth = task.run.maxCallDepth
-        guard task.callDepth < maxCallDepth else {
-            throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
-        }
-        try checkInterrupt()
-        defer { task.lastCallee = function }
-        // The arguments are written where the parameters of the new frame will be.
-        let stack = task.vm
-        let base = stack.top
-        stack.ensure(base + max(code.frameSize, arguments.count))
-        for (index, argument) in arguments.enumerated() { stack.base[base + index] = argument }
-        try checkArguments(of: function, code, at: base, on: stack)
-        return try runCompiled(function, code, with: [:], argumentsAt: base)
     }
 }
 

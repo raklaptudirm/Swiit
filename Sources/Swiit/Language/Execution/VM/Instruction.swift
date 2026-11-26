@@ -521,6 +521,11 @@ final class Code {
     /// function captured, and the scope that binds `self` by name is made when something looks for it
     /// (`Interpreter.ensureSelfScope`).
     @exclusivity(unchecked) var isMethodBody = false
+    /// How many scopes its function captured, which are the task's while it runs.
+    @exclusivity(unchecked) var capturedCount = 0
+    /// The register of `self` holds its value, not the cell of it: a method that does not change `self`
+    /// (a struct's, an enum's or an extension's) reads the receiver as it is, and makes no cell.
+    @exclusivity(unchecked) var selfByValue = false
     /// Its function belongs to a class, which a call pushes for `super`.
     @exclusivity(unchecked) var hasOwner = false
     /// The same for an initializer, whose `self` is `.initializing`.

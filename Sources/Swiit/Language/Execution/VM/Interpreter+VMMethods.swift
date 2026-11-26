@@ -53,7 +53,9 @@ extension Interpreter {
         storeAt: Int,
         storeIn: Binding.Cell?
     ) -> MethodExit {
-        let cell = target.code.selfRegister == nil ? nil : Binding.Cell(receiver)
+        let cell =
+            target.code.selfRegister == nil || target.code.selfByValue
+            ? nil : Binding.Cell(receiver)
         if let owner = target.function.owner { task.owners.append(owner) }
         task.callDepth += 1
         let changes = cell != nil && target.function.isMutating && !target.isClass
@@ -74,14 +76,24 @@ extension Interpreter {
 
     func makeSelfScope(_ function: Function, _ code: Code, base: Int, on stack: VMStack) {
         guard code.isMethodBody || code.isInitializerBody, let register = code.selfRegister,
-            task.scopes.count == function.captured.count,
-            case .object(let object) = stack.base[base + Int(register)].storage,
-            let cell = object as? Binding.Cell
+            task.scopes.count == function.captured.count
         else { return }
-        var mutable = function.isMutating || code.isInitializerBody
-        if case .object(is ClassInstance) = cell.value.storage { mutable = true }
-        var binding = Binding(cell: cell, mutable: mutable)
-        if code.isInitializerBody { binding.special = .initializing }
+        let held = stack.base[base + Int(register)]
+        var binding: Binding
+        if code.selfByValue {
+            // The value of `self` was put in the register; a cell of its own is made for the scope.
+            var mutable = false
+            if case .object(is ClassInstance) = held.storage { mutable = true }
+            binding = Binding(value: held, mutable: mutable)
+        } else {
+            guard case .object(let object) = held.storage, let cell = object as? Binding.Cell else {
+                return
+            }
+            var mutable = function.isMutating || code.isInitializerBody
+            if case .object(is ClassInstance) = cell.value.storage { mutable = true }
+            binding = Binding(cell: cell, mutable: mutable)
+            if code.isInitializerBody { binding.special = .initializing }
+        }
         var table = BindingTable(capacity: 1)
         table["self"] = binding
         task.scopes = function.captured + [Scope(table: table)]

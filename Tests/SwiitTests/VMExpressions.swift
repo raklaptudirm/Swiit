@@ -274,4 +274,75 @@ let vmExpressions: [VMSample] = [
         compiles: ["f"],
         treeRuns: 0
     ),
+    VMSample(
+        name:
+            "methods that read self as a value: fields, other methods, enums, extensions, closures",
+        source: """
+            func total(_ xs: Int...) -> Int { xs.reduce(0, +) }
+            struct V {
+                var x = 3
+                var y = 4
+                var tags = [1, 2]
+                var sum: Int { x + y }
+                func scaled(_ k: Int) -> Int { sum * k }
+                func twice() -> Int { scaled(2) + self.scaled(1) }
+                func viaVariadic() -> Int { total(x, y, tags.count) }
+                func viaClosure() -> Int { tags.map { $0 + x }.reduce(0, +) }
+                func made() -> V { var copy = self; copy.x += 10; return copy }
+                func bound() -> Int { tags.map(scaled).reduce(0, +) }
+            }
+            enum Shape {
+                case circle(Int), square(Int)
+                func area() -> Int {
+                    switch self {
+                    case .circle(let r): return 3 * r * r
+                    case .square(let s): return s * s
+                    }
+                }
+                var doubled: Int { area() * 2 }
+            }
+            extension Int { func squared() -> Int { self * self }; func plus(_ other: Int) -> Int { self + other } }
+            protocol Named { var name: String { get } }
+            extension Named { func greeting() -> String { "hi " + name } }
+            struct Person: Named { var name: String }
+            func f(_ n: Int) -> Int {
+                var v = V()
+                var sum = 0
+                for i in 0..<n {
+                    sum += v.twice() + v.viaVariadic() + v.viaClosure() + v.made().x + v.bound()
+                    sum += Shape.circle(i).area() + Shape.square(i).doubled + i.squared().plus(i)
+                    v.x += 1
+                }
+                return sum + Person(name: "ann").greeting().count
+            }
+            print(f(4), f(1))
+            """,
+        compiles: ["f"]
+    ),
+    VMSample(
+        name:
+            "closures that bridged members call: one and two arguments, a function, a key path, an error",
+        source: """
+            struct P { var x: Int; var name: String }
+            func double(_ n: Int) -> Int { n * 2 }
+            func pick(_ n: Int) throws -> Int { if n == 3 { throw E.bad }; return n }
+            enum E: Error { case bad }
+            func f(_ n: Int) -> Int {
+                let xs = Array(0..<n)
+                let ps = xs.map { P(x: $0, name: "p\\($0)") }
+                var total = xs.map { $0 + 1 }.filter { $0 % 2 == 0 }.reduce(0) { $0 + $1 }
+                total += xs.map(double).reduce(0, +)
+                total += ps.map(\\.x).reduce(0, +)
+                total += ps.sorted { $0.x > $1.x }.first?.x ?? 0
+                total += xs.compactMap { $0 % 2 == 0 ? $0 : nil }.count
+                total += xs.map { a in xs.map { b in a * b }.reduce(0, +) }.reduce(0, +)
+                total += xs.contains { $0 == n - 1 } ? 1 : 0
+                total += ps.filter { $0.name.hasPrefix("p1") }.count
+                do { total += try xs.map(pick).count } catch { total += 1000 }
+                return total
+            }
+            print(f(3), f(5))
+            """,
+        compiles: ["f"]
+    ),
 ]

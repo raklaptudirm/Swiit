@@ -209,6 +209,70 @@ extension Value.Bridging {
         { arguments in try interpreter.call(function, with: arguments) }
     }
 
+    /// A script closure prepared to be called from Swift many times, as a bridged member calls the closure
+    /// it takes for each element: the function it is, found once, and a call of one or two arguments
+    /// makes no array. Where it is not one a native body can call so (an overloaded function, a key
+    /// path, one that changes its arguments) each call is what ``Interpreter/call(_:with:)`` does.
+    public final class Callback {
+        private let interpreter: Interpreter
+        private let value: Value
+        // Not counted: `value` holds the function, and the function its code.
+        private var function: Unmanaged<Function>?
+        private var code: Unmanaged<Code>?
+        private var isResolved = false
+
+        init(_ value: Value, in interpreter: Interpreter) {
+            self.value = value
+            self.interpreter = interpreter
+        }
+
+        /// Whether it is a function a native body can call so, taking `count` arguments, called where
+        /// the interpreter is running.
+        private func isPlain(_ count: Int) -> Bool {
+            guard interpreter.lock.isHeldByCurrentThread else { return false }
+            if !isResolved {
+                isResolved = true
+                if let target = interpreter.plainClosure(value) {
+                    function = .passUnretained(target.function)
+                    code = .passUnretained(target.code)
+                }
+            }
+            guard let function else { return false }
+            return function._withUnsafeGuaranteedRef { $0.parameters.count == count }
+        }
+
+        public func callAsFunction(_ first: Value) throws -> Value {
+            if isPlain(1), let function, let code {
+                return try function._withUnsafeGuaranteedRef { function in
+                    try code._withUnsafeGuaranteedRef { code in
+                        try interpreter.callPlain(function, code, first)
+                    }
+                }
+            }
+            return try interpreter.call(value, with: [first])
+        }
+
+        public func callAsFunction(_ first: Value, _ second: Value) throws -> Value {
+            if isPlain(2), let function, let code {
+                return try function._withUnsafeGuaranteedRef { function in
+                    try code._withUnsafeGuaranteedRef { code in
+                        try interpreter.callPlain(function, code, first, second)
+                    }
+                }
+            }
+            return try interpreter.call(value, with: [first, second])
+        }
+
+        public func callAsFunction(_ arguments: [Value]) throws -> Value {
+            try interpreter.call(value, with: arguments)
+        }
+    }
+
+    /// `function`, a script closure, prepared to be called from Swift (see ``Callback``).
+    public static func callback(for function: Value, in interpreter: Interpreter) -> Callback {
+        Callback(function, in: interpreter)
+    }
+
     /// Fails with `message` unless `condition` holds: what the glue of a member that would trap
     /// on some arguments checks first.
     public static func require(_ condition: Bool, _ message: @autoclosure () -> String) throws {

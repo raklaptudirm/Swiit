@@ -374,14 +374,22 @@ extension Interpreter {
         // A method whose body looks names up but has no register for `self` keeps the scope of its
         // own that it always had; any other runs in the scopes it captured.
         let ownScope = target.code.selfRegister == nil && target.code.looksUpNames
-        let saved: [Scope]? =
-            ownScope || task.scopes.count != cursor.function.captured.count ? task.scopes : nil
+        // Whether it captured the scopes the caller did, which is worked out once for the site.
+        if site.sharesCaller != ObjectIdentifier(cursor.function) {
+            site.sharesCaller = ObjectIdentifier(cursor.function)
+            site.sharesScopes =
+                target.function.captured.count == cursor.code.capturedCount
+                && task.scopes(are: target.function.captured)
+        }
+        let extended = task.scopes.count != cursor.code.capturedCount
+        let saved: [Scope]? = ownScope || extended ? task.scopes : nil
         // A method of `self` that changes it puts the struct back in the cell of `self`.
         if site.receiverIsSelf, let register = cursor.code.selfRegister,
             case .object(let object) = stack.base[cursor.base + Int(register)].storage
         {
             storeIn = object as? Binding.Cell
         }
+        let receiverValue = stack.base[cursor.base + Int(operands.receiver)]
         let exit: MethodExit
         if ownScope {
             exit = enterMethodScope(
@@ -393,11 +401,13 @@ extension Interpreter {
         } else {
             exit = enterLightMethod(
                 target,
-                receiver: stack.base[cursor.base + Int(operands.receiver)],
+                receiver: receiverValue,
                 storeAt: cursor.base + Int(operands.receiver),
                 storeIn: storeIn
             )
-            setScopes(of: target.function, from: cursor.function, task)
+            if !site.sharesScopes || extended {
+                setScopes(of: target.function, from: cursor.function, task)
+            }
         }
         stack.push(
             VMCaller(
@@ -423,7 +433,11 @@ extension Interpreter {
             statement: -1
         )
         if let register = target.code.selfRegister {
-            if let cell = exit.selfCell { stack.base[argumentBase + Int(register)] = .object(cell) }
+            if let cell = exit.selfCell {
+                stack.base[argumentBase + Int(register)] = .object(cell)
+            } else if target.code.selfByValue {
+                stack.base[argumentBase + Int(register)] = receiverValue
+            }
         }
         return true
     }

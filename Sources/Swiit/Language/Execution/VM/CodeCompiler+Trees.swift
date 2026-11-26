@@ -45,6 +45,17 @@ extension CodeCompiler {
         return mentions.names.contains("self") || mentions.names.contains("super")
     }
 
+    /// Whether a body assigns to `self` or a part of it, in its own code or a closure's: then the value
+    /// of `self` is changed while it runs, and is kept in a cell.
+    func assignsToSelf(_ body: Program) -> Bool {
+        func walk(_ subject: Any) -> Bool {
+            if subject is Value || subject is String { return false }
+            if let assignment = subject as? Assignment, assignment.root == "self" { return true }
+            return Mirror(reflecting: subject).children.contains { walk($0.value) }
+        }
+        return walk(body)
+    }
+
     /// The locals a piece of code mentions, as the frame it is run in gets them.
     private func mentioned(by subject: Any, plus roots: [String] = []) -> [TreeLocal] {
         var mentions = Mentions()
