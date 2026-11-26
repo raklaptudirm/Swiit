@@ -209,6 +209,20 @@ private func aProgramTakesTheSameStepsOnBothEngines(_ program: VMSample) {
 
 private let failing: [VMSample] = [
     VMSample(
+        name: "an error in a method frame the loop made, after the site was warm",
+        source: """
+            struct D { var k = 10; func div(_ n: Int) -> Int { k / n } }
+            func f() -> Int {
+                let d = D()
+                var t = 0
+                for i in 0..<5 { t += d.div(2 - i) }
+                return t
+            }
+            f()
+            """,
+        compiles: ["f"]
+    ),
+    VMSample(
         name: "an assignment through an index out of range, from a value that reads",
         source: """
             struct P { var xs = [1, 2, 3] }

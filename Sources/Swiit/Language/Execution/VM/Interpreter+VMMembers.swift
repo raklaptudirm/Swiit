@@ -334,6 +334,29 @@ struct CallOperands {
 }
 
 extension Interpreter {
+    /// Records at the site whether the next call by the same caller on the same type of struct is one the
+    /// loop makes itself (`callMethod`): a method that undoes nothing as it returns, found for a struct,
+    /// in the scopes the caller has.
+    private func noteFastMethod(
+        _ site: MethodSite,
+        _ target: MethodTarget,
+        from caller: Function,
+        ownScope: Bool,
+        extended: Bool
+    ) {
+        site.fastVersion = -1
+        guard site.global == nil, !site.isSuper, !site.isGetter, target.mapping == nil,
+            !target.isClass, !target.function.isMutating, target.function.owner == nil, !ownScope,
+            site.sharesScopes, !extended, !target.code.isInitializerBody,
+            target.code.selfRegister == nil || target.code.selfByValue, site.type != nil
+        else { return }
+        site.fastFunction = .passUnretained(target.function)
+        site.fastCode = .passUnretained(target.code)
+        site.fastType = site.type
+        site.fastCaller = ObjectIdentifier(caller)
+        site.fastVersion = scopeVersion
+    }
+
     /// A call of a method the loop makes: when the site is one it can, the frame of the method is
     /// pushed and the cursor is that of its first instruction, and the caller's resumes after the code
     /// that makes the call the long way. False, with nothing done, otherwise.
@@ -382,6 +405,7 @@ extension Interpreter {
                 && task.scopes(are: target.function.captured)
         }
         let extended = task.scopes.count != cursor.code.capturedCount
+        noteFastMethod(site, target, from: cursor.function, ownScope: ownScope, extended: extended)
         let saved: [Scope]? = ownScope || extended ? task.scopes : nil
         // A method of `self` that changes it puts the struct back in the cell of `self`.
         if site.receiverIsSelf, let register = cursor.code.selfRegister,

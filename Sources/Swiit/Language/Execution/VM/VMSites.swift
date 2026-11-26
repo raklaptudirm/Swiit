@@ -154,6 +154,14 @@ final class MethodSite {
     /// same, so that a call leaves them as they are.
     @exclusivity(unchecked) var sharesCaller: ObjectIdentifier?
     @exclusivity(unchecked) var sharesScopes = false
+    /// What the loop calls without leaving it, when the method found is one that undoes nothing as it
+    /// returns (a struct's, that does not change `self`) and the site has the same caller, receiver type
+    /// and names: not counted, as `function` and `code` are held while these are.
+    @exclusivity(unchecked) var fastVersion = -1
+    @exclusivity(unchecked) var fastCaller: ObjectIdentifier?
+    @exclusivity(unchecked) var fastType: TypeRef?
+    @exclusivity(unchecked) var fastFunction: Unmanaged<Function>?
+    @exclusivity(unchecked) var fastCode: Unmanaged<Code>?
 
     init(
         name: String,

@@ -194,8 +194,9 @@ private func typeError(_ source: String) -> String? {
         "let t = Task { await twice { $0 + 1 } }; let u = Task { await twice { $0 * 2 } }; [await t.value, await u.value]"
     let start = Date()
     #expect(try onLargeStack { try swiit.evaluate(source) } == .list([.int(12), .int(40)]))
-    // Not timed closely: CI's machines are slow to start threads and tasks.
-    #expect(Date().timeIntervalSince(start) < 10)
+    // Only a guard against a hang: tests that wait hold the threads of the pool this one needs, and
+    // CI's machines are slow to start threads and tasks.
+    #expect(Date().timeIntervalSince(start) < 60)
     #expect(typeError("func g() -> Int { 1 }; g()") == nil)
 }
 

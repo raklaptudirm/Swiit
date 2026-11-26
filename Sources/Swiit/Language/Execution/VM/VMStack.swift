@@ -158,6 +158,15 @@ final class VMStack {
         base.deallocate()
     }
 
+    /// Whether a register holds a struct of the type, which is not copied to be looked at.
+    @inline(__always)
+    static func isStruct(at register: UnsafeMutablePointer<Value>, of type: TypeRef?) -> Bool {
+        if case .structure(let structure) = register.pointee.storage {
+            return structure.typeRefIfAny == type
+        }
+        return false
+    }
+
     /// The integer in a register, which is not copied to be looked at.
     @inline(__always)
     static func integer(at register: UnsafeMutablePointer<Value>) -> Int? {

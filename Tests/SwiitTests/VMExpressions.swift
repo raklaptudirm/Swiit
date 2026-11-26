@@ -345,4 +345,47 @@ let vmExpressions: [VMSample] = [
             """,
         compiles: ["f"]
     ),
+    VMSample(
+        name: "method calls the loop makes itself: one site, several types, recursion, defaults",
+        source: """
+            protocol Shape { func area() -> Int }
+            struct Sq: Shape { var s: Int; func area() -> Int { s * s } }
+            struct Rect: Shape { var w: Int; var h: Int; func area() -> Int { w * h } }
+            struct Tri: Shape { var b: Int; var h: Int; func area() -> Int { b * h / 2 } }
+            struct Counter {
+                var n: Int
+                func next(_ k: Int) -> Int { n + k }
+                func fact(_ m: Int) -> Int { m <= 1 ? 1 : m * fact(m - 1) }
+                func depth(_ m: Int) -> Int { m == 0 ? n : depth(m - 1) + 1 }
+                func scaled(by k: Int = 2) -> Int { n * k }
+            }
+            func f(_ n: Int) -> Int {
+                var shapes: [Shape] = []
+                for i in 0..<n {
+                    if i % 3 == 0 { shapes.append(Sq(s: i)) }
+                    else if i % 3 == 1 { shapes.append(Rect(w: i, h: 2)) }
+                    else { shapes.append(Tri(b: i, h: 4)) }
+                }
+                var total = 0
+                for shape in shapes { total += shape.area() }
+                let c = Counter(n: 5)
+                for i in 0..<n { total += c.next(i) + c.scaled() + c.scaled(by: i) }
+                return total + c.fact(6) + c.depth(10)
+            }
+            print(f(9), f(2))
+            """,
+        compiles: ["f"]
+    ),
+    VMSample(
+        name: "a method replaced between calls, and a type declared after its first call",
+        source: """
+            struct A { var n = 1; func v() -> Int { n } }
+            func run(_ a: A) -> Int { var t = 0; for _ in 0..<3 { t += a.v() }; return t }
+            let first = run(A())
+            extension A { func w() -> Int { n * 10 } }
+            struct B { var n = 2; func v() -> Int { n * 100 } }
+            print(first, run(A()), A().w())
+            """,
+        compiles: ["run"]
+    ),
 ]

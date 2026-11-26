@@ -72,28 +72,10 @@ extension Interpreter {
                         VMStack.put(code.constants[Int(constant)], at: regs + Int(dst))
                     case .move(let dst, let src):
                         VMStack.put(regs[Int(src)], at: regs + Int(dst))
-                    case .loadVariable(let dst, let name):
-                        ensureSelfScope(function, code, base: base, on: stack)
-                        let value = try evaluate(.variable(code.names[Int(name)]))
-                        regs = stack.base + base
-                        regs[Int(dst)] = value
-                    case .evaluate(let dst, let expression):
-                        ensureSelfScope(function, code, base: base, on: stack)
-                        let value = try evaluate(code.expressions[Int(expression)])
-                        regs = stack.base + base
-                        regs[Int(dst)] = value
                     case .clear(let first, let count):
                         for index in Int(first)..<(Int(first) + Int(count)) {
                             regs[index] = .nothing
                         }
-                    case .conform(let dst, let src, let type):
-                        let value = regs[Int(src)]
-                        let expected = code.types[Int(type)]
-                        guard let conforming = conform(value, to: expected) else {
-                            throw RuntimeError("expected \(expected), not \(value.typeName)")
-                        }
-                        regs = stack.base + base
-                        regs[Int(dst)] = conforming
                     case .binary(let op, let dst, let lhs, let rhs):
                         if let x = VMStack.integer(at: regs + Int(lhs)),
                             let y = VMStack.integer(at: regs + Int(rhs)),
@@ -337,15 +319,6 @@ extension Interpreter {
                                 regs = stack.base + base
                             }
                         }
-                    case .evaluateTree(let dst, let node):
-                        ensureSelfScope(function, code, base: base, on: stack)
-                        let value = try runTree(code.trees[Int(node)], base: base, on: stack)
-                        regs = stack.base + base
-                        regs[Int(dst)] = value
-                    case .runTree(let node):
-                        ensureSelfScope(function, code, base: base, on: stack)
-                        _ = try runTree(code.trees[Int(node)], base: base, on: stack)
-                        regs = stack.base + base
                     case .iterate(let dst, let sequence, let awaiting):
                         let iteration = try makeIteration(regs[Int(sequence)], awaiting: awaiting)
                         regs = stack.base + base
@@ -361,10 +334,6 @@ extension Interpreter {
                             continue
                         }
                         regs[Int(variable)] = element
-                    case .iterationMismatch(let element):
-                        throw RuntimeError(
-                            "a \(regs[Int(element)].typeName) doesn't fit this 'for' pattern"
-                        )
                     case .callValue(let dst, let calleeRegister, let siteIndex, let arguments):
                         let site = code.callSites[Int(siteIndex)]
                         let argumentBase = base + Int(arguments)
@@ -441,9 +410,10 @@ extension Interpreter {
                         .assignSelfMember, .callBridged, .interpolate, .assignElement,
                         .assignGlobalElement, .makeList, .makeDictionary, .makeTuple,
                         .requireValue, .describe, .cast, .index, .dictionaryValue, .assignPath,
-                        .match,
-                        .jumpIfWhereFalse, .noMatch, .throwValue, .fatalize, .reportDeferred,
-                        .guardCarriedOn, .deferMark:
+                        .match, .jumpIfWhereFalse, .noMatch, .throwValue, .fatalize,
+                        .reportDeferred,
+                        .guardCarriedOn, .deferMark, .loadVariable, .evaluate, .evaluateTree,
+                        .runTree, .conform, .assignByName, .iterationMismatch:
                         var cursor = VMCursor(
                             function: function,
                             code: code,
@@ -500,6 +470,63 @@ extension Interpreter {
                         let arguments,
                         let offset
                     ):
+                        // A method of a struct that does not change it, found by an earlier call at this
+                        // site: a frame like a function's, with the receiver in the register of `self`.
+                        let own = codeRef._withUnsafeGuaranteedRef { $0.facts }
+                        unowned(unsafe) let methodSite = own.methods[Int(siteIndex)]
+                            .takeUnretainedValue()
+                        if methodSite.fastVersion == scopeVersion,
+                            methodSite.fastCaller
+                                == functionRef._withUnsafeGuaranteedRef({
+                                    ObjectIdentifier($0)
+                                }),
+                            VMStack.isStruct(at: regs + Int(receiver), of: methodSite.fastType),
+                            task.scopes.count == own.capturedCount,
+                            task.callDepth < maxCallDepth
+                        {
+                            let calleeRef = methodSite.fastFunction.unsafelyUnwrapped
+                            let calleeCodeRef = methodSite.fastCode.unsafelyUnwrapped
+                            let facts = calleeCodeRef._withUnsafeGuaranteedRef { $0.facts }
+                            let argumentBase = base + Int(arguments)
+                            var fits = true
+                            for index in 0..<facts.parameterCount
+                            where !facts.kinds[index].accepts(at: stack.base + argumentBase + index)
+                            {
+                                fits = false
+                                break
+                            }
+                            if fits {
+                                try tick(stop, run)
+                                let receiverValue = regs[Int(receiver)]
+                                stack.push(
+                                    VMCaller(
+                                        codeRef: codeRef,
+                                        functionRef: functionRef,
+                                        calleeRef: calleeRef,
+                                        pc: pc + Int(offset),
+                                        base: base,
+                                        statement: statement,
+                                        destination: base + Int(dst),
+                                        sameScopes: true
+                                    )
+                                )
+                                stack.ensure(argumentBase + facts.frameSize)
+                                stack.top = argumentBase + facts.frameSize
+                                task.callDepth += 1
+                                (functionRef, codeRef) = (calleeRef, calleeCodeRef)
+                                function = functionRef._withUnsafeGuaranteedRef { $0 }
+                                code = codeRef._withUnsafeGuaranteedRef { $0 }
+                                instructions = facts.program
+                                base = argumentBase
+                                pc = 0
+                                statement = -1
+                                regs = stack.base + base
+                                if facts.selfRegister >= 0 {
+                                    VMStack.put(receiverValue, at: regs + facts.selfRegister)
+                                }
+                                continue
+                            }
+                        }
                         var cursor = VMCursor(
                             function: function,
                             code: code,
@@ -555,12 +582,6 @@ extension Interpreter {
                         }
                         let assignment = code.assignments[Int(assignmentIndex)]
                         try assignGlobal(site, assignment, regs[Int(value)], function, code)
-                        regs = stack.base + base
-                    case .assignByName(let site, let value):
-                        ensureSelfScope(function, code, base: base, on: stack)
-                        var assignment = code.assignments[Int(site)]
-                        assignment.value = .literal(regs[Int(value)])
-                        try assign(assignment)
                         regs = stack.base + base
                     case .inoutOutputs(let first, let count):
                         task.inoutOutputs = (0..<Int(count)).map { regs[Int(first) + $0] }

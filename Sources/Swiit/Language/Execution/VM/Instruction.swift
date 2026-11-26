@@ -403,6 +403,12 @@ struct CodeFacts {
     let frameSize: Int
     let program: UnsafeMutablePointer<Instruction>
     let returnKind: ParameterKind
+    /// The method sites of the code, by index.
+    let methods: UnsafeMutablePointer<Unmanaged<MethodSite>>
+    /// How many scopes its function captured.
+    let capturedCount: Int
+    /// The register of `self`, or -1 for a body that does not name it.
+    let selfRegister: Int
 }
 
 /// What a function body compiled to.
@@ -436,12 +442,18 @@ final class Code {
         kindTable.deallocate()
         kindTable = .allocate(capacity: max(1, parameterKinds.count))
         kindTable.initialize(from: parameterKinds, count: parameterKinds.count)
+        methodTable.deallocate()
+        methodTable = .allocate(capacity: max(1, methods.count))
+        methodTable.initialize(from: methods.map(Unmanaged.passUnretained), count: methods.count)
         facts = CodeFacts(
             kinds: kindTable,
             parameterCount: parameterCount,
             frameSize: frameSize,
             program: program,
-            returnKind: returnKind
+            returnKind: returnKind,
+            methods: methodTable,
+            capturedCount: capturedCount,
+            selfRegister: selfRegister.map(Int.init) ?? -1
         )
     }
 
@@ -449,6 +461,7 @@ final class Code {
         program.deallocate()
         callSiteTable.deallocate()
         kindTable.deallocate()
+        methodTable.deallocate()
     }
     @exclusivity(unchecked) var constants: [Value] = []
     @exclusivity(unchecked) var names: [String] = []
@@ -457,6 +470,8 @@ final class Code {
     @exclusivity(unchecked) var callSites: [CallSite] = []
     @exclusivity(unchecked) var members: [MemberSite] = []
     @exclusivity(unchecked) var methods: [MethodSite] = []
+    @exclusivity(unchecked) private(set) var methodTable =
+        UnsafeMutablePointer<Unmanaged<MethodSite>>.allocate(capacity: 1)
     @exclusivity(unchecked) var bridgedSites: [BridgedSite] = []
     @exclusivity(unchecked) var strings: [StringSite] = []
     /// The labels of each tuple literal's elements, nil where an element has none.
@@ -494,7 +509,10 @@ final class Code {
             parameterCount: 0,
             frameSize: 0,
             program: program,
-            returnKind: .any
+            returnKind: .any,
+            methods: methodTable,
+            capturedCount: 0,
+            selfRegister: -1
         )
     }
     @exclusivity(unchecked) var parameterCount = 0
