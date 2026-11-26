@@ -157,6 +157,23 @@ final class VMStack {
         base.deallocate()
     }
 
+    /// The integer in a register, which is not copied to be looked at.
+    @inline(__always)
+    static func integer(at register: UnsafeMutablePointer<Value>) -> Int? {
+        if case .int(let number) = register.pointee.storage { return number }
+        return nil
+    }
+
+    /// `value` into a register. One that holds a number, a Bool or nothing has nothing to let go,
+    /// and is written over as it is.
+    @inline(__always)
+    static func put(_ value: Value, at register: UnsafeMutablePointer<Value>) {
+        switch register.pointee.storage {
+        case .nothing, .bool, .int, .double: register.initialize(to: value)
+        default: register.pointee = value
+        }
+    }
+
     /// The registers `first..<first + count` let go. One that holds a number, a Bool or nothing holds no
     /// reference, and is left as it is.
     @inline(__always)

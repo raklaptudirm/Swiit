@@ -73,9 +73,9 @@ extension Interpreter {
                             )
                         }
                     case .loadConstant(let dst, let constant):
-                        regs[Int(dst)] = code.constants[Int(constant)]
+                        VMStack.put(code.constants[Int(constant)], at: regs + Int(dst))
                     case .move(let dst, let src):
-                        regs[Int(dst)] = regs[Int(src)]
+                        VMStack.put(regs[Int(src)], at: regs + Int(dst))
                     case .loadVariable(let dst, let name):
                         let value = try evaluate(.variable(code.names[Int(name)]))
                         regs = stack.base + base
@@ -97,21 +97,21 @@ extension Interpreter {
                         regs = stack.base + base
                         regs[Int(dst)] = conforming
                     case .binary(let op, let dst, let lhs, let rhs):
-                        if case .int(let x) = regs[Int(lhs)].storage,
-                            case .int(let y) = regs[Int(rhs)].storage,
+                        if let x = VMStack.integer(at: regs + Int(lhs)),
+                            let y = VMStack.integer(at: regs + Int(rhs)),
                             let result = try Interpreter.arithmetic(op, x, y)
                         {
-                            regs[Int(dst)] = result
+                            VMStack.put(result, at: regs + Int(dst))
                             continue
                         }
                         let value = try apply(op, regs[Int(lhs)], regs[Int(rhs)])
                         regs = stack.base + base
                         regs[Int(dst)] = value
                     case .binaryImmediate(let op, let dst, let lhs, let value):
-                        if case .int(let x) = regs[Int(lhs)].storage,
+                        if let x = VMStack.integer(at: regs + Int(lhs)),
                             let result = try Interpreter.arithmetic(op, x, Int(value))
                         {
-                            regs[Int(dst)] = result
+                            VMStack.put(result, at: regs + Int(dst))
                             continue
                         }
                         let value = try apply(op, regs[Int(lhs)], .int(Int(value)))
@@ -170,7 +170,7 @@ extension Interpreter {
                         if !truth { pc += Int(offset) }
                     case .jumpUnlessCompare(let op, let lhs, let value, let offset):
                         let truth: Bool
-                        if case .int(let x) = regs[Int(lhs)].storage {
+                        if let x = VMStack.integer(at: regs + Int(lhs)) {
                             let y = Int(value)
                             switch op {
                             case .less: truth = x < y
@@ -639,7 +639,7 @@ extension Interpreter {
                                 try made
                                 ?? (finishedCode.returnKind.accepts(result)
                                     ? result : conformed(result, to: caller.callee))
-                            stack.base[caller.destination] = conforming
+                            VMStack.put(conforming, at: stack.base + caller.destination)
                             regs = stack.base + base
                             continue
                         }

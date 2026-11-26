@@ -464,8 +464,9 @@ extension Interpreter {
     }
 
     /// How many steps go by between asking the host whether to stop and checking the limits: few
-    /// enough that a stop or a deadline is seen within microseconds.
-    static let stepsBetweenChecks = 16
+    /// enough that a stop or a deadline is seen within tens of microseconds, and many enough that the
+    /// check, which reads the host and the limits, is not a tenth of a call-heavy run.
+    static let stepsBetweenChecks = 256
 
     /// Asks the host whether to stop, checks the limits, and says when to do so again: in a few
     /// steps, or at the step limit if that comes first, so a run stops at exactly its limit.
