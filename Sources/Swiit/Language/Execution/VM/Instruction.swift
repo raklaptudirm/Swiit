@@ -185,6 +185,10 @@ enum Instruction {
     /// Matches the value against the pattern `Code.patterns[pattern]`, as the tree evaluator does:
     /// the names it binds go to their registers, or the code jumps by `fail`.
     case match(pattern: UInt32, value: Register, fail: Int32)
+    /// A tuple of the size `Code.destructures[site]` says, as the element of a `for` is matched to
+    /// `(a, b)`: each name's register gets the field at its position, and the instruction after (the
+    /// general `match`) is jumped over. Where the value is not that, the next instruction runs.
+    case destructure(site: UInt32, value: Register, offset: Int32)
     /// A `case`'s `where`: jumps when it is false, and it must be a Bool.
     case jumpIfWhereFalse(condition: Register, offset: Int32)
     /// A switch whose cases none matched.
@@ -501,6 +505,7 @@ final class Code {
     @exclusivity(unchecked) private(set) var kindTable =
         UnsafeMutablePointer<ParameterKind>.allocate(capacity: 1)
     @exclusivity(unchecked) var patterns: [PatternSite] = []
+    @exclusivity(unchecked) var destructures: [DestructureSite] = []
     @exclusivity(unchecked) var closures: [ClosureSite] = []
     @exclusivity(unchecked) var trees: [TreeNode] = []
     /// Assignments to what is not a local, which `assignByName` makes with the value it is given.

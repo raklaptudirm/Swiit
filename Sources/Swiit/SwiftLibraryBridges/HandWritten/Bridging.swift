@@ -87,6 +87,7 @@ extension Value.Bridging {
         switch value.storage {
         case .list(let items): return items
         default:
+            if let integers = Interpreter.integers(in: value) { return integers }
             guard let items = Interpreter.items(of: value) else {
                 throw SwiitError("expected a list, not \(value.typeName)")
             }

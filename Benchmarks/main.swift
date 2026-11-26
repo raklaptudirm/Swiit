@@ -16,6 +16,84 @@ struct Case {
 
 let cases = [
     Case(
+        name: "col: build dict 100k",
+        source: """
+            func run() -> Int { var d: [Int: Int] = [:]; for i in 0..<100_000 { d[i] = i }; return d.count }
+            run()
+            """
+    ),
+    Case(
+        name: "col: build Array(0..<300k)",
+        source: "func run() -> Int { let xs = Array(0..<300_000); return xs.count }\nrun()"
+    ),
+    Case(
+        name: "col: build by append 300k",
+        source: """
+            func run() -> Int { var xs: [Int] = []; for i in 0..<300_000 { xs.append(i) }; return xs.count }
+            run()
+            """
+    ),
+    Case(
+        name: "col: build by map 300k",
+        source: "func run() -> Int { let xs = (0..<300_000).map { $0 }; return xs.count }\nrun()"
+    ),
+    Case(
+        name: "col: for x in xs, 300k",
+        source: """
+            func run() -> Int { let xs = Array(0..<300_000); var s = 0; for x in xs { s += x }; return s }
+            run()
+            """
+    ),
+    Case(
+        name: "col: counts[k, default: 0] += 1, 200k",
+        source: """
+            func run() -> Int { var d: [Int: Int] = [:]; for i in 0..<200_000 { d[i % 1000, default: 0] += 1 }; return d.count }
+            run()
+            """
+    ),
+    Case(
+        name: "col: xs += [i], 100k",
+        source: """
+            func run() -> Int { var xs: [Int] = []; for i in 0..<100_000 { xs += [i] }; return xs.count }
+            run()
+            """
+    ),
+    Case(
+        name: "col: for (k, v) in d, 100k",
+        source: """
+            func run() -> Int { var d: [Int: Int] = [:]; for i in 0..<100_000 { d[i] = i }; var s = 0; for (k, v) in d { s += k + v }; return s }
+            run()
+            """
+    ),
+    Case(
+        name: "col: sorted, 100k",
+        source: """
+            func run() -> Int { var xs: [Int] = []; for i in 0..<100_000 { xs.append((i * 7919) % 100_003) }; return xs.sorted().count }
+            run()
+            """
+    ),
+    Case(
+        name: "col: joined, 50k",
+        source: """
+            func run() -> Int { let xs = Array(0..<50_000); return xs.map { String($0) }.joined(separator: ",").count }
+            run()
+            """
+    ),
+    Case(
+        name: "col: grid[i][j] += 1, 300x300",
+        source: """
+            func run() -> Int { var g = Array(repeating: Array(repeating: 0, count: 300), count: 300); for i in 0..<300 { for j in 0..<300 { g[i][j] += i + j } }; return g[299][299] }
+            run()
+            """
+    ),
+    Case(
+        name: "col: xs[i] reads, 300k",
+        source: """
+            func run() -> Int { let xs = Array(0..<300_000); var s = 0; for i in 0..<300_000 { s += xs[i] }; return s }
+            run()
+            """
+    ),
+    Case(
         name: "fn: print, 100k",
         source: "func run() { for i in 0..<100_000 { print(i, \"x\") } }\nrun()"
     ),

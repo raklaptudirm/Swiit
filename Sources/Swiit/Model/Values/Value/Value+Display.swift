@@ -5,7 +5,25 @@ import Foundation
 extension Dictionary where Key == Swiit.Value {
     /// The entries sorted by key (`Value.displaysBefore`), so what's printed is the same every time.
     var sortedForDisplay: [(key: Key, value: Value)] {
-        sorted { Key.displaysBefore($0.key, $1.key) }.map { (key: $0.key, value: $0.value) }
+        let entries = map { (key: $0.key, value: $0.value) }
+        // Keys that are all Ints, or all Strings, are sorted as those are, by their positions among the
+        // entries, so that sorting moves no value: the common case.
+        var integers: [(number: Int, position: Int)] = []
+        var strings: [(text: String, position: Int)] = []
+        for (position, entry) in entries.enumerated() {
+            switch entry.key.storage {
+            case .int(let number) where strings.isEmpty: integers.append((number, position))
+            case .string(let text) where integers.isEmpty: strings.append((text, position))
+            default:
+                return entries.sorted { Key.displaysBefore($0.key, $1.key) }
+            }
+        }
+        if !integers.isEmpty {
+            integers.sort { $0.number < $1.number }
+            return integers.map { entries[$0.position] }
+        }
+        strings.sort { $0.text < $1.text }
+        return strings.map { entries[$0.position] }
     }
 }
 

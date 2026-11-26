@@ -254,6 +254,11 @@ extension Value {
             }
         }
 
+        /// The value of the field at `position`, which is one of the fields.
+        func value(atPosition position: Int) -> Value {
+            storage.withUnsafeMutablePointerToElements { $0[position].value }
+        }
+
         /// The name of the field at `position`.
         func key(at position: Int) -> String {
             storage.withUnsafeMutablePointerToElements { $0[position].key }

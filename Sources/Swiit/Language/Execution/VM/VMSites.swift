@@ -243,14 +243,31 @@ final class PatternSite {
     }
 }
 
+/// The names a tuple pattern of names and wildcards binds: how many elements the tuple has, and the
+/// register of each name with the position of the element it takes.
+final class DestructureSite {
+    let arity: Int
+    let targets: [(position: Int, register: Register)]
+
+    init(arity: Int, targets: [(position: Int, register: Register)]) {
+        self.arity = arity
+        self.targets = targets
+    }
+}
+
 /// A place `assignPath` changes: the steps of its path, and what is done there.
 final class PathSite {
     let steps: [Assignment.Step]
     let op: BinaryOperator?
+    /// Every step is an index, so that the place is an element of lists in lists.
+    let isIndexOnly: Bool
 
     init(steps: [Assignment.Step], op: BinaryOperator?) {
         self.steps = steps
         self.op = op
+        isIndexOnly = steps.allSatisfy {
+            if case .index = $0 { true } else { false }
+        }
     }
 }
 

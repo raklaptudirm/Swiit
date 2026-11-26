@@ -225,6 +225,27 @@ extension Interpreter {
             } else {
                 cursor.pc += Int(fail)
             }
+        case .destructure(let site, let value, let offset):
+            let site = cursor.code.destructures[Int(site)]
+            if case .tuple(let tuple) = regs[Int(value)].storage, tuple.record.count == site.arity {
+                for target in site.targets {
+                    regs[Int(target.register)] = tuple.record.value(atPosition: target.position)
+                }
+                cursor.pc += Int(offset)
+            }
+        case .iterate(let dst, let sequence, let awaiting):
+            // A list, and the entries of a dictionary, are read by position; the rest by an iterator.
+            let source = regs[Int(sequence)]
+            if !awaiting, case .list = source.storage {
+                regs[Int(dst)] = source
+                regs[Int(dst) + 2] = .int(0)
+            } else if !awaiting, case .dictionary(let dictionary) = source.storage {
+                regs[Int(dst)] = .list(dictionaryEntries(dictionary))
+                regs[Int(dst) + 2] = .int(0)
+            } else {
+                let iteration = try makeIteration(source, awaiting: awaiting)
+                stack.base[cursor.base + Int(dst)] = .object(iteration)
+            }
         case .jumpIfWhereFalse(let condition, let offset):
             guard case .bool(let truth) = regs[Int(condition)].storage else {
                 throw RuntimeError(
@@ -296,6 +317,15 @@ extension Interpreter {
             throw RuntimeError(
                 "a \(stack.base[base + Int(element)].typeName) doesn't fit this 'for' pattern"
             )
+        case .derefWeak(let register):
+            let slot = base + Int(register)
+            if case .object(let reference as WeakReference) = stack.base[slot].storage {
+                stack.base[slot] = reference.target.map { .object($0) } ?? .nothing
+            }
+        case .makeClosure(let dst, let site):
+            ensureSelfScope(function, code, base: base, on: stack)
+            let made = try makeClosure(code.closures[Int(site)], stack.base + base)
+            stack.base[base + Int(dst)] = made
         default:
             preconditionFailure("not an evaluation instruction")
         }

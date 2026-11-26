@@ -215,6 +215,18 @@ private func aProgramTakesTheSameStepsOnBothEngines(_ program: VMSample) {
 
 private let failing: [VMSample] = [
     VMSample(
+        name: "an index out of range in a list of lists, and a key of the wrong kind",
+        source: """
+            func f(_ n: Int) -> Int {
+                var grid = [[1, 2], [3, 4]]
+                for i in 0..<n { grid[i][1] += 1 }
+                return grid[0][0]
+            }
+            f(3)
+            """,
+        compiles: ["f"]
+    ),
+    VMSample(
         name: "a division by zero in a closure a native body calls",
         source: """
             func f(_ n: Int) -> [Int] { (0..<n).map { 10 / (2 - $0) } }

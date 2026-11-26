@@ -319,11 +319,20 @@ extension Interpreter {
                                 regs = stack.base + base
                             }
                         }
-                    case .iterate(let dst, let sequence, let awaiting):
-                        let iteration = try makeIteration(regs[Int(sequence)], awaiting: awaiting)
-                        regs = stack.base + base
-                        regs[Int(dst)] = .object(iteration)
                     case .iterateNext(let iterator, let variable, let exit):
+                        // A list is read by position, from the register that holds it.
+                        if case .list(let items) = regs[Int(iterator)].storage {
+                            guard case .int(let index) = regs[Int(iterator) + 2].storage,
+                                index < items.count
+                            else {
+                                regs[Int(iterator)] = .nothing
+                                pc += Int(exit)
+                                continue
+                            }
+                            VMStack.put(items[index], at: regs + Int(variable))
+                            VMStack.put(.int(index + 1), at: regs + Int(iterator) + 2)
+                            continue
+                        }
                         guard case .object(let object) = regs[Int(iterator)].storage,
                             let iteration = object as? IterationBox
                         else { throw RuntimeError("a for lost its iterator") }
@@ -386,12 +395,6 @@ extension Interpreter {
                         regs[Int(register)] = .object(Binding.Cell(regs[Int(register)]))
                     case .loadCell(let dst, let box):
                         regs[Int(dst)] = try cell(regs[Int(box)]).value
-                    case .derefWeak(let register):
-                        if case .object(let reference as WeakReference) = regs[Int(register)]
-                            .storage
-                        {
-                            regs[Int(register)] = reference.target.map { .object($0) } ?? .nothing
-                        }
                     case .storeCell(let box, let src):
                         try cell(regs[Int(box)]).value = regs[Int(src)]
                     case .assignCell(let box, let op, let value):
@@ -401,19 +404,16 @@ extension Interpreter {
                         defer { held.value = slot }
                         try applyInPlace(op, &slot, regs[Int(value)])
                         regs = stack.base + base
-                    case .makeClosure(let dst, let site):
-                        ensureSelfScope(function, code, base: base, on: stack)
-                        let made = try makeClosure(code.closures[Int(site)], regs)
-                        regs = stack.base + base
-                        regs[Int(dst)] = made
                     case .fastMember, .fastGlobalMember, .assignMember, .assignGlobalMember,
                         .assignSelfMember, .callBridged, .interpolate, .assignElement,
                         .assignGlobalElement, .makeList, .makeDictionary, .makeTuple,
                         .requireValue, .describe, .cast, .index, .dictionaryValue, .assignPath,
-                        .match, .jumpIfWhereFalse, .noMatch, .throwValue, .fatalize,
+                        .match, .destructure, .iterate, .jumpIfWhereFalse, .noMatch, .throwValue,
+                        .fatalize,
                         .reportDeferred,
                         .guardCarriedOn, .deferMark, .loadVariable, .evaluate, .evaluateTree,
-                        .runTree, .conform, .assignByName, .iterationMismatch:
+                        .runTree, .conform, .assignByName, .iterationMismatch, .derefWeak,
+                        .makeClosure:
                         var cursor = VMCursor(
                             function: function,
                             code: code,

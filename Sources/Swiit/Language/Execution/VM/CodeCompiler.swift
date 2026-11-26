@@ -290,6 +290,8 @@ extension CodeCompiler {
                 value: value,
                 offset: offset
             )
+        case .destructure(let site, let value, _):
+            code.instructions[index] = .destructure(site: site, value: value, offset: offset)
         case .dictionaryValue(let dst, let base, let key, _):
             code.instructions[index] = .dictionaryValue(
                 dst: dst,

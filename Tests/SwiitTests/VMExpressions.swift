@@ -511,4 +511,43 @@ let vmExpressions: [VMSample] = [
         compiles: ["f"],
         leafCalls: 80
     ),
+    VMSample(
+        name:
+            "collections: iteration by position, tuples of names, dictionary order, grids, sorting",
+        source: """
+            struct V { var x: Int; static func += (lhs: inout V, rhs: V) { lhs.x += rhs.x * 10 } }
+            func f(_ n: Int) -> String {
+                var out = ""
+                let xs = Array(0..<n)
+                var total = 0
+                for x in xs { total += x; if x == 3 { continue }; if x > 6 { break } }
+                var grid = Array(repeating: Array(repeating: 0, count: 4), count: 3)
+                var shared = Array(repeating: [1, 2], count: 3)
+                var deep = [[[1, 2], [3]], [[4]]]
+                var texts = [["a", "b"], ["c"]]
+                var flags = [[true, false]]
+                var vs = [[V(x: 1)], [V(x: 2)]]
+                for i in 0..<3 {
+                    for j in 0..<4 { grid[i][j] += i * j + 1; grid[i][j] = grid[i][j] * 2 }
+                    shared[i][1] += i
+                    deep[0][0][1] += i
+                    texts[i % 2][0] += "!"
+                    flags[0][i % 2] = !flags[0][i % 2]
+                    vs[i % 2][0] += V(x: i)
+                }
+                var d: [Int: String] = [:]
+                for i in 0..<n { d[(i * 7) % 11] = "v\\(i)" }
+                var words = ["pear": 1, "apple": 2, "fig": 3]
+                words["kiwi"] = 4
+                for (k, v) in d { out += "\\(k)=\\(v) " }
+                for (word, count) in words { out += "\\(word)\\(count) " }
+                for (_, count) in words { total += count }
+                for (index, item) in xs.enumerated() { total += index * item }
+                for element in [3, 1, 2] + xs { total += element }
+                return out + "\\(total) \\(grid) \\(shared) \\(deep) \\(texts) \\(flags) \\(vs.map { $0[0].x }) \\(xs.reversed().sorted().count) \\([5, 3, 9, 1].sorted()) \\(["b", "a"].sorted()) \\([2.5, 1.5].sorted()) \\(Array(2...5))"
+            }
+            print(f(9), f(2))
+            """,
+        compiles: ["f"]
+    ),
 ]

@@ -55,7 +55,7 @@ extension Interpreter {
                 else {
                     return nil
                 }
-                return AnyIterator((lower...upper).lazy.map(Value.int).makeIterator())
+                return AnyIterator(IntegerIterator(next: lower, last: upper))
             }
             if let range = box.value as? Range<Value> {
                 guard case .int(let lower) = range.lowerBound.storage,
@@ -63,13 +63,52 @@ extension Interpreter {
                 else {
                     return nil
                 }
-                return AnyIterator((lower..<upper).lazy.map(Value.int).makeIterator())
+                return AnyIterator(IntegerIterator(next: lower, last: upper - 1))
             }
             guard let sequence = box.value as? any Sequence else { return nil }
             return iterator(sequence)
         default:
             return nil
         }
+    }
+
+    /// The Ints from `next` to `last`, one at a time, as values.
+    private struct IntegerIterator: IteratorProtocol {
+        var upcoming: Int
+        let last: Int
+        var isDone = false
+
+        init(next: Int, last: Int) {
+            upcoming = next
+            self.last = last
+            isDone = next > last
+        }
+
+        mutating func next() -> Value? {
+            guard !isDone else { return nil }
+            let current = upcoming
+            if current == last { isDone = true } else { upcoming += 1 }
+            return .int(current)
+        }
+    }
+
+    /// The values of a range of Ints, made all at once: what a member that takes a sequence and wants
+    /// its elements (an `Array(0..<n)`, a `Set`) reads, without a generic iterator for each. Nil for
+    /// anything else.
+    static func integers(in value: Value) -> [Value]? {
+        guard case .object(let box as SwiftValue) = value.storage else { return nil }
+        if let range = box.value as? Range<Value>, case .int(let lower) = range.lowerBound.storage,
+            case .int(let upper) = range.upperBound.storage
+        {
+            return (lower..<Swift.max(lower, upper)).map(Value.int)
+        }
+        if let range = box.value as? ClosedRange<Value>,
+            case .int(let lower) = range.lowerBound.storage,
+            case .int(let upper) = range.upperBound.storage, lower <= upper, upper < Int.max
+        {
+            return (lower...upper).map(Value.int)
+        }
+        return nil
     }
 
     /// A Swift sequence's elements as Swiit values, boxed by their type's name.
@@ -99,8 +138,13 @@ extension Interpreter {
 /// algorithms that need Comparable elements work on them.
 extension Value: Comparable {
     public static func < (lhs: Value, rhs: Value) -> Bool {
+        switch (lhs.storage, rhs.storage) {
+        case (.int(let x), .int(let y)): return x < y
+        case (.double(let x), .double(let y)): return x < y
+        default: break
+        }
         // A type of the program's with its own `<` (Comparable) says which comes first.
-        if let interpreter = Waiting.host as? Interpreter, lhs.isOfProgramsType,
+        if lhs.isOfProgramsType, let interpreter = Waiting.host as? Interpreter,
             case .bool(let less)? = try? interpreter.userOperator("<", [lhs, rhs])?.storage
         {
             return less

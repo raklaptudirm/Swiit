@@ -63,17 +63,23 @@ extension Interpreter {
         }
     }
 
+    /// The entries of a dictionary as the tuples a `for` reads (`key`, `value`), in the order they are
+    /// shown in, which is the same every run.
+    func dictionaryEntries(_ dictionary: [Value: Value]) -> [Value] {
+        dictionary.sortedForDisplay.map { entry in
+            var record = Value.Record(typeRef: nil, capacity: 2)
+            record.appendDistinct("key", entry.key)
+            record.appendDistinct("value", entry.value)
+            return Value(record: record)
+        }
+    }
+
     /// What `for x in value` reads: the elements of a collection, the characters of a string, the
     /// entries of a dictionary, a task group's results, or what the value's own iterator gives.
     func makeIteration(_ value: Value, awaiting: Bool) throws -> IterationBox {
         if let read = Interpreter.taskGroupReader(of: value) { return IterationBox(read) }
         if case .dictionary(let dictionary) = value.storage {
-            // In the order they are shown in, which is the same every run.
-            var entries = dictionary.sortedForDisplay
-                .map { entry in
-                    Value(record: Value.Record(["key": entry.key, "value": entry.value]))
-                }
-                .makeIterator()
+            var entries = dictionaryEntries(dictionary).makeIterator()
             return IterationBox { entries.next() }
         }
         if case .string(let text) = value.storage {
