@@ -117,11 +117,11 @@ final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {
 /// A value of a class: shared by every variable that holds it.
 final class ClassInstance: LanguageObject, @unchecked Sendable {
     let type: ClassType
-    var storage: [String: Value]
+    var storage: FieldTable
     /// What runs when the last reference goes (the class's `deinit`s), if any.
     var onRelease: ((ClassInstance) -> Void)?
 
-    init(type: ClassType, storage: [String: Value] = [:]) {
+    init(type: ClassType, storage: FieldTable = FieldTable()) {
         self.type = type
         self.storage = storage
     }
@@ -134,4 +134,51 @@ final class ClassInstance: LanguageObject, @unchecked Sendable {
     var memberNames: [String] { type.allStored.map(\.name) }
     func member(_ name: String) -> Value? { storage[name] }
     var description: String { type.name }
+}
+
+/// The fields of a class's instance, by name: a class has a handful, which are found by comparing
+/// names, as a struct's are (`Value.Record`), with no hashing and no table to grow as they are set.
+struct FieldTable: Sequence, ExpressibleByDictionaryLiteral {
+    private struct Field {
+        let name: String
+        var value: Value
+    }
+
+    private var fields: [Field] = []
+
+    init() {}
+
+    init(dictionaryLiteral elements: (String, Value)...) {
+        for (name, value) in elements { self[name] = value }
+    }
+
+    /// An empty table with room for `capacity` fields.
+    init(capacity: Int) {
+        fields.reserveCapacity(capacity)
+    }
+
+    private func position(of name: String) -> Int? {
+        for index in fields.indices where fields[index].name == name { return index }
+        return nil
+    }
+
+    subscript(name: String) -> Value? {
+        get { position(of: name).map { fields[$0].value } }
+        set {
+            if let index = position(of: name) {
+                if let newValue { fields[index].value = newValue } else { fields.remove(at: index) }
+            } else if let newValue {
+                fields.append(Field(name: name, value: newValue))
+            }
+        }
+    }
+
+    var count: Int { fields.count }
+    var isEmpty: Bool { fields.isEmpty }
+    var keys: [String] { fields.map(\.name) }
+    var values: [Value] { fields.map(\.value) }
+
+    func makeIterator() -> some IteratorProtocol<(key: String, value: Value)> {
+        fields.lazy.map { (key: $0.name, value: $0.value) }.makeIterator()
+    }
 }

@@ -49,6 +49,16 @@ extension Interpreter {
         for index in 0..<call.site.labels.count { stack.base[call.argumentBase + index] = .nothing }
     }
 
+    /// Whether `initializer` takes the labels the call gives, remembered at the site.
+    private func takesLabels(of site: CallSite, _ initializer: Function) -> Bool {
+        if site.fittedInitializer === initializer { return true }
+        guard initializer.parameters.count == site.labels.count,
+            zip(initializer.parameters, site.labels).allSatisfy({ $0.label == $1 })
+        else { return false }
+        site.fittedInitializer = initializer
+        return true
+    }
+
     /// The memberwise initializer, when the call gives every field, each as its type has it.
     private func constructMemberwise(
         _ type: StructType,
@@ -57,18 +67,18 @@ extension Interpreter {
     ) -> Value? {
         guard let plan = memberwisePlan(of: type), plan.labels == site.labels else { return nil }
         let stack = task.vm
-        var values: [Value] = []
-        values.reserveCapacity(plan.keys.count)
+        var record = Value.Record(typeRef: type.typeRef)
+        record.reserveCapacity(plan.keys.count)
         for index in plan.keys.indices {
             let value = stack.base[arguments + plan.slots[index]]
             guard
                 let stored = plan.kinds[index].accepts(value)
                     ? value : conform(value, to: plan.types[index])
             else { return nil }
-            values.append(stored)
+            record.appendDistinct(plan.keys[index], stored)
         }
         // In the order the type declares them.
-        return Value(record: Value.Record(typeRef: type.typeRef, keys: plan.keys, values: values))
+        return Value(record: record)
     }
 
     /// The plan of the memberwise initializer of `type`, or nil when it is not one that takes each
@@ -113,8 +123,7 @@ extension Interpreter {
         guard let chosen, candidates.indices.contains(chosen),
             case let initializer = candidates[chosen],
             !initializer.isFailable, !initializer.isConvenience,
-            initializer.parameters.count == site.labels.count,
-            zip(initializer.parameters, site.labels).allSatisfy({ $0.label == $1 }),
+            takesLabels(of: site, initializer),
             let code = compiled(initializer), code.takesArgumentsAsWritten
         else { return .none }
         for index in 0..<code.parameterCount
@@ -190,7 +199,10 @@ extension Interpreter {
         guard task.callDepth < maxCallDepth else {
             throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
         }
-        let instance = ClassInstance(type: type)
+        let instance = ClassInstance(
+            type: type,
+            storage: FieldTable(capacity: type.allStored.count)
+        )
         for property in type.allStored {
             if let value = try initialValue(of: property) {
                 instance.storage[property.name] = value

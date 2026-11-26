@@ -38,6 +38,9 @@ final class CallSite {
     /// The same for a class, with the one initializer it was found to run, and its code.
     @exclusivity(unchecked) var constructedClass: ClassType?
     @exclusivity(unchecked) var constructedInitializer: Function?
+    /// The initializer of a struct found to take this call's labels, so that they are not compared
+    /// again.
+    @exclusivity(unchecked) var fittedInitializer: Function?
     @exclusivity(unchecked) var constructedCode: Code?
 
     struct Cached {

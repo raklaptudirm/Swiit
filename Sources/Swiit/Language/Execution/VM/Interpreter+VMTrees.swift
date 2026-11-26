@@ -19,6 +19,7 @@ extension Interpreter {
     /// way, so changing it in place stays cheap), or shared when a closure keeps it in a cell, and
     /// moved back after, whatever happened.
     func runTree(_ node: TreeNode, base: Int, on stack: VMStack) throws -> Value {
+        vmTreeRuns += 1
         let task = self.task
         let frame = task.spareFrames.popLast() ?? Frame(size: node.frameSize)
         frame.reset(size: node.frameSize)

@@ -24,7 +24,7 @@ extension Interpreter {
                 guard let value = made[property.name] else {
                     throw RuntimeError("\(type.name).init must set '\(property.name)'")
                 }
-                record[property.name] = value
+                record.appendDistinct(property.name, value)
             }
             return Value(record: record)
         case .classInstance(let instance, let initializer, let saved):

@@ -16,6 +16,10 @@ struct Case {
 
 let cases = [
     Case(
+        name: "fn: print, 100k",
+        source: "func run() { for i in 0..<100_000 { print(i, \"x\") } }\nrun()"
+    ),
+    Case(
         name: "fn: struct field update, 200k",
         source: """
             struct P { var x = 0; var y = 0 }

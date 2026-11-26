@@ -144,7 +144,10 @@ extension Interpreter {
             if case .caseLiteral = argument.value { return argument }
             return Argument(label: argument.label, value: .literal(try evaluate(argument.value)))
         }
-        let instance = ClassInstance(type: type)
+        let instance = ClassInstance(
+            type: type,
+            storage: FieldTable(capacity: type.allStored.count)
+        )
         for property in type.allStored {
             if let value = try initialValue(of: property) {
                 instance.storage[property.name] = value

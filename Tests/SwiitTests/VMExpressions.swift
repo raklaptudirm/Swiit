@@ -247,4 +247,31 @@ let vmExpressions: [VMSample] = [
             """,
         compiles: ["f"]
     ),
+    VMSample(
+        name:
+            "the common assignments through self and into a global run without the tree evaluator",
+        source: """
+            class C { var n = 0; var m = 0; func bump() { self.n += 1; m = n } }
+            struct S { var x = 0; mutating func inc() { self.x += 1; x = x + 1 } }
+            struct T { var x: Int; var y: Int; init(a: Int) { self.x = a; self.y = a + 1 } }
+            class D { var x: Int; var y = 2; init(a: Int) { self.x = a } }
+            var vec = [0, 0, 0]
+            func f() -> Int {
+                let c = C()
+                var s = S()
+                var t = 0
+                for i in 0..<5 {
+                    c.bump()
+                    s.inc()
+                    t += T(a: i).y + D(a: i).x
+                    vec[i % 3] = i * 2
+                    vec[0] += 1
+                }
+                return c.n + s.x + t + vec[0] + vec[1]
+            }
+            f()
+            """,
+        compiles: ["f"],
+        treeRuns: 0
+    ),
 ]

@@ -105,4 +105,7 @@ struct VMSample {
     /// How many expressions and statements the functions in `compiles` leave to the tree evaluator,
     /// where the sample says.
     var trees: Int?
+    /// How many times the tree evaluator runs a piece of what the compiler took, where the sample says:
+    /// what the fast paths decline.
+    var treeRuns: Int?
 }

@@ -181,6 +181,12 @@ private func aProgramGivesTheSameOnBothEngines(_ program: VMSample) {
         vm.swiit.vmLoops == program.loops,
         "\(program.name) ran \(vm.swiit.vmLoops) loops compiled"
     )
+    if let runs = program.treeRuns {
+        #expect(
+            vm.swiit.vmTreeRuns == runs,
+            "\(program.name) ran \(vm.swiit.vmTreeRuns) tree nodes, not \(runs)"
+        )
+    }
     if let trees = program.trees {
         let left = vmTreeNodes(program.compiles, in: vm.swiit)
         #expect(left == trees, "\(program.name) left \(left) nodes to the tree, not \(trees)")

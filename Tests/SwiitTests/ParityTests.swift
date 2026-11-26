@@ -94,6 +94,7 @@ func runTheGivenSource() {
     do { _ = try interpreter.evaluate(source) } catch let diagnostic as Diagnostic {
         print("RENDERED:\n" + diagnostic.rendered(in: source))
     } catch {}
+    print("TREE RUNS:", interpreter.vmTreeRuns)
 }
 
 /// How much of the programs the VM runs: each function it left to the tree evaluator, by reason.

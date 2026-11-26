@@ -286,14 +286,22 @@ private func typeError(_ source: String) -> String? {
 // own stop.
 
 @Test func aRunKeepsItsOwnTimeLimitWhileAnotherBegins() async throws {
-    let swiit = interpreter()
-    let start = ContinuousClock.now
-
-    // The first run has half a second, which it spends waiting in short turns. The second begins
-    // meanwhile and must not move the first's deadline.
+    // The first run has half a second, which it spends waiting in short turns of 10 ms. The second
+    // begins meanwhile, with half a minute, and must not move the first's deadline: if it did, the
+    // first would go round thousands of times, not the fifty that half a second holds.
+    let passes = Mutex(0)
+    let swiit = Interpreter(
+        host: Interpreter.Host(
+            output: OutputSink({ text in
+                if text.contains("x") { passes.withLock { $0 += 1 } }
+                return true
+            }),
+            error: OutputSink({ _ in true })
+        )
+    )
     let first = Task { () async throws -> Value in
         try await swiit.evaluate(
-            "while true { try await Task.sleep(nanoseconds: 10_000_000) }",
+            "while true { print(\"x\"); try await Task.sleep(nanoseconds: 10_000_000) }",
             limits: Interpreter.Limits(timeLimit: .milliseconds(500))
         )
     }
@@ -306,13 +314,13 @@ private func typeError(_ source: String) -> String? {
     }
 
     let ended = await first.result
-    let elapsed = ContinuousClock.now - start
     guard case .failure(let error) = ended else {
         Issue.record("the first run was not stopped")
         return
     }
     #expect((error as? Diagnostic)?.message.contains("time limit") == true)
-    #expect(elapsed < .seconds(10), "the first run ended after \(elapsed)")
+    let total = passes.withLock { $0 }
+    #expect(total < 200, "the first run went round \(total) times")
     _ = try await second.value
 }
 
