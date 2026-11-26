@@ -304,7 +304,7 @@ struct FrameResolver {
 extension FrameResolver {
     /// An expression with the locals it names read from their slots, and its closures each with
     /// a frame of its own. What is not looked into is left as it was, to be run by name: an `if`
-    /// expression and a pattern, whose bindings are made by name as they run, among them.
+    /// expression that binds a name, and a pattern, whose bindings are made by name as they run.
     private func expression(_ value: Expr) -> Expr {
         switch value {
         case .variable(let name):
@@ -372,6 +372,19 @@ extension FrameResolver {
             return .list(items.map(expression))
         case .tuple(let arguments):
             return .tuple(arguments.map(argument))
+        case .ifExpression(let node):
+            // One that tests a Bool binds nothing, so its branches are expressions like any other.
+            guard case .expression(let condition) = node.condition, let otherwise = node.otherwise,
+                let thenValue = IfStatement.branchExpression(node.then),
+                let elseValue = IfStatement.branchExpression(otherwise)
+            else { return value }
+            return .ifExpression(
+                IfStatement(
+                    condition: .expression(expression(condition)),
+                    then: IfStatement.branch(expression(thenValue)),
+                    otherwise: IfStatement.branch(expression(elseValue))
+                )
+            )
         default:
             return value
         }

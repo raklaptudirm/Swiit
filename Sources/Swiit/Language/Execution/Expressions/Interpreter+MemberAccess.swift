@@ -112,6 +112,20 @@ extension Interpreter {
     }
     // swiftlint:enable cyclomatic_complexity
 
+    /// `value[key]`: what a subscript of a struct or a class gives, or the element of a list, a
+    /// dictionary or a string.
+    func readIndex(_ value: Value, key: Value) throws -> Value {
+        if let record = value.record, let type = structType(of: record),
+            !type.members.subscriptGetters.isEmpty
+        {
+            return try readSubscript(record, type, [Argument(value: .literal(key))])
+        }
+        if case .object(let instance as ClassInstance) = value.storage {
+            return try readSubscript(instance, [Argument(value: .literal(key))])
+        }
+        return try element(of: value, at: key)
+    }
+
     func element(of base: Value, at index: Value) throws -> Value {
         // A subscript a bridged type declares, where the checker did not know the type.
         switch base.storage {

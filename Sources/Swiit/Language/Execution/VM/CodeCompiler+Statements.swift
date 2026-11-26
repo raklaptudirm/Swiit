@@ -202,7 +202,9 @@ extension CodeCompiler {
                 case .member(let name) = assignment.path[0]
             {
                 try selfMember(name, register, assignment, statement)
-            } else if try !element(of: known, assignment, statement) {
+            } else if try !element(of: known, assignment, statement),
+                try !deepPath(of: known, assignment, statement)
+            {
                 try member(of: known, assignment, statement)
             }
             return
@@ -233,6 +235,47 @@ extension CodeCompiler {
             }
         }
         nextTemporary = mark
+    }
+
+    /// `p.a.b = v`, `grid[i][j] += v` and the rest of a path of two steps or more from a local:
+    /// changed where it is by `assignPath` when it can be, and by the tree evaluator, which follows
+    /// it, when not. False if it is not one of those.
+    private mutating func deepPath(
+        of known: Local?,
+        _ assignment: Assignment,
+        _ statement: Statement
+    ) throws -> Bool {
+        guard let known, known.mutable, !known.boxed, !weakSlots.contains(Int(known.slot)),
+            assignment.path.count >= 2, isPure(assignment.value)
+        else { return false }
+        var keyed: [Expr] = []
+        for step in assignment.path {
+            switch step {
+            case .member, .unwrap: break
+            case .index(let key): keyed.append(key)
+            case .indexDefault(let key, let fallback): keyed += [key, fallback]
+            case .subscripted, .optionalChain: return false
+            }
+        }
+        guard keyed.allSatisfy(isPure), keyed.count <= 100 else { return false }
+        let mark = nextTemporary
+        let keys = Register(nextTemporary)
+        for key in keyed { try expression(key, into: try allocate()) }
+        let value = try operand(assignment.value)
+        code.paths.append(PathSite(steps: assignment.path, op: assignment.op))
+        let fast = emit(
+            .assignPath(
+                local: known.slot,
+                site: UInt32(code.paths.count - 1),
+                keys: keys,
+                value: value,
+                offset: 0
+            )
+        )
+        nextTemporary = mark
+        treeStatement(statement, roots: [assignment.root])
+        patch(fast, to: here)
+        return true
     }
 
     /// `xs[i] = v`, `d[k] = v`, `d[k] += v` and `d[k, default: x] += v` of a list or a dictionary that is a local

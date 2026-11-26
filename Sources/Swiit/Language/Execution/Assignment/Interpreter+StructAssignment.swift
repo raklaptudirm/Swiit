@@ -63,15 +63,7 @@ extension Interpreter {
             // A property's type is checked for what is put in it; a collection changed in it keeps
             // its type, and isn't walked again.
             if assignment.op == nil, let validate = place.validate { value = try validate(value) }
-            try withPlace(assignment.root, place) { slot in
-                guard let op = assignment.op else { slot = value; return }
-                try applyInPlace(op, &slot, value)
-                switch slot.storage {
-                case .int, .double, .bool:
-                    if let validate = place.validate { slot = try validate(slot) }
-                default: break
-                }
-            }
+            try withPlace(assignment.root, place, store(value, at: place, op: assignment.op))
             return
         }
         task.assigningPlainly = assignment.op == nil

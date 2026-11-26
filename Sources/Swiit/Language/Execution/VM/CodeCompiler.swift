@@ -269,6 +269,21 @@ extension CodeCompiler {
     /// `patch` for the jumps that are not the commonest.
     mutating func patchMember(_ index: Int, to offset: Int32) {
         switch code.instructions[index] {
+        case .assignPath(let local, let site, let keys, let value, _):
+            code.instructions[index] = .assignPath(
+                local: local,
+                site: site,
+                keys: keys,
+                value: value,
+                offset: offset
+            )
+        case .dictionaryValue(let dst, let base, let key, _):
+            code.instructions[index] = .dictionaryValue(
+                dst: dst,
+                base: base,
+                key: key,
+                offset: offset
+            )
         case .fastMember(let kind, let dst, let receiver, let argument, _):
             code.instructions[index] = .fastMember(
                 kind: kind,
@@ -301,6 +316,13 @@ extension CodeCompiler {
                 value: value,
                 offset: offset
             )
+        default: patchRest(index, to: offset)
+        }
+    }
+
+    /// `patchMember` for the rest.
+    mutating func patchRest(_ index: Int, to offset: Int32) {
+        switch code.instructions[index] {
         case .fastGlobalMember(let kind, let dst, let global, let argument, _):
             code.instructions[index] = .fastGlobalMember(
                 kind: kind,

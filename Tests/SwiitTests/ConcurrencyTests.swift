@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 import Testing
 
 @testable import Swiit
@@ -313,6 +314,36 @@ private func typeError(_ source: String) -> String? {
     #expect((error as? Diagnostic)?.message.contains("time limit") == true)
     #expect(elapsed < .seconds(10), "the first run ended after \(elapsed)")
     _ = try await second.value
+}
+
+@Test func aTimeLimitIsSeenRightAfterAWaitEnds() async throws {
+    // Each pass of the loop waits 10 ms, so the deadline is over after about 20 of them. The steps
+    // between two checks of the limits are a hundred passes: a check that waited for them would let
+    // the run go on for that long past the deadline.
+    let passes = Mutex(0)
+    let swiit = Interpreter(
+        host: Interpreter.Host(
+            output: OutputSink({ text in
+                if text.contains("x") { passes.withLock { $0 += 1 } }
+                return true
+            }),
+            error: OutputSink({ _ in true })
+        )
+    )
+    let ended = await Task { () async throws -> Value in
+        try await swiit.evaluate(
+            "while true { print(\"x\"); try await Task.sleep(nanoseconds: 10_000_000) }",
+            limits: Interpreter.Limits(timeLimit: .milliseconds(200))
+        )
+    }
+    .result
+    guard case .failure(let error) = ended else {
+        Issue.record("the run was not stopped")
+        return
+    }
+    #expect((error as? Diagnostic)?.message.contains("time limit") == true)
+    let total = passes.withLock { $0 }
+    #expect(total < 35, "the loop went round \(total) times")
 }
 
 @Test func stoppingOneRunLeavesTheOtherGoing() async throws {

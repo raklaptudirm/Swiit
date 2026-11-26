@@ -163,15 +163,7 @@ extension Interpreter {
             }
         case .index(let base, let index):
             let value = try evaluate(base)
-            if let record = value.record, let type = structType(of: record),
-                !type.members.subscriptGetters.isEmpty
-            {
-                return try readSubscript(record, type, [Argument(value: index)])
-            }
-            if case .object(let instance as ClassInstance) = value.storage {
-                return try readSubscript(instance, [Argument(value: index)])
-            }
-            return try element(of: value, at: try evaluate(index))
+            return try readIndex(value, key: try evaluate(index))
         case .subscripted(let base, let arguments):
             let target = try evaluate(base)
             if case .object(let instance as ClassInstance) = target.storage {

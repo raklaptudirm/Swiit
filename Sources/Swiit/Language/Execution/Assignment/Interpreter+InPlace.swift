@@ -51,6 +51,17 @@ extension Interpreter {
         guard let binding = lookup(root), binding.special != .initializing,
             !binding.isComputed
         else { return nil }
+        return try plainPlace(in: binding.value, path, op: op, key: evaluate)
+    }
+
+    /// `path` from `start` as a place that can be changed in place, or nil if it can't. `key` gives
+    /// the value of each index or default in the path, in order.
+    func plainPlace(
+        in start: Value,
+        _ path: [Assignment.Step],
+        op: BinaryOperator?,
+        key evaluate: (Expr) throws -> Value
+    ) throws -> Place? {
         // Nothing the long way would evaluate first can have an effect.
         for step in path {
             switch step {
@@ -64,7 +75,7 @@ extension Interpreter {
         var steps: [PlaceStep] = []
         var type: TypeExpression?
         var validate: ((Value) throws -> Value)?
-        var current = binding.value
+        var current = start
         for step in path {
             switch step {
             case .unwrap:
@@ -139,7 +150,7 @@ extension Interpreter {
         return try descend(&value, place.steps[...], body)
     }
 
-    private func descend<T>(
+    func descend<T>(
         _ value: inout Value,
         _ steps: ArraySlice<PlaceStep>,
         _ body: (inout Value) throws -> T
@@ -203,6 +214,23 @@ extension Interpreter {
             dictionary[key] = element == .nothing ? nil : element; value = .dictionary(dictionary)
         }
         return try descend(&element, rest, body)
+    }
+
+    /// What puts `value` in the place, or applies `op` to what is there: for `descend`.
+    func store(
+        _ value: Value,
+        at place: Place,
+        op: BinaryOperator?
+    ) -> (inout Value) throws -> Void {
+        { [self] slot in
+            guard let op else { slot = value; return }
+            try applyInPlace(op, &slot, value)
+            switch slot.storage {
+            case .int, .double, .bool:
+                if let validate = place.validate { slot = try validate(slot) }
+            default: break
+            }
+        }
     }
 
     /// `lhs op= rhs` where the value at `slot` is changed in place when it can be: a list or a

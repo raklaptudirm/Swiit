@@ -66,6 +66,18 @@ func vmCompiled(_ names: [String], in swiit: Interpreter) -> [String] {
     }
 }
 
+/// How many nodes the compiled functions named hand to the tree evaluator, all together.
+func vmTreeNodes(_ names: [String], in swiit: Interpreter) -> Int {
+    names.reduce(0) { total, name in
+        guard case .function(let callable)? = swiit.lookup(name)?.value.storage else {
+            return total
+        }
+        let function = (callable as? Function) ?? (callable as? OverloadSet)?.candidates.first
+        guard case .code(let code)? = function?.vmCode else { return total }
+        return total + code.trees.count
+    }
+}
+
 /// How many steps a program takes: the fewest that let it finish.
 func vmSteps(_ source: String, on engine: Engine) -> Int {
     var low = 1
@@ -90,4 +102,7 @@ struct VMSample {
     var entirely = false
     /// How many loops of the program's own code the VM runs.
     var loops = 0
+    /// How many expressions and statements the functions in `compiles` leave to the tree evaluator,
+    /// where the sample says.
+    var trees: Int?
 }

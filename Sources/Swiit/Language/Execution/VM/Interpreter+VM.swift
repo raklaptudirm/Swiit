@@ -475,7 +475,8 @@ extension Interpreter {
                         regs[Int(dst)] = made
                     case .fastMember, .fastGlobalMember, .assignMember, .assignGlobalMember,
                         .assignSelfMember, .callBridged, .interpolate, .assignElement,
-                        .assignGlobalElement:
+                        .assignGlobalElement, .makeList, .makeDictionary, .makeTuple,
+                        .requireValue, .describe, .cast, .index, .dictionaryValue, .assignPath:
                         var cursor = VMCursor(
                             function: function,
                             code: code,

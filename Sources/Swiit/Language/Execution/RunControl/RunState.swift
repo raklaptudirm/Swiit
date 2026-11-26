@@ -23,6 +23,14 @@ final class RunState {
     /// The steps the run has taken.
     var steps: Int { stepsBeforeWindow + window - stepsUntilCheck }
 
+    /// The limits and the host's interrupt are asked at the next step, not after the steps the window
+    /// has left: what a task does after a wait, which may have taken as long as the whole window.
+    func checkAtNextStep() {
+        stepsBeforeWindow = steps
+        window = 0
+        stepsUntilCheck = 0
+    }
+
     /// Begins counting `size` steps to the next check, from the steps taken so far.
     func startWindow(_ size: Int) {
         stepsBeforeWindow = steps

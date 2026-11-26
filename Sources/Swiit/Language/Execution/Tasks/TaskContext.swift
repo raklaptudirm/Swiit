@@ -132,7 +132,11 @@ extension Interpreter {
         defer { token.map { mine.cancellation.remove($0) } }
         // Another task runs meanwhile, if one is ready.
         guard lock.isHeldByCurrentThread else { return try wait() }
-        defer { task = mine }
+        // A wait can take longer than the steps between two checks of the limits.
+        defer {
+            task = mine
+            mine.run.checkAtNextStep()
+        }
         return try lock.releasing(wait)
     }
 

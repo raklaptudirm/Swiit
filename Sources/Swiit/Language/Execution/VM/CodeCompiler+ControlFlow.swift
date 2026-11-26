@@ -151,6 +151,23 @@ extension CodeCompiler {
         for (name, local) in bound { scopes[scopes.count - 1].locals[name] = local }
     }
 
+    /// `c ? a : b`, and `if c { a } else { b }` as a value: the condition, then the expression of the
+    /// branch taken, into `destination`. A condition that binds a name is not compiled yet, and
+    /// neither is a branch that is more than one expression; false for those.
+    mutating func conditional(_ node: IfStatement, into destination: Register) throws -> Bool {
+        guard case .expression(let condition) = node.condition, let otherwise = node.otherwise,
+            let thenValue = IfStatement.branchExpression(node.then),
+            let elseValue = IfStatement.branchExpression(otherwise)
+        else { return false }
+        let skip = try jumpUnless(condition)
+        try expression(thenValue, into: destination)
+        let over = emit(.jump(offset: 0))
+        patch(skip, to: here)
+        try expression(elseValue, into: destination)
+        patch(over, to: here)
+        return true
+    }
+
     // MARK: switch and catch
 
     /// The cases of a `switch` or the clauses of a `do`: the first whose pattern, and `where`, match

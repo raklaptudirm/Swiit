@@ -109,11 +109,75 @@ extension CodeCompiler {
             if !(try call(callee, arguments, into: destination)) {
                 treeExpression(expression, into: destination)
             }
+        case .ifExpression(let node):
+            if !(try conditional(node, into: destination)) {
+                treeExpression(expression, into: destination)
+            }
         default:
-            // What the VM does not compile itself: members, subscripts, constructors, casts,
-            // interpolation, literals of collections, key paths, and the rest.
-            treeExpression(expression, into: destination)
+            if !(try construction(expression, into: destination)) {
+                // What the VM does not compile itself: constructors, key paths, subscripts with
+                // several arguments, and the rest.
+                treeExpression(expression, into: destination)
+            }
         }
+    }
+
+    /// The expressions that make a value of others, ask what one is, or index one: literals of
+    /// collections, `x!`, casts, and subscripts. False if it is not one of those, or is too large.
+    private mutating func construction(
+        _ expression: Expr,
+        into destination: Register
+    ) throws -> Bool {
+        switch expression {
+        case .list(let items) where items.count <= 200:
+            let first = Register(nextTemporary)
+            for item in items { try self.expression(item, into: try allocate()) }
+            emit(.makeList(dst: destination, first: first, count: Register(items.count)))
+        case .record(let entries) where entries.count <= 100:
+            let first = Register(nextTemporary)
+            for entry in entries {
+                try self.expression(entry.key, into: try allocate())
+                try self.expression(entry.value, into: try allocate())
+            }
+            emit(.makeDictionary(dst: destination, first: first, count: Register(entries.count)))
+        case .tuple(let elements) where elements.count <= 200:
+            let first = Register(nextTemporary)
+            for element in elements { try self.expression(element.value, into: try allocate()) }
+            code.tuples.append(elements.map(\.label))
+            emit(.makeTuple(dst: destination, site: UInt32(code.tuples.count - 1), first: first))
+        case .index(let base, let key):
+            let held = try operand(base)
+            emit(.index(dst: destination, base: held, key: try operand(key)))
+        case .indexDefault(let base, let key, let fallback):
+            let held = try operand(base)
+            let fast = emit(
+                .dictionaryValue(dst: destination, base: held, key: try operand(key), offset: 0)
+            )
+            try self.expression(fallback, into: destination)
+            patch(fast, to: here)
+        case .forceUnwrap(let inner):
+            try self.expression(inner, into: destination)
+            code.names.append(
+                "\(SwiftPrinter().source(inner)) is nil, but '!' needs a value"
+            )
+            emit(.requireValue(src: destination, message: UInt32(code.names.count - 1)))
+        case .voidValue(let inner):
+            try self.expression(inner, into: destination)
+            emit(.loadConstant(dst: destination, constant: constant(Value(record: Value.Record()))))
+        case .described(let inner, let type):
+            let source = try operand(inner)
+            code.types.append(type)
+            emit(.describe(dst: destination, src: source, type: UInt32(code.types.count - 1)))
+        case .cast(let inner, let type, let kind):
+            let source = try operand(inner)
+            code.types.append(type)
+            emit(
+                .cast(dst: destination, src: source, type: UInt32(code.types.count - 1), kind: kind)
+            )
+        default:
+            return false
+        }
+        return true
     }
 
     /// A jump taken when `condition` is false, to be patched: a comparison with a small integer is one

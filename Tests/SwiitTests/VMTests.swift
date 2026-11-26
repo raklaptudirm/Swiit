@@ -162,7 +162,7 @@ private let programs: [VMSample] = [
 private let everyProgram: [VMSample] = [
     programs, vmControlFlow, vmMoreControlFlow, vmClosures, vmRuntimeNodes, vmKinds,
     vmParameterKinds, vmAsync, vmTopLevel, vmFastMembers, vmStructMembers, vmClasses, vmEntered,
-    vmCallbacks,
+    vmCallbacks, vmExpressions,
 ]
 .flatMap { $0 }
 
@@ -181,6 +181,10 @@ private func aProgramGivesTheSameOnBothEngines(_ program: VMSample) {
         vm.swiit.vmLoops == program.loops,
         "\(program.name) ran \(vm.swiit.vmLoops) loops compiled"
     )
+    if let trees = program.trees {
+        let left = vmTreeNodes(program.compiles, in: vm.swiit)
+        #expect(left == trees, "\(program.name) left \(left) nodes to the tree, not \(trees)")
+    }
     if program.entirely {
         #expect(
             vm.swiit.vmFallbacks == [],
@@ -198,6 +202,40 @@ private func aProgramTakesTheSameStepsOnBothEngines(_ program: VMSample) {
 }
 
 private let failing: [VMSample] = [
+    VMSample(
+        name: "a path with an index out of range",
+        source: """
+            func f(_ n: Int) -> Int {
+                var grid = [[1, 2], [3, 4]]
+                grid[1][n] = 9
+                return grid[1][0]
+            }
+            f(5)
+            """,
+        compiles: ["f"]
+    ),
+    VMSample(
+        name: "a force unwrap of nil, and a failed forced cast",
+        source: """
+            func f(_ n: Int) -> Int {
+                let maybe: Int? = n > 2 ? n : nil
+                return maybe! + 1
+            }
+            f(1)
+            """,
+        compiles: ["f"]
+    ),
+    VMSample(
+        name: "a forced cast that fails",
+        source: """
+            func f(_ n: Int) -> String {
+                let any: Any = n
+                return any as! String
+            }
+            f(1)
+            """,
+        compiles: ["f"]
+    ),
     VMSample(
         name: "an error two calls down",
         source: """
