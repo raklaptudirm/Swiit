@@ -181,6 +181,12 @@ private func aProgramGivesTheSameOnBothEngines(_ program: VMSample) {
         vm.swiit.vmLoops == program.loops,
         "\(program.name) ran \(vm.swiit.vmLoops) loops compiled"
     )
+    if let leaves = program.leafCalls {
+        #expect(
+            vm.swiit.vmLeafCalls >= leaves,
+            "\(program.name) ran \(vm.swiit.vmLeafCalls) leaf calls, fewer than \(leaves)"
+        )
+    }
     if let runs = program.treeRuns {
         #expect(
             vm.swiit.vmTreeRuns == runs,
@@ -208,6 +214,22 @@ private func aProgramTakesTheSameStepsOnBothEngines(_ program: VMSample) {
 }
 
 private let failing: [VMSample] = [
+    VMSample(
+        name: "a division by zero in a closure a native body calls",
+        source: """
+            func f(_ n: Int) -> [Int] { (0..<n).map { 10 / (2 - $0) } }
+            f(5)
+            """,
+        compiles: ["f"]
+    ),
+    VMSample(
+        name: "an overflow in a closure a native body calls",
+        source: """
+            func f(_ n: Int) -> [Int] { (0..<n).map { $0 * 4611686018427387904 } }
+            f(3)
+            """,
+        compiles: ["f"]
+    ),
     VMSample(
         name: "an error from the glue of a bridged member called from the registers",
         source: """

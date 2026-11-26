@@ -486,4 +486,29 @@ let vmExpressions: [VMSample] = [
             """,
         compiles: ["f"]
     ),
+    VMSample(
+        name:
+            "closures a native body calls that only compute: kinds, fields, short circuits, captures",
+        source: """
+            struct P { var x: Int; var name: String; var ratio: Double; var area: Int { x * x } }
+            class C { var n: Int; init(n: Int) { self.n = n } }
+            func f(_ n: Int, _ bump: Int) -> String {
+                let xs = Array(0..<n)
+                let ps = xs.map { P(x: $0, name: "p\\($0)", ratio: Double($0) / 2) }
+                let cs = xs.map { C(n: $0 * 3) }
+                var out = ""
+                out += "\\(xs.map { $0 * 2 + 1 })\\(xs.filter { $0 % 2 == 0 })\\(xs.map { $0 / 2 })"
+                out += "\\(xs.map { $0 + bump })\\(xs.filter { $0 > bump && $0 < 7 })\\(xs.map { -$0 })"
+                out += "\\(ps.map { $0.ratio * 1.5 })\\(ps.map { $0.name + "!" })\\(ps.map { $0.area })"
+                out += "\\(ps.filter { $0.name == "p3" }.count)\\(ps.sorted { $0.x > $1.x }.map(\\.x))"
+                out += "\\(cs.map { $0.n })\\(cs.filter { $0.n % 2 == 1 }.count)\\(xs.map { !($0 == 2) })"
+                out += "\\(xs.map { $0 > 2 ? $0 : -$0 })\\(xs.reduce(0) { $0 + $1 })\\(xs.map { Double($0) * 0.5 })"
+                out += "\\(xs.contains { $0 == bump })\\(xs.map { $0 == 1 || $0 == 3 })\\(xs.map { (Optional($0) ?? 0) + 1 })"
+                return out
+            }
+            print(f(6, 2), f(0, 1))
+            """,
+        compiles: ["f"],
+        leafCalls: 80
+    ),
 ]

@@ -73,6 +73,8 @@ public final class Interpreter: @unchecked Sendable {
     /// How many pieces of compiled code the tree evaluator has run, which are those the loop's fast
     /// paths left to it (a test counts them).
     var vmTreeRuns = 0
+    /// How many calls of closures that only compute a native body made were run by `runLeaf`.
+    var vmLeafCalls = 0
 
     /// What bounds a run (steps, depth, time, output) unless the run is given limits of its own.
     var limits = Interpreter.Limits()

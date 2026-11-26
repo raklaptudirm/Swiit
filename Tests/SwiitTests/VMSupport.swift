@@ -108,4 +108,6 @@ struct VMSample {
     /// How many times the tree evaluator runs a piece of what the compiler took, where the sample says:
     /// what the fast paths decline.
     var treeRuns: Int?
+    /// At least how many calls of closures a native body made are run as leaves, where the sample says.
+    var leafCalls: Int?
 }

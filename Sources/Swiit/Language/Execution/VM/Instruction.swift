@@ -422,6 +422,17 @@ final class Code {
 
     /// The compiler is done: `instructions` will not change.
     func seal() {
+        isLeaf =
+            selfRegister == nil && handlers.isEmpty
+            && instructions.allSatisfy {
+                switch $0 {
+                case .move, .loadConstant, .binary, .binaryImmediate, .unary, .shortCircuit,
+                    .needBool, .jump, .jumpIfFalse, .jumpIfTrue, .jumpUnlessCompare, .jumpIfNil,
+                    .jumpIfNotNil, .loadMember, .returnValue, .returnNothing, .at:
+                    true
+                default: false
+                }
+            }
         looksUpNames = instructions.contains {
             switch $0 {
             case .evaluateTree, .runTree, .evaluate, .loadVariable, .assignByName, .makeClosure:
@@ -539,6 +550,11 @@ final class Code {
     /// function captured, and the scope that binds `self` by name is made when something looks for it
     /// (`Interpreter.ensureSelfScope`).
     @exclusivity(unchecked) var isMethodBody = false
+    /// Its instructions only read registers, constants and the stored fields of what they hold, compute
+    /// with them, jump forward and return: no call, no write outside the frame, no name looked up. A
+    /// native body that calls it may run it by `Interpreter.runLeaf`, which gives up (and the call is
+    /// made as any is) at anything it does not do itself, so it need undo nothing.
+    @exclusivity(unchecked) private(set) var isLeaf = false
     /// How many scopes its function captured, which are the task's while it runs.
     @exclusivity(unchecked) var capturedCount = 0
     /// The register of `self` holds its value, not the cell of it: a method that does not change `self`

@@ -60,6 +60,9 @@ extension Interpreter {
         count: Int,
         _ write: (UnsafeMutablePointer<Value>) -> Void
     ) throws -> Value {
+        if code.isLeaf, let result = try leafCall(function, code, count: count, write) {
+            return result
+        }
         let maxCallDepth = task.run.maxCallDepth
         guard task.callDepth < maxCallDepth else {
             throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
