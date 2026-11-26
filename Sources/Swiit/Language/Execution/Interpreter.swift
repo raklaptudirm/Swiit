@@ -43,6 +43,11 @@ public final class Interpreter: @unchecked Sendable {
     /// The Swift types scripts can use, by the name they are written with: the core's, and those
     /// this interpreter's host has registered. Another interpreter's registrations are not here.
     var bridged: [String: ImplementedType] = Bridge.core
+
+    /// Whether a call has bound a type argument yet. Until one has, no scope holds one, and a
+    /// type parameter is conformed to without looking for it.
+    var hasBoundTypeArguments = false
+
     /// What extensions add to a type, by the type's name (`Int`, `Array`, a struct's).
     var typeExtensions: [String: TypeMembers] = [:]
     /// Methods every sequence has, like `sorted` and `filter`.

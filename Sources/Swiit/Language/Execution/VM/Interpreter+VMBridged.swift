@@ -31,13 +31,14 @@ extension Interpreter {
     private func callPlanned(_ plan: BridgedPlan, receiver: Value?, arguments: Int) throws -> Value
     {
         let stack = task.vm
-        var values: [Value] = []
+        var values = stack.argumentArrays.popLast() ?? []
         values.reserveCapacity(plan.kinds.count)
         for index in plan.kinds.indices {
             values.append(stack.base[arguments + index])
             stack.base[arguments + index] = .nothing
         }
         for index in plan.kinds.indices where !plan.kinds[index].accepts(values[index]) {
+            if plan.kinds[index] == .typeParameter, !hasBoundTypeArguments { continue }
             values[index] = try checked(values[index], for: plan.parameters[index], of: plan.name)
         }
         // Through `?.`: nil stays nil.
@@ -48,7 +49,11 @@ extension Interpreter {
             throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
         }
         try checkInterrupt()
-        return try plan.positional(self, receiver ?? .nothing, values)
+        let result = try plan.positional(self, receiver ?? .nothing, values)
+        // A body that kept the array has made the storage its own: it is not reused.
+        values.removeAll(keepingCapacity: true)
+        stack.argumentArrays.append(values)
+        return result
     }
 }
 

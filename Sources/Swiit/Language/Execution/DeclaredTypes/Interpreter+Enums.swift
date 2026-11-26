@@ -333,7 +333,8 @@ extension Interpreter {
         if case .parameter(let parameter) = type {
             // A type parameter is what the call bound it to, if the body names it; otherwise any
             // type.
-            guard let bound = lookup(Interpreter.typeArgumentPrefix + parameter.name)?.value,
+            guard hasBoundTypeArguments,
+                let bound = lookup(Interpreter.typeArgumentPrefix + parameter.name)?.value,
                 let represented = representedType(ofTypeValue: bound)
             else { return value }
             return conform(value, to: represented)

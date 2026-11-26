@@ -185,6 +185,7 @@ extension Interpreter {
             else { continue }
             let actual = typeObject(of: argument)
             guard actual != .nothing else { continue }
+            hasBoundTypeArguments = true
             argumentScope.bindings[name] = Binding(value: actual, mutable: false)
             argumentScope.bindings[Interpreter.typeArgumentPrefix + name] = Binding(
                 value: actual,

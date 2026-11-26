@@ -80,6 +80,34 @@ let cases = [
             """
     ),
     Case(
+        name: "col: map String, 50k",
+        source: """
+            func run() -> Int { let xs = Array(0..<50_000); return xs.map { String($0) }.count }
+            run()
+            """
+    ),
+    Case(
+        name: "col: joined strings, 50k",
+        source: """
+            func run() -> Int { let xs = (0..<50_000).map { "a" }; return xs.joined(separator: ",").count }
+            run()
+            """
+    ),
+    Case(
+        name: "col: String(i) in a loop, 50k",
+        source: """
+            func run() -> Int { var n = 0; for i in 0..<50_000 { n += String(i).count }; return n }
+            run()
+            """
+    ),
+    Case(
+        name: "col: Int.description in a loop, 50k",
+        source: """
+            func run() -> Int { var n = 0; for i in 0..<50_000 { n += i.description.count }; return n }
+            run()
+            """
+    ),
+    Case(
         name: "col: grid[i][j] += 1, 300x300",
         source: """
             func run() -> Int { var g = Array(repeating: Array(repeating: 0, count: 300), count: 300); for i in 0..<300 { for j in 0..<300 { g[i][j] += i + j } }; return g[299][299] }

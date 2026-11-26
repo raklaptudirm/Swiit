@@ -130,6 +130,9 @@ final class VMStack {
     /// What the initializers the loop is in the middle of calling make of the value they were run on when
     /// they return, innermost last.
     @exclusivity(unchecked) var completions: [Completion] = []
+    /// Emptied argument arrays of bridged calls, with their storage, so that a call takes one
+    /// instead of allocating; one is out for each bridged call that has not returned.
+    @exclusivity(unchecked) var argumentArrays: [[Value]] = []
 
     /// The value a constructor's frame gives back in place of the initializer's result.
     enum Completion {

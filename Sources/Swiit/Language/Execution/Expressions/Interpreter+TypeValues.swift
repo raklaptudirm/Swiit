@@ -11,6 +11,7 @@ extension Interpreter {
         var bindings: [String: Binding] = [:]
         for type in types {
             if let object = typeValue(of: type.type) {
+                hasBoundTypeArguments = true
                 bindings[type.name] = Binding(value: object, mutable: false)
                 // Kept under a name no program writes, for a test against it (`x as? T`), which a
                 // global type of the same name mustn't answer.
