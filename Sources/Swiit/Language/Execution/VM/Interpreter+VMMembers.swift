@@ -568,20 +568,10 @@ extension Interpreter {
             _ = held.appendLikeElements(argument)
             cell.value = held
             return .nothing
-        case .listCount:
-            guard case .list(let items) = cell.value.storage else { return nil }
-            try checkInterrupt()
-            return .int(items.count)
-        case .element:
-            guard case .list(let items) = cell.value.storage,
-                case .int(let index) = argument.storage,
-                index >= 0, index < items.count
-            else { return nil }
-            return items[index]
-        case .stringCount:
-            guard case .string(let text) = cell.value.storage else { return nil }
-            try checkInterrupt()
-            return .int(text.count)
+        default:
+            guard let value = FastMember.read(kind, cell.value, argument) else { return nil }
+            if kind.takesStep { try checkInterrupt() }
+            return value
         }
     }
 
@@ -599,5 +589,68 @@ extension Interpreter {
         }
         guard site.isMutable, let cell = site.cell else { return false }
         return setMember(member, in: cell, assignment.op, assignment.value)
+    }
+}
+
+extension Value {
+    /// Sets the element of this list or dictionary at `key` to `value`, or to the result of `op` on what
+    /// it holds (`fallback` if the dictionary has nothing there) and `value`, when the kinds fit: an
+    /// index of a list within it, and numbers, Bools or strings of one kind. The collection is
+    /// changed where it is, not copied. False, with nothing changed, otherwise.
+    mutating func setElement(
+        _ key: Value,
+        _ fallback: Value?,
+        _ op: BinaryOperator?,
+        _ value: Value
+    ) -> Bool {
+        // Nothing is bound while the collection is tested, so that it is changed where it is.
+        if case .list = storage { return setListElement(key, fallback, op, value) }
+        if case .dictionary = storage { return setDictionaryElement(key, fallback, op, value) }
+        return false
+    }
+
+    private mutating func setListElement(
+        _ key: Value,
+        _ fallback: Value?,
+        _ op: BinaryOperator?,
+        _ value: Value
+    ) -> Bool {
+        guard fallback == nil, case .int(let index) = key.storage,
+            case .list(var items) = storage, items.indices.contains(index)
+        else { return false }
+        let new: Value
+        if let op {
+            guard let combined = Value.combined(items[index], op, value) else { return false }
+            new = combined
+        } else {
+            new = value
+        }
+        storage = .nothing
+        items[index] = new
+        storage = .list(items)
+        return true
+    }
+
+    private mutating func setDictionaryElement(
+        _ key: Value,
+        _ fallback: Value?,
+        _ op: BinaryOperator?,
+        _ value: Value
+    ) -> Bool {
+        guard case .dictionary(var dictionary) = storage else { return false }
+        let new: Value
+        if let op {
+            guard let current = dictionary[key] ?? fallback, current != .nothing,
+                let combined = Value.combined(current, op, value)
+            else { return false }
+            new = combined
+        } else {
+            guard fallback == nil else { return false }
+            new = value
+        }
+        storage = .nothing
+        dictionary[key] = new == .nothing ? nil : new
+        storage = .dictionary(dictionary)
+        return true
     }
 }

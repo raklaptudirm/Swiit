@@ -496,3 +496,88 @@ let vmFailingCallbacks: [VMSample] = [
         compiles: ["f"]
     )
 ]
+
+/// Dictionaries, list elements and interpolated strings, which the loop reads and sets itself.
+let vmCollections: [VMSample] = [
+    VMSample(
+        name: "dictionary reads and writes, with defaults, in a function",
+        source: """
+            func f(_ n: Int) -> Int {
+                var counts: [String: Int] = [:]
+                var d: [Int: Int] = [:]
+                var order: [Int] = []
+                for i in 0..<n {
+                    counts["k\\(i % 3)", default: 0] += 1
+                    d[i % 4, default: 10] += i
+                    d[100 + i] = i
+                    if d[i % 7] == nil { order.append(i) }
+                    if i % 5 == 0 { d[100 + i] = nil }
+                }
+                return counts.count * 1000 + d.count * 10 + order.count + (counts["k1"] ?? 0)
+                    + (d.isEmpty ? 1 : 0)
+            }
+            f(12)
+            """,
+        compiles: ["f"],
+        entirely: true
+    ),
+    VMSample(
+        name: "list elements set and changed, strings built from interpolation, isEmpty",
+        source: """
+            func f(_ n: Int) -> Int {
+                var xs = [Int](repeating: 0, count: 5)
+                var ds = [1.5, 2.5]
+                var ss = ["a", "b"]
+                var t = ""
+                for i in 0..<n {
+                    xs[i % 5] += i
+                    xs[(i + 1) % 5] = i * 2
+                    ds[i % 2] *= 2
+                    ss[i % 2] = "s\\(i)-\\(xs[i % 5])"
+                    t += "\\(i):\\(ds[0]) "
+                }
+                return xs.reduce(0, +) + ss.joined().count + t.count + (xs.isEmpty ? 1 : 0)
+            }
+            f(9)
+            """,
+        compiles: ["f"],
+        entirely: true
+    ),
+    VMSample(
+        name: "global dictionaries, lists and strings at the top level",
+        source: """
+            var tally: [String: Int] = [:]
+            var grid = [[Int]](repeating: [0, 0], count: 3)
+            var log = ""
+            var squares = [Int](repeating: 0, count: 6)
+            for i in 0..<12 {
+                tally["w\\(i % 4)", default: 0] += i
+                squares[i % 6] = i * i
+                grid[i % 3][i % 2] += i
+                log += "\\(i),"
+            }
+            print(tally.count, tally["w1"] ?? -1, squares, grid, log.count)
+            squares.count
+            """,
+        compiles: [],
+        loops: 1
+    ),
+]
+
+let vmFailingCollections: [VMSample] = [
+    VMSample(
+        name: "a list element out of range, and a missing dictionary key changed without a default",
+        source: """
+            func f() -> Int {
+                var xs = [1, 2, 3]
+                var d: [Int: Int] = [:]
+                xs[1] += 5
+                d[2, default: 0] += 1
+                xs[3] = 9
+                return xs[0]
+            }
+            f()
+            """,
+        compiles: ["f"]
+    )
+]

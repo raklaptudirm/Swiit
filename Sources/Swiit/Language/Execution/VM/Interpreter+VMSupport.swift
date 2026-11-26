@@ -328,6 +328,14 @@ extension Interpreter {
     /// of the value against the variable's type).
     @inline(__always)
     func setNumber(in cell: Binding.Cell, _ op: BinaryOperator?, to value: Value) -> Bool {
+        // A string is added to where it is, taken out of the cell while it is.
+        if op == .add, case .string(let suffix) = value.storage, case .string = cell.value.storage {
+            var held = cell.value
+            cell.value = .nothing
+            held.appendText(suffix)
+            cell.value = held
+            return true
+        }
         switch (cell.value.storage, value.storage) {
         case (.int(let current), .int(let new)):
             switch op {
@@ -355,6 +363,10 @@ extension Interpreter {
             case .multiply?: cell.value = .double(current * new)
             default: return false
             }
+            return true
+        case (.string, .string):
+            guard op == nil else { return false }
+            cell.value = value
             return true
         default: return false
         }
@@ -424,29 +436,19 @@ extension Interpreter {
         _ receiver: Register,
         _ argument: Register
     ) throws -> Value? {
-        switch kind {
-        case .append:
+        if kind == .append {
             guard registers[Int(receiver)].isList(likeElement: registers[Int(argument)]) else {
                 return nil
             }
             try checkInterrupt()
             _ = registers[Int(receiver)].appendLikeElements(registers[Int(argument)])
             return .nothing
-        case .listCount:
-            guard case .list(let items) = registers[Int(receiver)].storage else { return nil }
-            try checkInterrupt()
-            return .int(items.count)
-        case .element:
-            guard case .list(let items) = registers[Int(receiver)].storage,
-                case .int(let index) = registers[Int(argument)].storage,
-                index >= 0, index < items.count
-            else { return nil }
-            return items[index]
-        case .stringCount:
-            guard case .string(let text) = registers[Int(receiver)].storage else { return nil }
-            try checkInterrupt()
-            return .int(text.count)
         }
+        guard
+            let value = FastMember.read(kind, registers[Int(receiver)], registers[Int(argument)])
+        else { return nil }
+        if kind.takesStep { try checkInterrupt() }
+        return value
     }
 }
 
@@ -668,5 +670,15 @@ extension Interpreter {
         for (index, argument) in arguments.enumerated() { stack.base[base + index] = argument }
         try checkArguments(of: function, code, at: base)
         return try runCompiled(function, code, with: [:], argumentsAt: base)
+    }
+}
+
+extension Value {
+    /// Adds `suffix` to this string where it is, not to a copy of it. This must be a string.
+    mutating func appendText(_ suffix: String) {
+        guard case .string(var text) = storage else { return }
+        storage = .nothing
+        text += suffix
+        storage = .string(text)
     }
 }

@@ -34,6 +34,30 @@ enum Instruction {
     /// `loadVariable` of a global, which finds the variable's cell once and keeps it while the names
     /// stay as they were.
     case loadGlobal(dst: Register, site: UInt32)
+    /// `local[key] = value`, `local[key] op= value` and `local[key, default: d] op= value` of a list or a
+    /// dictionary, where `local` is a register: the key is in `keys` and the default, if there is
+    /// one, in the register after it. The next `offset` instructions, which do it the long way, are
+    /// skipped when it was done.
+    case assignElement(
+        local: Register,
+        keys: Register,
+        hasDefault: Bool,
+        op: BinaryOperator?,
+        value: Register,
+        offset: Int32
+    )
+    /// `assignElement` of a global, whose cell holds the list or the dictionary.
+    case assignGlobalElement(
+        global: UInt32,
+        keys: Register,
+        hasDefault: Bool,
+        op: BinaryOperator?,
+        value: Register,
+        offset: Int32
+    )
+    /// A string with values interpolated: the text of the pieces, and what each value made of the
+    /// registers from `first` on shows as.
+    case interpolate(dst: Register, site: UInt32, first: Register)
     /// `fastMember` of a global list or string, read or changed in its cell.
     case fastGlobalMember(
         kind: FastMember,
@@ -352,6 +376,48 @@ enum FastMember: UInt8 {
     case element
     /// `s.count`
     case stringCount
+    /// `d[k]` of a dictionary: the value, or nil.
+    case dictionaryElement
+    /// `d.count`
+    case dictionaryCount
+    /// `xs.isEmpty`, `d.isEmpty`, `s.isEmpty`
+    case isEmpty
+
+    /// Whether the tree evaluator's call of the member takes a step: a property does, a subscript does not.
+    var takesStep: Bool { self != .element && self != .dictionaryElement }
+
+    /// What a member that only reads gives for `receiver` and `argument`, or nil where the kinds do not
+    /// fit: then the tree evaluator reads it.
+    static func read(_ kind: FastMember, _ receiver: Value, _ argument: Value) -> Value? {
+        switch (kind, receiver.storage) {
+        case (.listCount, .list(let items)): return .int(items.count)
+        case (.element, .list(let items)):
+            guard case .int(let index) = argument.storage, index >= 0, index < items.count else {
+                return nil
+            }
+            return items[index]
+        case (.stringCount, .string(let text)): return .int(text.count)
+        case (.dictionaryElement, .dictionary(let dictionary)):
+            return dictionary[argument] ?? .nothing
+        case (.dictionaryCount, .dictionary(let dictionary)): return .int(dictionary.count)
+        case (.isEmpty, .list(let items)): return .bool(items.isEmpty)
+        case (.isEmpty, .dictionary(let dictionary)): return .bool(dictionary.isEmpty)
+        case (.isEmpty, .string(let text)): return .bool(text.isEmpty)
+        default: return nil
+        }
+    }
+}
+
+/// The pieces of an interpolated string: text, and which of the values made for it goes where.
+final class StringSite {
+    enum Piece {
+        case text(String)
+        case value(Int)
+    }
+
+    let pieces: [Piece]
+
+    init(pieces: [Piece]) { self.pieces = pieces }
 }
 
 /// A member of a Swift type a body calls: which, and the labels of the arguments.
@@ -545,6 +611,7 @@ final class Code {
     @exclusivity(unchecked) var members: [MemberSite] = []
     @exclusivity(unchecked) var methods: [MethodSite] = []
     @exclusivity(unchecked) var bridgedSites: [BridgedSite] = []
+    @exclusivity(unchecked) var strings: [StringSite] = []
     @exclusivity(unchecked) var globals: [GlobalSite] = [] {
         didSet { globalTable = globals.map(Unmanaged.passUnretained) }
     }

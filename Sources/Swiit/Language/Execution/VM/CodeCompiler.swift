@@ -255,6 +255,20 @@ extension CodeCompiler {
                 value: value,
                 offset: offset
             )
+        default: patchMember(index, to: offset)
+        }
+    }
+
+    mutating func jump(to target: Int) {
+        let index = emit(.jump(offset: 0))
+        patch(index, to: target)
+    }
+}
+
+extension CodeCompiler {
+    /// `patch` for the jumps that are not the commonest.
+    mutating func patchMember(_ index: Int, to offset: Int32) {
+        switch code.instructions[index] {
         case .fastMember(let kind, let dst, let receiver, let argument, _):
             code.instructions[index] = .fastMember(
                 kind: kind,
@@ -303,6 +317,24 @@ extension CodeCompiler {
                 value: value,
                 offset: offset
             )
+        case .assignElement(let local, let keys, let hasDefault, let op, let value, _):
+            code.instructions[index] = .assignElement(
+                local: local,
+                keys: keys,
+                hasDefault: hasDefault,
+                op: op,
+                value: value,
+                offset: offset
+            )
+        case .assignGlobalElement(let global, let keys, let hasDefault, let op, let value, _):
+            code.instructions[index] = .assignGlobalElement(
+                global: global,
+                keys: keys,
+                hasDefault: hasDefault,
+                op: op,
+                value: value,
+                offset: offset
+            )
         case .jumpIfTrue(let condition, _):
             code.instructions[index] = .jumpIfTrue(condition: condition, offset: offset)
         case .jumpIfWhereFalse(let condition, _):
@@ -335,10 +367,5 @@ extension CodeCompiler {
             )
         default: preconditionFailure("not a jump")
         }
-    }
-
-    mutating func jump(to target: Int) {
-        let index = emit(.jump(offset: 0))
-        patch(index, to: target)
     }
 }

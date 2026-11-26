@@ -202,7 +202,7 @@ extension CodeCompiler {
                 case .member(let name) = assignment.path[0]
             {
                 try selfMember(name, register, assignment, statement)
-            } else {
+            } else if try !element(of: known, assignment, statement) {
                 try member(of: known, assignment, statement)
             }
             return
@@ -233,6 +233,68 @@ extension CodeCompiler {
             }
         }
         nextTemporary = mark
+    }
+
+    /// `xs[i] = v`, `d[k] = v`, `d[k] += v` and `d[k, default: x] += v` of a list or a dictionary that is a local
+    /// or a global: set where it is when the kinds fit, and by the tree evaluator, which follows it,
+    /// where not. False if it is not one of those.
+    private mutating func element(
+        of known: Local?,
+        _ assignment: Assignment,
+        _ statement: Statement
+    ) throws -> Bool {
+        guard assignment.path.count == 1, isPure(assignment.value) else { return false }
+        let key: Expr
+        var fallback: Expr?
+        switch assignment.path[0] {
+        case .index(let expression): key = expression
+        case .indexDefault(let expression, let defaultValue):
+            key = expression
+            fallback = defaultValue
+        default: return false
+        }
+        guard isPure(key), fallback.map(isPure) ?? true else { return false }
+        if let known {
+            guard known.mutable, !known.boxed, !weakSlots.contains(Int(known.slot)) else {
+                return false
+            }
+        } else if assignment.root == "self" || assignment.root == "super" {
+            return false
+        }
+        let mark = nextTemporary
+        let keys = try allocate()
+        try expression(key, into: keys)
+        if let fallback { try expression(fallback, into: try allocate()) }
+        let value = try operand(assignment.value)
+        let fast: Int
+        if let known {
+            fast = emit(
+                .assignElement(
+                    local: known.slot,
+                    keys: keys,
+                    hasDefault: fallback != nil,
+                    op: assignment.op,
+                    value: value,
+                    offset: 0
+                )
+            )
+        } else {
+            code.globals.append(GlobalSite(name: assignment.root))
+            fast = emit(
+                .assignGlobalElement(
+                    global: UInt32(code.globals.count - 1),
+                    keys: keys,
+                    hasDefault: fallback != nil,
+                    op: assignment.op,
+                    value: value,
+                    offset: 0
+                )
+            )
+        }
+        nextTemporary = mark
+        treeStatement(statement, roots: [assignment.root])
+        patch(fast, to: here)
+        return true
     }
 
     /// `p.x = v` and `p.x += v` of a local `p`: set where it is when `p` holds a struct whose field `x`

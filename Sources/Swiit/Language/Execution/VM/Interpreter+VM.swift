@@ -451,7 +451,8 @@ extension Interpreter {
                         regs = stack.base + base
                         regs[Int(dst)] = made
                     case .fastMember, .fastGlobalMember, .assignMember, .assignGlobalMember,
-                        .assignSelfMember, .callBridged:
+                        .assignSelfMember, .callBridged, .interpolate, .assignElement,
+                        .assignGlobalElement:
                         var cursor = VMCursor(
                             function: function,
                             code: code,

@@ -70,6 +70,24 @@ extension CodeCompiler {
                     site: UInt32(code.methods.count - 1)
                 )
             )
+        case .string(let parts):
+            // The values are made here, left to right, so that a call among them is the loop's.
+            let first = Register(nextTemporary)
+            var pieces: [StringSite.Piece] = []
+            var count = 0
+            for part in parts {
+                switch part {
+                case .literal(let text): pieces.append(.text(text))
+                case .expression(let value):
+                    try self.expression(value, into: try allocate())
+                    pieces.append(.value(count))
+                    count += 1
+                }
+            }
+            code.strings.append(StringSite(pieces: pieces))
+            emit(
+                .interpolate(dst: destination, site: UInt32(code.strings.count - 1), first: first)
+            )
         case .closure(let literal):
             try closure(literal, into: destination)
         case .await(let target, _):
@@ -149,6 +167,11 @@ extension CodeCompiler {
         case ("Array", "count", .property, 0): kind = .listCount
         case ("Array", "subscript", .method, 1): kind = .element
         case ("String", "count", .property, 0): kind = .stringCount
+        case ("Dictionary", "subscript", .method, 1): kind = .dictionaryElement
+        case ("Dictionary", "count", .property, 0): kind = .dictionaryCount
+        case ("Array", "isEmpty", .property, 0), ("Dictionary", "isEmpty", .property, 0),
+            ("String", "isEmpty", .property, 0):
+            kind = .isEmpty
         default: return false
         }
         var held: Local?
