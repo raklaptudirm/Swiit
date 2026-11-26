@@ -25,6 +25,10 @@ final class StructType: LanguageObject, DeclaredType, @unchecked Sendable {
     let conformances: [String]
     /// `@dynamicMemberLookup`, which the checker reads.
     var isDynamicMemberLookup = false
+    /// What the memberwise initializer does with each argument, worked out the first time the loop
+    /// constructs a value through it (`Interpreter.memberwisePlan(of:)`).
+    @exclusivity(unchecked) var memberwisePlan: MemberwisePlan?
+    @exclusivity(unchecked) var hasMemberwisePlan = false
     /// What runs before and after a stored property changes.
     var observers: [String: (willSet: Function?, didSet: Function?)] = [:]
 

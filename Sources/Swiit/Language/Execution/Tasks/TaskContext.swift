@@ -44,7 +44,7 @@ final class TaskContext {
     /// Asks the task to stop, from any thread.
     let cancellation = Interpreter.Cancellation()
     /// What the host keeps for the task (the host: its output, its status).
-    var host: AnyObject?
+    @exclusivity(unchecked) var host: AnyObject?
     /// Whether the host's interrupts (the host's ^C) stop it: the task in the
     /// foreground's do; a background task stops only when it's cancelled.
     var receivesInterrupts = true

@@ -118,6 +118,8 @@ struct CodeCompiler {
             changesSelf = function.isMutating && !function.isInitializer
             isMethod = !function.isInitializer
             isInitializer = function.isInitializer
+            code.isMethodBody = isMethod
+            code.isInitializerBody = isInitializer
         }
         code.isFailable = function.isFailable
         code.parameterCount = function.parameters.count

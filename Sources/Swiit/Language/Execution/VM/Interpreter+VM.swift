@@ -35,7 +35,6 @@ extension Interpreter {
         let task = self.task
         let run = task.run
         let maxCallDepth = run.maxCallDepth
-        // The task holds the cancellation, so its word lives as long as the loop does.
         let stop = task.cancellation.word
         let entryDepth = stack.callers.count
         unowned(unsafe) var function = entry
@@ -45,11 +44,9 @@ extension Interpreter {
         var statement: Int32 = -1
         var regs = stack.base + base
         var instructions = code.program
-        // The same two, uncounted: reading `function` and `code` makes Swift count them.
         var functionRef = Unmanaged.passUnretained(function)
         var codeRef = Unmanaged.passUnretained(code)
-        let observing = host.didFinishStatement != nil
-
+        let observer = host.didFinishStatement
         while true {
             do {
                 while true {
@@ -65,22 +62,22 @@ extension Interpreter {
                     case .tick:
                         try tick(stop, run)
                         regs = stack.base + base
-                    case .finished(let index, let value):
-                        if observing, observesStatements {
-                            finished(
-                                code.statements[Int(index)],
-                                value == Register.max ? nil : regs[Int(value)]
-                            )
+                    case .finished(let value, let isOptionalTry):
+                        if let observer, observesStatements {
+                            let shown = value == Register.max ? nil : regs[Int(value)]
+                            observer(shown, isOptionalTry && shown == .nothing)
                         }
                     case .loadConstant(let dst, let constant):
                         VMStack.put(code.constants[Int(constant)], at: regs + Int(dst))
                     case .move(let dst, let src):
                         VMStack.put(regs[Int(src)], at: regs + Int(dst))
                     case .loadVariable(let dst, let name):
+                        ensureSelfScope(function, code, base: base, on: stack)
                         let value = try evaluate(.variable(code.names[Int(name)]))
                         regs = stack.base + base
                         regs[Int(dst)] = value
                     case .evaluate(let dst, let expression):
+                        ensureSelfScope(function, code, base: base, on: stack)
                         let value = try evaluate(code.expressions[Int(expression)])
                         regs = stack.base + base
                         regs[Int(dst)] = value
@@ -353,6 +350,7 @@ extension Interpreter {
                             statement = -1
                             regs = stack.base + base
                         } else {
+                            ensureSelfScope(function, code, base: base, on: stack)
                             var cursor = VMCursor(
                                 function: function,
                                 code: code,
@@ -377,10 +375,12 @@ extension Interpreter {
                             }
                         }
                     case .evaluateTree(let dst, let node):
+                        ensureSelfScope(function, code, base: base, on: stack)
                         let value = try runTree(code.trees[Int(node)], base: base, on: stack)
                         regs = stack.base + base
                         regs[Int(dst)] = value
                     case .runTree(let node):
+                        ensureSelfScope(function, code, base: base, on: stack)
                         _ = try runTree(code.trees[Int(node)], base: base, on: stack)
                         regs = stack.base + base
                     case .iterate(let dst, let sequence, let awaiting):
@@ -470,6 +470,7 @@ extension Interpreter {
                         try applyInPlace(op, &slot, regs[Int(value)])
                         regs = stack.base + base
                     case .makeClosure(let dst, let site):
+                        ensureSelfScope(function, code, base: base, on: stack)
                         let made = try makeClosure(code.closures[Int(site)], regs)
                         regs = stack.base + base
                         regs[Int(dst)] = made
@@ -588,6 +589,7 @@ extension Interpreter {
                         try assignGlobal(site, assignment, regs[Int(value)], function, code)
                         regs = stack.base + base
                     case .assignByName(let site, let value):
+                        ensureSelfScope(function, code, base: base, on: stack)
                         var assignment = code.assignments[Int(site)]
                         assignment.value = .literal(regs[Int(value)])
                         try assign(assignment)

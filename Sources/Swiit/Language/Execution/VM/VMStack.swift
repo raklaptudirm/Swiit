@@ -100,8 +100,9 @@ struct VMCaller {
 
 /// What returning from a method the loop called undoes besides leaving its frame.
 struct MethodExit {
-    /// The cell of `self` in the scope of the call, which the receiver is read back from.
-    let selfCell: Binding.Cell
+    /// The cell of `self`, which the receiver is read back from; nil for a method whose body does not
+    /// name `self`.
+    let selfCell: Binding.Cell?
     /// The call pushed the class whose body it is, for `super`.
     let popsOwner: Bool
     /// The register, counted from the stack's start, a struct the method changed is stored back in;

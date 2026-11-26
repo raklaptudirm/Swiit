@@ -162,4 +162,60 @@ let vmExpressions: [VMSample] = [
             """,
         compiles: ["f"]
     ),
+    VMSample(
+        name:
+            "methods that look up self by name: a variadic call, closures, an error, and mutation",
+        source: """
+            func total(_ xs: Int...) -> Int { xs.reduce(0, +) }
+            struct Acc {
+                var base = 10
+                var log: [Int] = []
+                func viaVariadic(_ a: Int) -> Int { total(a, base, 3) + self.base }
+                func viaClosure(_ n: Int) -> Int { (0..<n).map { $0 + base }.reduce(0, +) }
+                func escaping() -> (Int) -> Int { let b = base; return { x in x + b } }
+                func fails(_ n: Int) throws -> Int {
+                    if n > 1 { throw E.bad(n) }
+                    return base + n
+                }
+                mutating func push(_ x: Int) -> Int { log.append(x + base); base += 1; return log.count }
+                mutating func quiet() { }
+                func nothing() -> Int { 42 }
+            }
+            enum E: Error { case bad(Int) }
+            func f(_ n: Int) -> Int {
+                var a = Acc()
+                var sum = a.viaVariadic(n) + a.viaClosure(n) + a.escaping()(n)
+                sum += a.push(n) + a.push(n + 1)
+                a.quiet()
+                do { sum += try a.fails(n) } catch { sum += 1000 }
+                sum += a.nothing() + a.base + a.log.count
+                return sum + total(1, 2)
+            }
+            print(f(1), f(3))
+            """,
+        compiles: ["f"]
+    ),
+    VMSample(
+        name: "class methods that look up self by name, called from methods",
+        source: """
+            func twice(_ xs: Int...) -> Int { xs.reduce(0, +) * 2 }
+            class Counter {
+                var n = 0
+                var step = 2
+                func bump() -> Int { n += step; return twice(n, step) }
+                func many(_ k: Int) -> Int {
+                    var t = 0
+                    for _ in 0..<k { t += bump() }
+                    let doubled = [1, 2, 3].map { $0 * step }
+                    return t + doubled.reduce(0, +) + n
+                }
+            }
+            func f(_ k: Int) -> Int {
+                let c = Counter()
+                return c.many(k) + c.n
+            }
+            print(f(2), f(5))
+            """,
+        compiles: ["f"]
+    ),
 ]

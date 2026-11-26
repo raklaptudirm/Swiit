@@ -186,74 +186,6 @@ extension Interpreter {
         )
     }
 
-    /// What returning from a method the loop called undoes (and, for an initializer, the value it gives): the class pushed for `super` is popped,
-    /// and a struct the method changed goes back in the register it was called on.
-    func finishMethod(_ exit: MethodExit, on stack: VMStack) throws -> Value? {
-        if exit.popsOwner { task.owners.removeLast() }
-        if exit.storeReceiverAt >= 0 { stack.base[exit.storeReceiverAt] = exit.selfCell.value }
-        exit.storeReceiverIn?.value = exit.selfCell.value
-        guard exit.isConstructor else { return nil }
-        switch stack.completions.removeLast() {
-        case .structValue(let type):
-            guard let made = exit.selfCell.value.record else {
-                throw RuntimeError("\(type.name).init must leave self a \(type.name)")
-            }
-            var record = Value.Record(typeRef: type.typeRef)
-            record.reserveCapacity(type.stored.count)
-            for property in type.stored {
-                guard let value = made[property.name] else {
-                    throw RuntimeError("\(type.name).init must set '\(property.name)'")
-                }
-                record[property.name] = value
-            }
-            return Value(record: record)
-        case .classInstance(let instance, let initializer, let saved):
-            defer { task.calledSuperInit = saved }
-            try completeInitialization(of: instance, by: initializer)
-            try checkAllSet(instance)
-            return .object(instance)
-        }
-    }
-
-    /// An error left a method's frame: what it pushed is undone, and nothing is stored.
-    func abandonMethod(_ exit: MethodExit, on stack: VMStack) {
-        if exit.popsOwner { task.owners.removeLast() }
-        if exit.isConstructor, case .classInstance(_, _, let saved) = stack.completions.removeLast()
-        {
-            task.calledSuperInit = saved
-        }
-    }
-
-    /// The scope a method call runs in, with `self` bound in it: after what the method captured.
-    func enterMethodScope(
-        _ target: MethodTarget,
-        receiver: Value,
-        storeAt: Int,
-        storeIn: Binding.Cell?
-    ) -> MethodExit {
-        let binding = Binding(
-            value: receiver,
-            mutable: target.isClass || target.function.isMutating,
-            special: nil
-        )
-        // A scope made for a call is seen by nothing made before it, so the names are not changed.
-        var table = BindingTable(capacity: 1)
-        table["self"] = binding
-        let made = Scope(table: table)
-        var inside = target.function.captured
-        inside.append(made)
-        task.scopes = inside
-        if let owner = target.function.owner { task.owners.append(owner) }
-        task.callDepth += 1
-        return MethodExit(
-            selfCell: binding.cell,
-            popsOwner: target.function.owner != nil,
-            storeReceiverAt: target.function.isMutating && !target.isClass && storeIn == nil
-                ? storeAt : -1,
-            storeReceiverIn: target.function.isMutating && !target.isClass ? storeIn : nil
-        )
-    }
-
     /// The method `site` calls on an instance of `type`: the one method of that name it has or
     /// inherits, which takes these arguments as written and is one the loop can run.
     private func plainMethod(_ site: MethodSite, of type: ClassType) -> (Function?, Code?) {
@@ -439,19 +371,34 @@ extension Interpreter {
         if let mapping = target.mapping {
             try placeAndCheckArguments(mapping, of: target.function, at: argumentBase)
         }
-        let saved = task.scopes
+        // A method whose body looks names up but has no register for `self` keeps the scope of its
+        // own that it always had; any other runs in the scopes it captured.
+        let ownScope = target.code.selfRegister == nil && target.code.looksUpNames
+        let saved: [Scope]? =
+            ownScope || task.scopes.count != cursor.function.captured.count ? task.scopes : nil
         // A method of `self` that changes it puts the struct back in the cell of `self`.
         if site.receiverIsSelf, let register = cursor.code.selfRegister,
             case .object(let object) = stack.base[cursor.base + Int(register)].storage
         {
             storeIn = object as? Binding.Cell
         }
-        let exit = enterMethodScope(
-            target,
-            receiver: stack.base[cursor.base + Int(operands.receiver)],
-            storeAt: cursor.base + Int(operands.receiver),
-            storeIn: storeIn
-        )
+        let exit: MethodExit
+        if ownScope {
+            exit = enterMethodScope(
+                target,
+                receiver: stack.base[cursor.base + Int(operands.receiver)],
+                storeAt: cursor.base + Int(operands.receiver),
+                storeIn: storeIn
+            )
+        } else {
+            exit = enterLightMethod(
+                target,
+                receiver: stack.base[cursor.base + Int(operands.receiver)],
+                storeAt: cursor.base + Int(operands.receiver),
+                storeIn: storeIn
+            )
+            setScopes(of: target.function, from: cursor.function, task)
+        }
         stack.push(
             VMCaller(
                 code: cursor.code,
@@ -476,7 +423,7 @@ extension Interpreter {
             statement: -1
         )
         if let register = target.code.selfRegister {
-            stack.base[argumentBase + Int(register)] = .object(exit.selfCell)
+            if let cell = exit.selfCell { stack.base[argumentBase + Int(register)] = .object(cell) }
         }
         return true
     }

@@ -22,8 +22,8 @@ enum Instruction {
     /// One more step: each pass through a loop's body counts one before its statements do.
     case tick
     /// Tells the host a statement finished (`Interpreter.Host.didFinishStatement`), with the value it
-    /// gave when it is an expression.
-    case finished(statement: UInt32, value: Register)
+    /// gave when it is an expression. A `try?` statement that gave nil failed, which the host is told.
+    case finished(value: Register, isOptionalTry: Bool)
 
     // MARK: Values
 
@@ -406,6 +406,13 @@ final class Code {
 
     /// The compiler is done: `instructions` will not change.
     func seal() {
+        looksUpNames = instructions.contains {
+            switch $0 {
+            case .evaluateTree, .runTree, .evaluate, .loadVariable, .assignByName, .makeClosure:
+                true
+            default: false
+            }
+        }
         program.deallocate()
         programCount = instructions.count
         program = .allocate(capacity: max(1, programCount))
@@ -429,7 +436,6 @@ final class Code {
     @exclusivity(unchecked) var constants: [Value] = []
     @exclusivity(unchecked) var names: [String] = []
     @exclusivity(unchecked) var types: [TypeExpression] = []
-    @exclusivity(unchecked) var statements: [Statement] = []
     @exclusivity(unchecked) var expressions: [Expr] = []
     @exclusivity(unchecked) var callSites: [CallSite] = []
     @exclusivity(unchecked) var members: [MemberSite] = []
@@ -482,6 +488,14 @@ final class Code {
     /// begins, so that it is not looked up by name each time. Such code is entered by a call that has
     /// the receiver, never by the loop's own.
     @exclusivity(unchecked) var selfRegister: Register?
+    /// The body of a method (not an initializer) that names `self`: it runs in the scopes its
+    /// function captured, and the scope that binds `self` by name is made when something looks for it
+    /// (`Interpreter.ensureSelfScope`).
+    @exclusivity(unchecked) var isMethodBody = false
+    /// The same for an initializer, whose `self` is `.initializing`.
+    @exclusivity(unchecked) var isInitializerBody = false
+    /// Something in it looks names up in the scopes: a tree node, an evaluation by name, a closure.
+    @exclusivity(unchecked) private(set) var looksUpNames = false
     /// An initializer that may fail, whose `return nil` ends the construction.
     @exclusivity(unchecked) var isFailable = false
     /// A statement of a program's own code, not a function: it is no call, so it adds no entry to an

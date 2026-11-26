@@ -10,9 +10,31 @@ struct Case {
     let name: String
     let source: String
     var limits = Interpreter.Limits()
+    /// The host is told each statement as it finishes, as a shell's is.
+    var observed = false
 }
 
 let cases = [
+    Case(
+        name: "closed range loop in a function, 1M",
+        source: "func f() -> Int { var s = 0; for i in 1...1_000_000 { s += i }; return s }\nf()"
+    ),
+    Case(
+        name: "observed: loop in a function, 1.5M",
+        source: """
+            func run() -> Int { var s = 0; for i in 0..<1_500_000 { s += i % 7 }; return s }
+            run()
+            """,
+        observed: true
+    ),
+    Case(
+        name: "observed: fib(30), statements",
+        source: """
+            func fib(_ n: Int) -> Int { if n < 2 { return n }; return fib(n - 1) + fib(n - 2) }
+            fib(30)
+            """,
+        observed: true
+    ),
     Case(name: "loop, 1M additions", source: "var s = 0\nfor i in 0..<1_000_000 { s += i }\ns"),
     Case(
         name: "loop under a time limit",
@@ -193,9 +215,19 @@ let cases = [
 let runs = CommandLine.arguments.dropFirst().first.flatMap(Int.init) ?? 5
 let filter = CommandLine.arguments.dropFirst(2).first
 
-func interpreter(_ limits: Interpreter.Limits) -> Interpreter {
+// safe: touched by the one thread that runs the benchmark
+final class StatusBox: @unchecked Sendable { var count = 0 }
+
+func interpreter(_ limits: Interpreter.Limits, observed: Bool = false) -> Interpreter {
     let discard = OutputSink({ _ in true })
-    return Interpreter(host: Interpreter.Host(output: discard, error: discard), limits: limits)
+    var host = Interpreter.Host(output: discard, error: discard)
+    if observed {
+        let box = StatusBox()
+        host.didFinishStatement = { value, caught in
+            box.count += (value == nil ? 0 : 1) + (caught ? 1 : 0)
+        }
+    }
+    return Interpreter(host: host, limits: limits)
 }
 
 func milliseconds(_ duration: Duration) -> Double {
@@ -210,7 +242,7 @@ for benchmark in cases where filter.map({ benchmark.name.contains($0) }) ?? true
     var best = Duration.seconds(Int64.max)
     var result = ""
     for _ in 0..<runs {
-        let swiit = interpreter(benchmark.limits)
+        let swiit = interpreter(benchmark.limits, observed: benchmark.observed)
         let time = clock.measure {
             do { result = "\(try swiit.evaluate(benchmark.source))" } catch { result = "\(error)" }
         }

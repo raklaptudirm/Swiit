@@ -134,7 +134,7 @@ extension CodeCompiler {
             let mark = nextTemporary
             let result = try allocate()
             try expression(value, into: result)
-            emit(.finished(statement: stored(statement), value: result))
+            emit(.finished(value: result, isOptionalTry: isOptionalTry(statement)))
             nextTemporary = mark
         case .returnStatement(let value):
             let mark = nextTemporary
@@ -178,14 +178,14 @@ extension CodeCompiler {
         }
     }
 
-    mutating func stored(_ statement: Statement) -> UInt32 {
-        code.statements.append(statement)
-        return UInt32(code.statements.count - 1)
+    /// Whether the statement is a `try?`, whose nil means it failed.
+    func isOptionalTry(_ statement: Statement) -> Bool {
+        if case .expression(.attempt(_, .optional)) = statement { true } else { false }
     }
 
     /// Tells the host a statement without a value finished.
     mutating func finished(_ statement: Statement) {
-        emit(.finished(statement: stored(statement), value: Register.max))
+        emit(.finished(value: Register.max, isOptionalTry: false))
     }
 
     /// `x = v` and `x += v` of a local, or of a variable that is not (a global, or one a closure

@@ -57,6 +57,14 @@ extension Value {
             self.init(fields, typeRef: typeName.map(TypeRef.native))
         }
 
+        /// A record of fields that are known to have different names: `keys` and `values` in order,
+        /// made with no search of the names and no growing.
+        init(typeRef: TypeRef?, keys: [String], values: [Value]) {
+            self.typeRef = typeRef
+            fields = zip(keys, values).map { Field(key: $0, value: $1) }
+            rebuildTable()
+        }
+
         /// Room for `count` fields, so that adding them does not grow it again and again.
         mutating func reserveCapacity(_ count: Int) {
             fields.reserveCapacity(count)

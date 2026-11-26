@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 
 /// The one lock Swiit code runs under (Docs/async.md, "B"). Tasks
 /// run on threads of their own, and only the thread holding the lock runs
@@ -8,22 +9,25 @@ import Foundation
 /// wait. The thread that holds it may take it again.
 final class InterpreterLock: @unchecked Sendable {  // safe: every access holds its own lock
     private let condition = NSCondition()
-    private var holder: pthread_t?
+    /// The thread that holds it, as the bits of its `pthread_t`; 0 when none does. Written under
+    /// `condition`, and read without it by `isHeldByCurrentThread`, which only asks about its own
+    /// thread: it is set to that thread by that thread alone, so the answer is not one another
+    /// thread's change can make wrong.
+    private let holderBits = Atomic<UInt>(0)
     private var depth = 0
 
     init() {}
 
-    private var isHolder: Bool {
-        guard let holder else { return false }
-        return pthread_equal(holder, pthread_self()) != 0
-    }
+    private static var currentBits: UInt { UInt(bitPattern: pthread_self()) }
+
+    private var isHolder: Bool { holderBits.load(ordering: .relaxed) == Self.currentBits }
+
+    private func setHolder(_ bits: UInt) { holderBits.store(bits, ordering: .relaxed) }
+
+    private var hasHolder: Bool { holderBits.load(ordering: .relaxed) != 0 }
 
     /// Whether the thread asking holds it.
-    var isHeldByCurrentThread: Bool {
-        condition.lock()
-        defer { condition.unlock() }
-        return isHolder
-    }
+    var isHeldByCurrentThread: Bool { isHolder }
 
     func acquire() {
         condition.lock()
@@ -32,8 +36,8 @@ final class InterpreterLock: @unchecked Sendable {  // safe: every access holds 
             depth += 1
             return
         }
-        while holder != nil { condition.wait() }
-        holder = pthread_self()
+        while hasHolder { condition.wait() }
+        setHolder(Self.currentBits)
         depth = 1
     }
 
@@ -43,7 +47,7 @@ final class InterpreterLock: @unchecked Sendable {  // safe: every access holds 
         precondition(isHolder, "the interpreter lock released by a thread that doesn't hold it")
         depth -= 1
         if depth == 0 {
-            holder = nil
+            setHolder(0)
             condition.broadcast()
         }
     }
@@ -60,14 +64,14 @@ final class InterpreterLock: @unchecked Sendable {  // safe: every access holds 
     func releasing<T>(_ wait: () throws -> T) rethrows -> T {
         condition.lock()
         let held = depth
-        holder = nil
+        setHolder(0)
         depth = 0
         condition.broadcast()
         condition.unlock()
         defer {
             condition.lock()
-            while holder != nil { condition.wait() }
-            holder = pthread_self()
+            while hasHolder { condition.wait() }
+            setHolder(Self.currentBits)
             depth = held
             condition.unlock()
         }

@@ -49,35 +49,51 @@ extension Interpreter {
         for index in 0..<call.site.labels.count { stack.base[call.argumentBase + index] = .nothing }
     }
 
-    /// The memberwise initializer, when the call gives every field in order, each as its type has it.
+    /// The memberwise initializer, when the call gives every field, each as its type has it.
     private func constructMemberwise(
         _ type: StructType,
         _ site: CallSite,
         _ arguments: Int
     ) -> Value? {
-        let parameters = type.memberwise.parameters
-        guard parameters.count == site.labels.count, parameters.count == type.stored.count,
-            zip(parameters, site.labels).allSatisfy({ $0.label == $1 })
-        else { return nil }
+        guard let plan = memberwisePlan(of: type), plan.labels == site.labels else { return nil }
         let stack = task.vm
-        var record = Value.Record(typeRef: type.typeRef)
-        record.reserveCapacity(parameters.count)
-        for (index, parameter) in parameters.enumerated() {
-            let value = stack.base[arguments + index]
+        var values: [Value] = []
+        values.reserveCapacity(plan.keys.count)
+        for index in plan.keys.indices {
+            let value = stack.base[arguments + plan.slots[index]]
             guard
-                let stored = ParameterKind(parameter.type).accepts(value)
-                    ? value : conform(value, to: parameter.type)
+                let stored = plan.kinds[index].accepts(value)
+                    ? value : conform(value, to: plan.types[index])
             else { return nil }
-            record[parameter.name] = stored
+            values.append(stored)
         }
         // In the order the type declares them.
-        var ordered = Value.Record(typeRef: type.typeRef)
-        ordered.reserveCapacity(parameters.count)
+        return Value(record: Value.Record(typeRef: type.typeRef, keys: plan.keys, values: values))
+    }
+
+    /// The plan of the memberwise initializer of `type`, or nil when it is not one that takes each
+    /// stored property once, by its name.
+    private func memberwisePlan(of type: StructType) -> MemberwisePlan? {
+        if type.hasMemberwisePlan { return type.memberwisePlan }
+        type.hasMemberwisePlan = true
+        let parameters = type.memberwise.parameters
+        guard parameters.count == type.stored.count else { return nil }
+        var slots: [Int] = []
         for property in type.stored {
-            guard let value = record[property.name] else { return nil }
-            ordered[property.name] = value
+            guard let index = parameters.firstIndex(where: { $0.name == property.name }) else {
+                return nil
+            }
+            slots.append(index)
         }
-        return Value(record: ordered)
+        guard Set(slots).count == slots.count else { return nil }
+        type.memberwisePlan = MemberwisePlan(
+            labels: parameters.map(\.label),
+            slots: slots,
+            kinds: slots.map { ParameterKind(parameters[$0].type) },
+            types: slots.map { parameters[$0].type },
+            keys: type.stored.map(\.name)
+        )
+        return type.memberwisePlan
     }
 
     /// An initializer of the type's own, entered as a frame of the loop: the defaults are the start of the
@@ -224,14 +240,25 @@ extension Interpreter {
     ) {
         let (initializer, code, receiver, completion) =
             (frame.initializer, frame.code, frame.receiver, frame.completion)
-        let binding = Binding(value: receiver, mutable: true, special: .initializing)
-        var table = BindingTable(capacity: 1)
-        table["self"] = binding
-        let made = Scope(table: table)
-        let saved = task.scopes
-        var inside = initializer.captured
-        inside.append(made)
-        task.scopes = inside
+        // An initializer whose body looks names up but has no register for `self` keeps the scope of
+        // its own that it always had; any other runs in the scopes it captured, and the scope that
+        // binds `self` by name is made when something looks for it (`ensureSelfScope`).
+        let ownScope = code.selfRegister == nil && code.looksUpNames
+        let saved: [Scope]? =
+            ownScope || task.scopes.count != cursor.function.captured.count ? task.scopes : nil
+        let cell: Binding.Cell
+        if ownScope {
+            let binding = Binding(value: receiver, mutable: true, special: .initializing)
+            var table = BindingTable(capacity: 1)
+            table["self"] = binding
+            var inside = initializer.captured
+            inside.append(Scope(table: table))
+            task.scopes = inside
+            cell = binding.cell
+        } else {
+            cell = Binding.Cell(receiver)
+            setScopes(of: initializer, from: cursor.function, task)
+        }
         if let owner = initializer.owner { task.owners.append(owner) }
         task.callDepth += 1
         stack.push(
@@ -249,7 +276,7 @@ extension Interpreter {
         )
         stack.methodExits.append(
             MethodExit(
-                selfCell: binding.cell,
+                selfCell: cell,
                 popsOwner: initializer.owner != nil,
                 storeReceiverAt: -1,
                 isConstructor: true
@@ -266,7 +293,7 @@ extension Interpreter {
             statement: -1
         )
         if let register = code.selfRegister {
-            stack.base[call.argumentBase + Int(register)] = .object(binding.cell)
+            stack.base[call.argumentBase + Int(register)] = .object(cell)
         }
     }
 }
@@ -299,4 +326,30 @@ struct ConstructorFrame {
     let code: Code
     let receiver: Value
     let completion: VMStack.Completion
+}
+
+/// What a struct's memberwise initializer does with each argument: which stored property takes it, and
+/// how it is checked.
+final class MemberwisePlan {
+    /// The labels of the parameters, in the order a call gives its arguments.
+    let labels: [String?]
+    /// For each stored property, in declaration order, the argument it takes.
+    let slots: [Int]
+    let kinds: [ParameterKind]
+    let types: [TypeExpression]
+    let keys: [String]
+
+    init(
+        labels: [String?],
+        slots: [Int],
+        kinds: [ParameterKind],
+        types: [TypeExpression],
+        keys: [String]
+    ) {
+        self.labels = labels
+        self.slots = slots
+        self.kinds = kinds
+        self.types = types
+        self.keys = keys
+    }
 }
