@@ -18,8 +18,7 @@ extension Interpreter {
             guard let made = cell.value.record else {
                 throw RuntimeError("\(type.name).init must leave self a \(type.name)")
             }
-            var record = Value.Record(typeRef: type.typeRef)
-            record.reserveCapacity(type.stored.count)
+            var record = Value.Record(typeRef: type.typeRef, capacity: type.stored.count)
             for property in type.stored {
                 guard let value = made[property.name] else {
                     throw RuntimeError("\(type.name).init must set '\(property.name)'")

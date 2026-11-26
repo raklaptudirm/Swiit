@@ -67,8 +67,7 @@ extension Interpreter {
     ) -> Value? {
         guard let plan = memberwisePlan(of: type), plan.labels == site.labels else { return nil }
         let stack = task.vm
-        var record = Value.Record(typeRef: type.typeRef)
-        record.reserveCapacity(plan.keys.count)
+        var record = Value.Record(typeRef: type.typeRef, capacity: plan.keys.count)
         for index in plan.keys.indices {
             let value = stack.base[arguments + plan.slots[index]]
             guard
@@ -134,8 +133,7 @@ extension Interpreter {
         guard task.callDepth < maxCallDepth else {
             throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
         }
-        var start = Value.Record(typeRef: type.typeRef)
-        start.reserveCapacity(type.stored.count)
+        var start = Value.Record(typeRef: type.typeRef, capacity: type.stored.count)
         for property in type.stored {
             if let defaultValue = property.defaultValue {
                 start[property.name] = try storedValue(defaultValue, for: property, of: type)

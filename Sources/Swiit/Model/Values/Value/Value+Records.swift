@@ -14,26 +14,63 @@ extension Value {
 }
 
 extension Value {
+    // safe: the storage is changed only through a record that holds the one reference to it
     /// The fields a tuple or a struct value keeps, in order, with the struct's type name. Two are
     /// equal when they have the same fields in the same order; a `Tuple` and a `Structure` add what
     /// else equality asks of them.
-    struct Record: Sendable, Hashable, Sequence {
-        /// The fields in order. A record has few, so a field is found by comparing names, which for
-        /// short ones is a comparison of two words; past `indexedFrom` there is a table as well.
-        private var fields: [Field] = []
-        private var table: [String: Int]?
-        /// The type it is a value of, which picks how it's displayed; nil for a tuple. A struct a
-        /// program declares has that declaration's reference; one from a Swift value (`FileEntry`) has a
-        /// host reference, by the Swift type's name.
-        var typeRef: TypeRef?
-
+    ///
+    /// A record is one reference to one allocation: a header (how many fields, the type, and a table of
+    /// where each is once there are many) with the fields after it. Copies share it, and a copy that
+    /// changes makes its own first.
+    struct Record: @unchecked Sendable, Hashable, Sequence {
         private struct Field: Sendable, Hashable {
             var key: String
             var value: Value
         }
 
+        private struct Header {
+            var count = 0
+            var capacity: Int
+            /// The type it is a value of, which picks how it's displayed; nil for a tuple. A struct a
+            /// program declares has that declaration's reference; one from a Swift value (`FileEntry`)
+            /// has a host reference, by the Swift type's name.
+            var typeRef: TypeRef?
+            /// Where each field is, kept once there are more than `indexedFrom`: a record has few, so a
+            /// field is found by comparing names, which for short ones is a comparison of two words.
+            var table: [String: Int]?
+        }
+
+        private final class Storage: ManagedBuffer<Header, Field> {
+            static func make(capacity: Int, typeRef: TypeRef?) -> Storage {
+                let buffer = Storage.create(minimumCapacity: capacity) { _ in
+                    Header(capacity: capacity, typeRef: typeRef)
+                }
+                return unsafeDowncast(buffer, to: Storage.self)
+            }
+
+            deinit {
+                withUnsafeMutablePointers { header, fields in
+                    _ = fields.deinitialize(count: header.pointee.count)
+                }
+            }
+        }
+
+        /// What every record without a type or fields shares: the first change to one makes its own.
+        private static let none = Record(typeRef: nil, capacity: 0)
+
+        private var storage: Storage
+
         /// How many fields a record has before it keeps a table of where each is.
         private static let indexedFrom = 12
+
+        /// The type it is a value of, which picks how it's displayed; nil for a tuple.
+        var typeRef: TypeRef? {
+            get { storage.header.typeRef }
+            set {
+                prepare(adding: 0)
+                storage.header.typeRef = newValue
+            }
+        }
 
         var typeName: String? {
             get { typeRef?.name }
@@ -41,15 +78,21 @@ extension Value {
         }
 
         init(typeRef: TypeRef? = nil) {
-            self.typeRef = typeRef
+            storage =
+                typeRef == nil ? Record.none.storage : Storage.make(capacity: 0, typeRef: typeRef)
+        }
+
+        /// A record with room for `capacity` fields, which are then added without it growing.
+        init(typeRef: TypeRef?, capacity: Int) {
+            storage = Storage.make(capacity: capacity, typeRef: typeRef)
         }
 
         init(typeName: String?) {
-            self.typeRef = typeName.map(TypeRef.native)
+            self.init(typeRef: typeName.map(TypeRef.native))
         }
 
         init(_ fields: KeyValuePairs<String, Value>, typeRef: TypeRef? = nil) {
-            self.typeRef = typeRef
+            self.init(typeRef: typeRef, capacity: fields.count)
             for (key, value) in fields { self[key] = value }
         }
 
@@ -57,95 +100,196 @@ extension Value {
             self.init(fields, typeRef: typeName.map(TypeRef.native))
         }
 
+        /// Makes the storage this record's own, with room for `extra` more fields.
+        private mutating func prepare(adding extra: Int) {
+            let count = storage.header.count
+            let capacity = storage.header.capacity
+            if isKnownUniquelyReferenced(&storage) {
+                guard count + extra > capacity else { return }
+                moveStorage(capacity: Swift.max(count + extra, capacity * 2, 4))
+            } else {
+                copyStorage(capacity: Swift.max(count + extra, 1))
+            }
+        }
+
+        private mutating func moveStorage(capacity: Int) {
+            let made = Storage.make(capacity: capacity, typeRef: storage.header.typeRef)
+            made.header.table = storage.header.table
+            let count = storage.header.count
+            made.withUnsafeMutablePointerToElements { to in
+                storage.withUnsafeMutablePointerToElements { from in
+                    to.moveInitialize(from: from, count: count)
+                }
+            }
+            made.header.count = count
+            // What it held is now in `made`.
+            storage.header.count = 0
+            storage = made
+        }
+
+        private mutating func copyStorage(capacity: Int) {
+            let made = Storage.make(capacity: capacity, typeRef: storage.header.typeRef)
+            made.header.table = storage.header.table
+            let count = storage.header.count
+            made.withUnsafeMutablePointerToElements { to in
+                storage.withUnsafeMutablePointerToElements { from in
+                    to.initialize(from: from, count: count)
+                }
+            }
+            made.header.count = count
+            storage = made
+        }
+
         /// Adds a field whose name the record does not have, which the caller knows: no search.
         mutating func appendDistinct(_ key: String, _ value: Value) {
-            fields.append(Field(key: key, value: value))
-            if table != nil {
-                table![key] = fields.count - 1
-            } else if fields.count > Record.indexedFrom {
+            prepare(adding: 1)
+            let count = storage.header.count
+            storage.withUnsafeMutablePointerToElements {
+                ($0 + count).initialize(to: Field(key: key, value: value))
+            }
+            storage.header.count = count + 1
+            if storage.header.table != nil {
+                storage.header.table![key] = count
+            } else if count + 1 > Record.indexedFrom {
                 rebuildTable()
             }
         }
 
         /// Room for `count` fields, so that adding them does not grow it again and again.
         mutating func reserveCapacity(_ count: Int) {
-            fields.reserveCapacity(count)
+            guard count > storage.header.capacity else { return }
+            prepare(adding: count - storage.header.count)
         }
 
         /// Where the field named `key` is among the fields, if there is one.
         func position(of key: String) -> Int? {
-            if let table { return table[key] }
-            for index in fields.indices where fields[index].key == key { return index }
-            return nil
+            storage.withUnsafeMutablePointers { header, fields in
+                if let table = header.pointee.table { return table[key] }
+                for index in 0..<header.pointee.count where fields[index].key == key {
+                    return index
+                }
+                return nil
+            }
         }
 
         /// The value of the field at `position` if it is the one named `key`: what a site that found a
         /// field there before asks, to skip the search.
         func value(at position: Int, named key: String) -> Value? {
-            guard fields.indices.contains(position), fields[position].key == key else { return nil }
-            return fields[position].value
+            storage.withUnsafeMutablePointers { header, fields in
+                guard position >= 0, position < header.pointee.count, fields[position].key == key
+                else { return nil }
+                return fields[position].value
+            }
         }
 
         subscript(key: String) -> Value? {
-            get { position(of: key).map { fields[$0].value } }
+            get {
+                guard let position = position(of: key) else { return nil }
+                return storage.withUnsafeMutablePointerToElements { $0[position].value }
+            }
             set {
                 if let position = position(of: key) {
+                    prepare(adding: 0)
                     if let newValue {
-                        fields[position].value = newValue
+                        storage.withUnsafeMutablePointerToElements { $0[position].value = newValue }
                     } else {
-                        fields.remove(at: position)
-                        rebuildTable()
+                        remove(at: position)
                     }
                 } else if let newValue {
-                    fields.append(Field(key: key, value: newValue))
-                    if table != nil {
-                        table![key] = fields.count - 1
-                    } else if fields.count > Record.indexedFrom {
-                        rebuildTable()
-                    }
+                    appendDistinct(key, newValue)
                 }
             }
         }
 
+        private mutating func remove(at position: Int) {
+            let count = storage.header.count
+            storage.withUnsafeMutablePointerToElements { fields in
+                (fields + position).deinitialize(count: 1)
+                (fields + position)
+                    .moveInitialize(from: fields + position + 1, count: count - position - 1)
+            }
+            storage.header.count = count - 1
+            rebuildTable()
+        }
+
         private mutating func rebuildTable() {
-            guard fields.count > Record.indexedFrom else {
-                table = nil
+            let count = storage.header.count
+            guard count > Record.indexedFrom else {
+                storage.header.table = nil
                 return
             }
             var made: [String: Int] = [:]
-            made.reserveCapacity(fields.count)
-            for (index, field) in fields.enumerated() { made[field.key] = index }
-            table = made
+            made.reserveCapacity(count)
+            storage.withUnsafeMutablePointerToElements { fields in
+                for index in 0..<count { made[fields[index].key] = index }
+            }
+            storage.header.table = made
         }
 
         /// A field's value, moved out and left `.nothing` in its place: the caller then holds the only
         /// reference to it.
         mutating func takeValue(_ key: String) -> Value? {
             guard let position = position(of: key) else { return nil }
-            let current = fields[position].value
-            fields[position].value = .nothing
-            return current
+            prepare(adding: 0)
+            return storage.withUnsafeMutablePointerToElements { fields in
+                let current = fields[position].value
+                fields[position].value = .nothing
+                return current
+            }
         }
 
         /// The names of the fields, in order.
-        var keys: [String] { fields.map(\.key) }
+        var keys: [String] {
+            storage.withUnsafeMutablePointers { header, fields in
+                (0..<header.pointee.count).map { fields[$0].key }
+            }
+        }
 
         /// The name of the field at `position`.
-        func key(at position: Int) -> String { fields[position].key }
+        func key(at position: Int) -> String {
+            storage.withUnsafeMutablePointerToElements { $0[position].key }
+        }
 
-        var count: Int { fields.count }
-        var isEmpty: Bool { fields.isEmpty }
+        var count: Int { storage.header.count }
+        var isEmpty: Bool { storage.header.count < 1 }
 
         func makeIterator() -> some IteratorProtocol<(key: String, value: Value)> {
-            fields.lazy.map { (key: $0.key, value: $0.value) }.makeIterator()
+            FieldIterator(storage: storage)
+        }
+
+        private struct FieldIterator: IteratorProtocol {
+            let storage: Storage
+            var index = 0
+
+            init(storage: Storage) { self.storage = storage }
+
+            mutating func next() -> (key: String, value: Value)? {
+                guard index < storage.header.count else { return nil }
+                defer { index += 1 }
+                return storage.withUnsafeMutablePointerToElements {
+                    (key: $0[index].key, value: $0[index].value)
+                }
+            }
         }
 
         static func == (lhs: Value.Record, rhs: Value.Record) -> Bool {
-            lhs.fields == rhs.fields
+            if lhs.storage === rhs.storage { return true }
+            let count = lhs.storage.header.count
+            guard count == rhs.storage.header.count else { return false }
+            return lhs.storage.withUnsafeMutablePointerToElements { left in
+                rhs.storage.withUnsafeMutablePointerToElements { right in
+                    (0..<count).allSatisfy { left[$0] == right[$0] }
+                }
+            }
         }
 
         func hash(into hasher: inout Hasher) {
-            for field in fields { hasher.combine(field.key); hasher.combine(field.value) }
+            storage.withUnsafeMutablePointers { header, fields in
+                for index in 0..<header.pointee.count {
+                    hasher.combine(fields[index].key)
+                    hasher.combine(fields[index].value)
+                }
+            }
         }
     }
 }
@@ -209,74 +353,47 @@ extension Value {
     }
 
     /// A struct's value: the name of its type, and its fields in order. Two are equal when they are
-    /// of the type of one name and their fields are equal in order. The record is kept in a box that
-    /// copies are shared by and that is copied when one of them changes (and not before), so that a
-    /// field set on a value nothing else holds is set where it is.
+    /// of the type of one name and their fields are equal in order. Its record is one allocation that
+    /// copies share and that a copy that changes makes its own of (and not before), so that a field set
+    /// on a value nothing else holds is set where it is.
     struct Structure: Sendable, Hashable, Sequence, CustomStringConvertible,
         CustomDebugStringConvertible
     {
-        // safe: the box is changed only when this value holds the one reference to it
-        private final class Box: @unchecked Sendable {
-            @exclusivity(unchecked) var record: Value.Record
-            init(_ record: Value.Record) { self.record = record }
-        }
+        var record: Value.Record
 
-        private var box: Box
-
-        var record: Value.Record {
-            get { box.record }
-            _modify {
-                if !isKnownUniquelyReferenced(&box) { box = Box(box.record) }
-                yield &box.record
-            }
-            set {
-                if isKnownUniquelyReferenced(&box) {
-                    box.record = newValue
-                } else {
-                    box = Box(newValue)
-                }
-            }
-        }
-
-        init(_ record: Value.Record) { box = Box(record) }
+        init(_ record: Value.Record) { self.record = record }
 
         /// A struct value of a Swift type, by name.
-        init(typeName: String) { box = Box(Value.Record(typeName: typeName)) }
+        init(typeName: String) { record = Value.Record(typeName: typeName) }
 
         /// A struct value of the type `typeRef` names.
-        init(typeRef: TypeRef) { box = Box(Value.Record(typeRef: typeRef)) }
-
-        static func == (lhs: Structure, rhs: Structure) -> Bool {
-            lhs.box === rhs.box || lhs.box.record == rhs.box.record
-        }
-
-        func hash(into hasher: inout Hasher) { hasher.combine(box.record) }
+        init(typeRef: TypeRef) { record = Value.Record(typeRef: typeRef) }
 
         /// What type it is a value of. A struct a program declares has that declaration's reference; one
         /// from a Swift value (`FileEntry`) has a host reference.
-        var typeRef: TypeRef { box.record.typeRef! }
+        var typeRef: TypeRef { record.typeRef! }
 
-        /// The type it is a value of, if it has one: read without copying the record.
-        var typeRefIfAny: TypeRef? { box.record.typeRef }
+        /// The type it is a value of, if it has one.
+        var typeRefIfAny: TypeRef? { record.typeRef }
 
         /// The type's name, which picks how it's displayed.
-        var typeName: String { box.record.typeName ?? "" }
+        var typeName: String { record.typeName ?? "" }
 
-        var keys: [String] { box.record.keys }
-        var count: Int { box.record.count }
-        var isEmpty: Bool { box.record.isEmpty }
+        var keys: [String] { record.keys }
+        var count: Int { record.count }
+        var isEmpty: Bool { record.isEmpty }
 
         subscript(key: String) -> Value? {
-            get { box.record[key] }
+            get { record[key] }
             set { record[key] = newValue }
         }
 
         func makeIterator() -> some IteratorProtocol<(key: String, value: Value)> {
-            box.record.makeIterator()
+            record.makeIterator()
         }
 
-        var description: String { box.record.description }
-        var debugDescription: String { box.record.debugDescription }
+        var description: String { record.description }
+        var debugDescription: String { record.debugDescription }
     }
 
     /// The fields of a tuple or of a struct value, with the struct's type name.

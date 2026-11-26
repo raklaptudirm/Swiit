@@ -22,7 +22,7 @@ public struct Value: Sendable {
         case string(String)
         case list([Value])
         /// A tuple: elements in order, each labeled or not: `(name: "x", 2)`.
-        indirect case tuple(Value.Tuple)
+        case tuple(Value.Tuple)
         /// A struct's value: its type's name, and its fields in the order the type declares them.
         case structure(Value.Structure)
         /// `["a": 1]`: keys to values, as Swift's Dictionary, unordered.

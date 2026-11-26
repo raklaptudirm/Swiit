@@ -103,8 +103,7 @@ extension Interpreter {
         }
         guard let initializers = chosenInitializers else {
             let bound = try bind(values, to: type.memberwise).bindings
-            var record = Value.Record(typeRef: type.typeRef)
-            record.reserveCapacity(type.stored.count)
+            var record = Value.Record(typeRef: type.typeRef, capacity: type.stored.count)
             for property in type.stored {
                 if let value = bound[property.name] {
                     record[property.name] = value
@@ -119,8 +118,7 @@ extension Interpreter {
             try self.bind(values, to: $0)
         }
         // Defaults first, then whatever the initializer sets.
-        var start = Value.Record(typeRef: type.typeRef)
-        start.reserveCapacity(type.stored.count)
+        var start = Value.Record(typeRef: type.typeRef, capacity: type.stored.count)
         for property in type.stored {
             if let defaultValue = property.defaultValue {
                 start[property.name] = try storedValue(defaultValue, for: property, of: type)
@@ -137,8 +135,7 @@ extension Interpreter {
             throw RuntimeError("\(type.name).init must leave self a \(type.name)")
         }
         // In declaration order, whatever order the initializer set them in.
-        var record = Value.Record(typeRef: type.typeRef)
-        record.reserveCapacity(type.stored.count)
+        var record = Value.Record(typeRef: type.typeRef, capacity: type.stored.count)
         for property in type.stored {
             guard let value = made[property.name] else {
                 throw RuntimeError("\(type.name).init must set '\(property.name)'")
