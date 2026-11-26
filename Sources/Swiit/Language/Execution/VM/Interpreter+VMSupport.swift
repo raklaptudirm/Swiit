@@ -42,10 +42,10 @@ extension Interpreter {
 
     /// `checkInterrupt` for the loop, which has the task and its run in hand.
     @inline(__always)
-    func tick(_ task: TaskContext, _ run: RunState) throws {
+    func tick(_ cancellation: Interpreter.Cancellation, _ run: RunState) throws {
         if hasPendingDeinits { runPendingDeinits() }
         run.steps += 1
-        if task.cancellation.isSet { throw Cancelled() }
+        if cancellation.isSet { throw Cancelled() }
         run.stepsUntilCheck -= 1
         if run.stepsUntilCheck <= 0 { try checkLimits() }
     }
@@ -626,10 +626,14 @@ extension Interpreter {
 extension Interpreter {
     /// Makes each argument of a call the type its parameter has, where it is not plainly of it already.
     @inline(__always)
-    func checkArguments(of callee: Function, _ code: Code, at argumentBase: Int) throws {
-        let stack = task.vm
+    func checkArguments(
+        of callee: Function,
+        _ code: Code,
+        at argumentBase: Int,
+        on stack: VMStack
+    ) throws {
         for index in 0..<code.parameterCount
-        where !code.parameterKinds[index].accepts(at: stack.base + argumentBase + index) {
+        where !code.kindTable[index].accepts(at: stack.base + argumentBase + index) {
             stack.base[argumentBase + index] = try checked(
                 stack.base[argumentBase + index],
                 for: callee.parameters[index],
@@ -668,7 +672,7 @@ extension Interpreter {
         let base = stack.top
         stack.ensure(base + max(code.frameSize, arguments.count))
         for (index, argument) in arguments.enumerated() { stack.base[base + index] = argument }
-        try checkArguments(of: function, code, at: base)
+        try checkArguments(of: function, code, at: base, on: stack)
         return try runCompiled(function, code, with: [:], argumentsAt: base)
     }
 }

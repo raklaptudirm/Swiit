@@ -35,6 +35,7 @@ extension Interpreter {
         let task = self.task
         let run = task.run
         let maxCallDepth = run.maxCallDepth
+        let cancellation = task.cancellation
         let entryDepth = stack.callers.count
         unowned(unsafe) var function = entry
         unowned(unsafe) var code = entryCode
@@ -53,12 +54,12 @@ extension Interpreter {
                     switch instruction {
                     case .step(let range):
                         statement = range
-                        try tick(task, run)
+                        try tick(cancellation, run)
                         regs = stack.base + base
                     case .at(let range):
                         statement = range
                     case .tick:
-                        try tick(task, run)
+                        try tick(cancellation, run)
                         regs = stack.base + base
                     case .finished(let index, let value):
                         if observing, observesStatements {
@@ -301,8 +302,18 @@ extension Interpreter {
                             guard task.callDepth < maxCallDepth else {
                                 throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
                             }
-                            try tick(task, run)
-                            try checkArguments(of: callee, calleeCode, at: argumentBase)
+                            try tick(cancellation, run)
+                            let kinds = calleeCode.kindTable
+                            for index in 0..<calleeCode.parameterCount
+                            where !kinds[index].accepts(at: stack.base + argumentBase + index) {
+                                try checkArguments(
+                                    of: callee,
+                                    calleeCode,
+                                    at: argumentBase,
+                                    on: stack
+                                )
+                                break
+                            }
                             stack.callers.append(
                                 VMCaller(
                                     code: code,
@@ -391,8 +402,18 @@ extension Interpreter {
                             guard task.callDepth < maxCallDepth else {
                                 throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
                             }
-                            try tick(task, run)
-                            try checkArguments(of: callee, calleeCode, at: argumentBase)
+                            try tick(cancellation, run)
+                            let kinds = calleeCode.kindTable
+                            for index in 0..<calleeCode.parameterCount
+                            where !kinds[index].accepts(at: stack.base + argumentBase + index) {
+                                try checkArguments(
+                                    of: callee,
+                                    calleeCode,
+                                    at: argumentBase,
+                                    on: stack
+                                )
+                                break
+                            }
                             stack.callers.append(
                                 VMCaller(
                                     code: code,

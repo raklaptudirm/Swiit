@@ -65,7 +65,7 @@ final class VMStack {
     private(set) var capacity: Int
     /// The first register no frame uses.
     @exclusivity(unchecked) var top = 0
-    @exclusivity(unchecked) var callers: [VMCaller] = []
+    let callers = CallerStack()
     /// What the initializers the loop is in the middle of calling make of the value they were run on when
     /// they return, innermost last.
     @exclusivity(unchecked) var completions: [Completion] = []
@@ -131,4 +131,38 @@ struct MethodTarget {
     let isClass: Bool
     /// The arguments to place, when the call leaves out parameters that have defaults.
     let mapping: [Int]?
+}
+
+/// The records of the callers of the frames that are running, in memory the loop pushes and pops
+/// without the checks an array makes (that its buffer is its own, and has room).
+final class CallerStack {
+    private var records = UnsafeMutablePointer<VMCaller>.allocate(capacity: 64)
+    private var capacity = 64
+    private(set) var count = 0
+
+    deinit {
+        records.deinitialize(count: count)
+        records.deallocate()
+    }
+
+    @inline(__always)
+    func append(_ caller: VMCaller) {
+        if count == capacity { grow() }
+        (records + count).initialize(to: caller)
+        count += 1
+    }
+
+    @inline(__always)
+    func removeLast() -> VMCaller {
+        count -= 1
+        return (records + count).move()
+    }
+
+    private func grow() {
+        let larger = UnsafeMutablePointer<VMCaller>.allocate(capacity: capacity * 2)
+        larger.moveInitialize(from: records, count: count)
+        records.deallocate()
+        records = larger
+        capacity *= 2
+    }
 }

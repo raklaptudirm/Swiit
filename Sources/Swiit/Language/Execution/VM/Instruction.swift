@@ -597,19 +597,28 @@ final class Code {
         programCount = instructions.count
         program = .allocate(capacity: max(1, programCount))
         program.initialize(from: instructions, count: programCount)
+        callSiteTable.deallocate()
+        callSiteTable = .allocate(capacity: max(1, callSites.count))
+        callSiteTable.initialize(
+            from: callSites.map(Unmanaged.passUnretained),
+            count: callSites.count
+        )
+        kindTable.deallocate()
+        kindTable = .allocate(capacity: max(1, parameterKinds.count))
+        kindTable.initialize(from: parameterKinds, count: parameterKinds.count)
     }
 
     deinit {
         program.deallocate()
+        callSiteTable.deallocate()
+        kindTable.deallocate()
     }
     @exclusivity(unchecked) var constants: [Value] = []
     @exclusivity(unchecked) var names: [String] = []
     @exclusivity(unchecked) var types: [TypeExpression] = []
     @exclusivity(unchecked) var statements: [Statement] = []
     @exclusivity(unchecked) var expressions: [Expr] = []
-    @exclusivity(unchecked) var callSites: [CallSite] = [] {
-        didSet { callSiteTable = callSites.map(Unmanaged.passUnretained) }
-    }
+    @exclusivity(unchecked) var callSites: [CallSite] = []
     @exclusivity(unchecked) var members: [MemberSite] = []
     @exclusivity(unchecked) var methods: [MethodSite] = []
     @exclusivity(unchecked) var bridgedSites: [BridgedSite] = []
@@ -620,7 +629,11 @@ final class Code {
     /// `globals`, read without counting a reference.
     @exclusivity(unchecked) private(set) var globalTable: [Unmanaged<GlobalSite>] = []
     /// `callSites`, read without counting a reference: the sites are kept alive by `callSites`.
-    @exclusivity(unchecked) private(set) var callSiteTable: [Unmanaged<CallSite>] = []
+    @exclusivity(unchecked) private(set) var callSiteTable =
+        UnsafeMutablePointer<Unmanaged<CallSite>>.allocate(capacity: 1)
+    /// `parameterKinds`, in memory the loop reads without counting a reference: made by `seal`.
+    @exclusivity(unchecked) private(set) var kindTable =
+        UnsafeMutablePointer<ParameterKind>.allocate(capacity: 1)
     @exclusivity(unchecked) var patterns: [PatternSite] = []
     @exclusivity(unchecked) var closures: [ClosureSite] = []
     @exclusivity(unchecked) var trees: [TreeNode] = []
