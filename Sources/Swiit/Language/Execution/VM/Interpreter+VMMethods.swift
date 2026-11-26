@@ -18,6 +18,8 @@ extension Interpreter {
             guard let made = cell.value.record else {
                 throw RuntimeError("\(type.name).init must leave self a \(type.name)")
             }
+            // The fields set in the order the type declares them are the value as they are.
+            if made.hasKeys(type.storedNames) { return Value(record: made) }
             var record = Value.Record(typeRef: type.typeRef, capacity: type.stored.count)
             for property in type.stored {
                 guard let value = made[property.name] else {
@@ -55,12 +57,14 @@ extension Interpreter {
         let cell =
             target.code.selfRegister == nil || target.code.selfByValue
             ? nil : Binding.Cell(receiver)
-        if let owner = target.function.owner { task.owners.append(owner) }
+        // The class is pushed for `super`, which only a body that names it asks for.
+        let owner = target.code.usesSuper && target.code.hasOwner ? target.function.owner : nil
+        if let owner { task.owners.append(owner) }
         task.callDepth += 1
         let changes = cell != nil && target.function.isMutating && !target.isClass
         return MethodExit(
             selfCell: cell,
-            popsOwner: target.function.owner != nil,
+            popsOwner: owner != nil,
             storeReceiverAt: changes && storeIn == nil ? storeAt : -1,
             storeReceiverIn: changes ? storeIn : nil
         )
@@ -117,11 +121,13 @@ extension Interpreter {
         var inside = target.function.captured
         inside.append(made)
         task.scopes = inside
-        if let owner = target.function.owner { task.owners.append(owner) }
+        // The class is pushed for `super`, which only a body that names it asks for.
+        let owner = target.code.usesSuper && target.code.hasOwner ? target.function.owner : nil
+        if let owner { task.owners.append(owner) }
         task.callDepth += 1
         return MethodExit(
             selfCell: binding.cell,
-            popsOwner: target.function.owner != nil,
+            popsOwner: owner != nil,
             storeReceiverAt: target.function.isMutating && !target.isClass && storeIn == nil
                 ? storeAt : -1,
             storeReceiverIn: target.function.isMutating && !target.isClass ? storeIn : nil

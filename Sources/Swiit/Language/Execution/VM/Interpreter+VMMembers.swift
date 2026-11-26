@@ -470,48 +470,6 @@ extension Interpreter {
 }
 
 extension Interpreter {
-    /// A member of a Swift type run as the tree evaluator runs it, with the receiver and the arguments
-    /// (in the registers from `arguments` on) taken as they are.
-    func callBridged(_ site: BridgedSite, receiver: Value?, arguments: Int) throws -> Value {
-        let stack = task.vm
-        var given: [Argument] = []
-        given.reserveCapacity(site.labels.count)
-        for index in 0..<site.labels.count {
-            given.append(
-                Argument(label: site.labels[index], value: .literal(stack.base[arguments + index]))
-            )
-            stack.base[arguments + index] = .nothing
-        }
-        if site.found == nil, let member = bridged[site.type]?.lowered[site.member] {
-            site.found = (
-                member,
-                Function(
-                    name: member.name,
-                    parameters: member.parameters,
-                    returnType: nil,
-                    body: member.body
-                )
-            )
-        }
-        guard let (member, function) = site.found else {
-            return try runBridged(
-                site.type,
-                site.member,
-                receiver: receiver.map { .literal($0) },
-                given
-            )
-        }
-        return try runBridged(
-            site.type,
-            member,
-            function,
-            receiver: receiver.map { .literal($0) },
-            given
-        )
-    }
-}
-
-extension Interpreter {
     /// A call of a name that is not a function the loop enters: the value of a struct or a class made
     /// from the registers, or by the tree evaluator's call; nil where an initializer's frame was entered,
     /// which makes it when it returns.

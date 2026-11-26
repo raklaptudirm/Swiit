@@ -41,6 +41,10 @@ final class CallSite {
     /// The initializer of a struct found to take this call's labels, so that they are not compared
     /// again.
     @exclusivity(unchecked) var fittedInitializer: Function?
+    /// The function and initializer whose scopes the site compared, and whether they are the same.
+    @exclusivity(unchecked) var sharesCaller: ObjectIdentifier?
+    @exclusivity(unchecked) var sharesInitializer: ObjectIdentifier?
+    @exclusivity(unchecked) var sharesScopes = false
     @exclusivity(unchecked) var constructedCode: Code?
 
     struct Cached {
@@ -121,6 +125,10 @@ final class BridgedSite {
     let labels: [String?]
     /// The member and the function made of it, found when the site first runs.
     @exclusivity(unchecked) var found: (member: BridgedMember, function: Function)?
+    /// How the loop calls the member without binding a call's arguments, when it can: made when the site
+    /// first runs.
+    @exclusivity(unchecked) var plan: BridgedPlan?
+    @exclusivity(unchecked) var isPlanned = false
 
     init(type: String, member: Int, labels: [String?]) {
         self.type = type
@@ -243,5 +251,33 @@ final class PathSite {
     init(steps: [Assignment.Step], op: BinaryOperator?) {
         self.steps = steps
         self.op = op
+    }
+}
+
+/// A bridged member the loop calls with the values in the registers, in the order of its parameters:
+/// each argument is looked at once and taken as it is where it is of the kind the parameter holds (and
+/// conformed where not, as a call's binding does), and the glue is called with them as it takes them. A
+/// member that changes its receiver, takes a variadic or a defaulted parameter, or is called with other
+/// labels than its parameters', has no plan, and is called as a call is.
+final class BridgedPlan {
+    let positional: @Sendable (Interpreter, Value, [Value]) throws -> Value
+    let function: Function
+    let parameters: [Parameter]
+    let kinds: [ParameterKind]
+    let name: String
+    /// `nil?.name` is nil, except for the members of `Optional` itself.
+    let keepsNilReceiver: Bool
+
+    init(
+        positional: @escaping @Sendable (Interpreter, Value, [Value]) throws -> Value,
+        function: Function,
+        typeName: String
+    ) {
+        self.positional = positional
+        self.function = function
+        parameters = function.parameters
+        kinds = function.parameters.map { ParameterKind($0.type) }
+        name = function.name ?? "member"
+        keepsNilReceiver = typeName == "Optional"
     }
 }

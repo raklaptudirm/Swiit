@@ -135,6 +135,7 @@ extension BridgedMember {
             returns: TypeExpression,
             function: Symbol.Signature? = nil,
             isMutating: Bool = false,
+            positional: (@Sendable (Value, [Value]) throws -> Value)? = nil,
             call: @escaping @Sendable (Arguments) throws -> Value
         ) -> BridgedMember {
             var made = BridgedMember(
@@ -173,6 +174,21 @@ extension BridgedMember {
                 }
             )
             made.plain = call
+            if let positional {
+                let (typeName, name) = (typeName, member.name)
+                @Sendable func wrapped(
+                    _ interpreter: Interpreter,
+                    _ receiver: Value,
+                    _ values: [Value]
+                )
+                    throws -> Value
+                {
+                    do { return try positional(receiver, values) } catch {
+                        throw interpreter.hostFailure(error, in: "\(typeName).\(name)")
+                    }
+                }
+                made.positional = wrapped
+            }
             return made
         }
     }
@@ -190,7 +206,8 @@ extension BridgedMember {
                     .method,
                     parameters: parameters(function),
                     returns: function.returns.byText,
-                    function: function
+                    function: function,
+                    positional: { receiver, arguments in try body(receiver, arguments) }
                 ) { try body($0["self"] ?? .nothing, order($0)) }
             ]
         case (.method(let method), .mutatingMethod(let body)):
@@ -214,7 +231,8 @@ extension BridgedMember {
                     isStatic: true,
                     parameters: parameters(function),
                     returns: function.returns.byText,
-                    function: function
+                    function: function,
+                    positional: { _, arguments in try body(arguments) }
                 ) { try body(order($0)) }
             ]
         case (.property(let property), .property(let get)):
@@ -226,7 +244,8 @@ extension BridgedMember {
                         returns: property.type,
                         throwing: property.throwing,
                         isAsync: property.isAsync
-                    )
+                    ),
+                    positional: { receiver, _ in try get(receiver) }
                 ) { try get($0["self"] ?? .nothing) }
             ]
         case (.property(let property), .settableProperty(let get, let set)):
@@ -264,7 +283,8 @@ extension BridgedMember {
                     name: "init",
                     parameters: parameters(function),
                     returns: function.returns.byText,
-                    function: function
+                    function: function,
+                    positional: { _, arguments in try body(arguments) }
                 ) { try body(order($0)) }
             ]
         case (.associatedType, .associatedType):

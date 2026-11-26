@@ -255,7 +255,9 @@ extension Interpreter {
             task.scopes.append(made)
             own = made
         }
-        if code.hasOwner, let owner = function.owner { task.owners.append(owner) }
+        // The class is pushed for `super`, which only a body that names it asks for.
+        let owner = code.usesSuper && code.hasOwner ? function.owner : nil
+        if let owner { task.owners.append(owner) }
         if !code.isProgram { task.callDepth += 1 }
         task.frame = nil
         if let register = code.selfRegister, let binding = lookup("self") {
@@ -267,7 +269,7 @@ extension Interpreter {
             if let savedScopes { task.scopes = savedScopes }
             task.frame = saved.frame
             task.frameBase = saved.frameBase
-            if code.hasOwner, function.owner != nil { task.owners.removeLast() }
+            if owner != nil { task.owners.removeLast() }
             stack.top = base
         }
         let result = try execute(function, code, base: base, on: stack)

@@ -202,6 +202,8 @@ extension Interpreter {
     /// What follows an initializer's body: without a `super.init(…)` in it, the superclass's `init()`
     /// runs on the instance.
     func completeInitialization(of instance: ClassInstance, by initializer: Function) throws {
+        // A class that comes from none has no superclass's `init()` to run.
+        guard instance.plan.hasSuperclass else { return }
         if !initializer.isConvenience, !task.calledSuperInit, let owner = initializer.owner,
             let parent = owner.superclass, !task.failedInit
         {

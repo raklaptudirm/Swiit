@@ -209,6 +209,27 @@ private func aProgramTakesTheSameStepsOnBothEngines(_ program: VMSample) {
 
 private let failing: [VMSample] = [
     VMSample(
+        name: "an error from the glue of a bridged member called from the registers",
+        source: """
+            func f(_ n: Int) -> Int {
+                var t = 0
+                for i in 0..<n { t += Array(0..<i).dropFirst(i - 2).count }
+                return t
+            }
+            f(4)
+            """,
+        compiles: ["f"]
+    ),
+    VMSample(
+        name: "a class's initializer that leaves a property unset, and one that sets none",
+        source: """
+            class P { var a: Int; var b: Int; init(a: Int) { self.a = a } }
+            func f() -> Int { P(a: 1).a }
+            f()
+            """,
+        compiles: ["f"]
+    ),
+    VMSample(
         name: "an error in a class's method frame the loop made, after the site was warm",
         source: """
             class K { var k = 10; func div(_ n: Int) -> Int { k / n } }

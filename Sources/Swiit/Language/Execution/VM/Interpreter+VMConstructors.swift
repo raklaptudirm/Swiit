@@ -197,16 +197,19 @@ extension Interpreter {
         guard task.callDepth < maxCallDepth else {
             throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
         }
-        let instance = ClassInstance(
-            type: type,
-            storage: FieldTable(capacity: type.allStored.count)
-        )
-        for property in type.allStored {
-            if let value = try initialValue(of: property) {
-                instance.storage[property.name] = value
+        let plan = type.instancePlan
+        let instance = ClassInstance(type: type, storage: FieldTable(capacity: plan.names.count))
+        for index in plan.names.indices {
+            switch plan.starts[index] {
+            case .absent: continue
+            case .value(let value): instance.storage[plan.names[index]] = value
+            case .evaluated:
+                if let value = try initialValue(of: type.allStored[index]) {
+                    instance.storage[plan.names[index]] = value
+                }
             }
         }
-        if type.chain.contains(where: { $0.deinitializer != nil }) {
+        if plan.hasDeinit {
             instance.onRelease = { [weak self] released in self?.release(released) }
         }
         guard let initializer = site.constructedInitializer, let code = site.constructedCode else {
@@ -234,9 +237,8 @@ extension Interpreter {
 
     /// Every stored property of an instance must have been set, but a `lazy` one.
     func checkAllSet(_ instance: ClassInstance) throws {
-        for property in instance.type.allStored
-        where instance.storage[property.name] == nil && !property.isLazy {
-            throw RuntimeError("\(instance.type.name).init must set '\(property.name)'")
+        for name in instance.plan.required where instance.storage[name] == nil {
+            throw RuntimeError("\(instance.type.name).init must set '\(name)'")
         }
     }
 
@@ -254,8 +256,19 @@ extension Interpreter {
         // its own that it always had; any other runs in the scopes it captured, and the scope that
         // binds `self` by name is made when something looks for it (`ensureSelfScope`).
         let ownScope = code.selfRegister == nil && code.looksUpNames
-        let saved: [Scope]? =
-            ownScope || task.scopes.count != cursor.function.captured.count ? task.scopes : nil
+        // Whether it captured the scopes the caller did, which is worked out once for the site.
+        let site = call.site
+        if site.sharesCaller != ObjectIdentifier(cursor.function)
+            || site.sharesInitializer != ObjectIdentifier(initializer)
+        {
+            site.sharesCaller = ObjectIdentifier(cursor.function)
+            site.sharesInitializer = ObjectIdentifier(initializer)
+            site.sharesScopes =
+                initializer.captured.count == cursor.code.capturedCount
+                && task.scopes(are: initializer.captured)
+        }
+        let extended = task.scopes.count != cursor.code.capturedCount
+        let saved: [Scope]? = ownScope || extended ? task.scopes : nil
         let cell: Binding.Cell
         if ownScope {
             let binding = Binding(value: receiver, mutable: true, special: .initializing)
@@ -267,9 +280,13 @@ extension Interpreter {
             cell = binding.cell
         } else {
             cell = Binding.Cell(receiver)
-            setScopes(of: initializer, from: cursor.function, task)
+            if !site.sharesScopes || extended {
+                setScopes(of: initializer, from: cursor.function, task)
+            }
         }
-        if let owner = initializer.owner { task.owners.append(owner) }
+        // The class is pushed for `super`, which only a body that names it asks for.
+        let owner = code.usesSuper && code.hasOwner ? initializer.owner : nil
+        if let owner { task.owners.append(owner) }
         task.callDepth += 1
         stack.push(
             VMCaller(
@@ -287,7 +304,7 @@ extension Interpreter {
         stack.methodExits.append(
             MethodExit(
                 selfCell: cell,
-                popsOwner: initializer.owner != nil,
+                popsOwner: owner != nil,
                 storeReceiverAt: -1,
                 isConstructor: true
             )

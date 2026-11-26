@@ -424,4 +424,66 @@ let vmExpressions: [VMSample] = [
             """,
         compiles: ["f"]
     ),
+    VMSample(
+        name:
+            "constructing classes and structs: lazy, optional and computed defaults, weak, deinit, subclasses",
+        source: """
+            class Base {
+                var id: Int
+                var tags = Array(0..<3)
+                var note: String?
+                var count = 0
+                lazy var heavy: Int = id * 100
+                weak var friend: Base?
+                init(id: Int) { self.id = id }
+                deinit { print("gone \\(id)") }
+            }
+            class Derived: Base {
+                var extra = "x"
+                override init(id: Int) { super.init(id: id + 1); extra = "y\\(id)" }
+            }
+            class Quiet { var a: Int; var b = 2; init(a: Int) { self.a = a } }
+            struct S {
+                var x: Int
+                var y = 5
+                var label: String { "s\\(x)" }
+                init(x: Int) { self.x = x; y += x }
+            }
+            struct Swapped { var a: Int; var b: Int; init(a: Int, b: Int) { self.b = b; self.a = a } }
+            func f(_ n: Int) -> String {
+                var out = ""
+                for i in 0..<n {
+                    let b = Base(id: i)
+                    let d = Derived(id: i)
+                    b.friend = d
+                    out += "\\(b.heavy) \\(d.id) \\(d.extra) \\(b.tags.count) \\(b.note ?? "-") \\(b.friend?.id ?? -1)"
+                    out += "\\(Quiet(a: i).a + S(x: i).y + Swapped(a: i, b: 1).a) \\(S(x: i).label) \\(Swapped(a: 1, b: i).b)\\n"
+                }
+                return out
+            }
+            print(f(3))
+            """,
+        compiles: ["f"]
+    ),
+    VMSample(
+        name:
+            "bridged members called from the registers: optionals, conversions, labels, defaults, statics",
+        source: """
+            func f(_ n: Int, _ word: String?) -> String {
+                var out = ""
+                for i in 0..<n {
+                    let text = String(i * 7)
+                    let more = Array(repeating: i, count: 3)
+                    out += "\\(text.count) \\(word?.count ?? -1) \\(word?.uppercased() ?? "nil") "
+                    out += "\\(more.contains(i)) \\(more.firstIndex(of: i) ?? -1) \\(Double(i).rounded()) "
+                    out += "\\(text.hasPrefix("1")) \\(text.split(separator: "1").count) \\(String(i)) "
+                    out += "\\(max(i, 3)) \\(min(Double(i), 2.5)) \\(Int.max > i) \\(abs(-i)) "
+                    out += "\\(more.map { $0 * 2 }.reduce(0, +)) \\(Array(0..<i).dropFirst(1).count) \\(text.dropLast(1))|"
+                }
+                return out
+            }
+            print(f(4, "ab"), f(2, nil))
+            """,
+        compiles: ["f"]
+    ),
 ]

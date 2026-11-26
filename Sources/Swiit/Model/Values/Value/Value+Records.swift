@@ -245,6 +245,15 @@ extension Value {
             }
         }
 
+        /// Whether the fields are named `names`, in that order.
+        func hasKeys(_ names: [String]) -> Bool {
+            storage.withUnsafeMutablePointers { header, fields in
+                guard header.pointee.count == names.count else { return false }
+                for index in names.indices where fields[index].key != names[index] { return false }
+                return true
+            }
+        }
+
         /// The name of the field at `position`.
         func key(at position: Int) -> String {
             storage.withUnsafeMutablePointerToElements { $0[position].key }

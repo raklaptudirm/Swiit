@@ -12,6 +12,8 @@ final class StructType: LanguageObject, DeclaredType, @unchecked Sendable {
     let typeRef: TypeRef
     /// Stored properties, in declaration order: the order of a value's fields.
     let stored: [PropertyDecl]
+    /// The names of `stored`, in the same order: the keys of a value's fields.
+    let storedNames: [String]
     /// What the type adds to its values and to itself: computed properties and their setters, methods,
     /// initializers, statics and subscripts. A struct, an enum and an extension keep them the same way.
     let members = TypeMembers()
@@ -61,6 +63,7 @@ final class StructType: LanguageObject, DeclaredType, @unchecked Sendable {
         symbol = Symbol.Nominal(name: name, kind: .structure, typeRef: self.typeRef)
         self.conformances = conformances
         self.stored = stored
+        storedNames = stored.map(\.name)
         self.memberwise = memberwise
         members.computed = computed
         members.methods = methods

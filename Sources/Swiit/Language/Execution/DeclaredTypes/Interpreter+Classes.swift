@@ -45,6 +45,7 @@ final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {
 
     @exclusivity(unchecked) private var chainCache: [ClassType]?
     @exclusivity(unchecked) private var allStoredCache: [PropertyDecl]?
+    @exclusivity(unchecked) private var instancePlanCache: InstancePlan?
 
     /// This class and each it comes from, nearest first. Made once: where a class comes from does not
     /// change.
@@ -66,6 +67,19 @@ final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {
         let result = chain.reversed().flatMap(\.stored)
         allStoredCache = result
         return result
+    }
+
+    /// What an instance starts as, worked out once from the properties: each name, and whether it begins
+    /// with a literal, with what evaluating its default gives, or with nothing.
+    var instancePlan: InstancePlan {
+        if let instancePlanCache { return instancePlanCache }
+        let plan = InstancePlan(
+            allStored,
+            hasDeinit: chain.contains { $0.deinitializer != nil },
+            hasSuperclass: superclass != nil
+        )
+        instancePlanCache = plan
+        return plan
     }
 
     /// The protocols named by it and the classes it comes from.
@@ -117,12 +131,16 @@ final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {
 /// A value of a class: shared by every variable that holds it.
 final class ClassInstance: LanguageObject, @unchecked Sendable {
     let type: ClassType
+    /// What its class says of its instances, kept here so that the checks a construction makes read it
+    /// and not the class.
+    let plan: InstancePlan
     var storage: FieldTable
     /// What runs when the last reference goes (the class's `deinit`s), if any.
     var onRelease: ((ClassInstance) -> Void)?
 
     init(type: ClassType, storage: FieldTable = FieldTable()) {
         self.type = type
+        plan = type.instancePlan
         self.storage = storage
     }
 
@@ -180,5 +198,46 @@ struct FieldTable: Sequence, ExpressibleByDictionaryLiteral {
 
     func makeIterator() -> some IteratorProtocol<(key: String, value: Value)> {
         fields.lazy.map { (key: $0.name, value: $0.value) }.makeIterator()
+    }
+}
+
+/// What the instances of a class start as: for each stored property, in the order of `allStored`, its
+/// name and how it begins, which `Interpreter.initialValue(of:)` works out for one property and is the
+/// same for each instance unless its default is an expression.
+final class InstancePlan {
+    enum Start {
+        /// It has no value until the initializer sets it (a `lazy` one, or one with no default).
+        case absent
+        /// A literal of its own kind, or nil for an optional `var`.
+        case value(Value)
+        /// A default that is evaluated for each instance.
+        case evaluated
+    }
+
+    let names: [String]
+    let starts: [Start]
+    /// The names of those that must be set when an initializer ends.
+    let required: [String]
+    /// A class of the chain has a `deinit`.
+    let hasDeinit: Bool
+    /// It comes from a class, whose `init()` an initializer that does not call `super.init` runs.
+    let hasSuperclass: Bool
+
+    init(_ properties: [PropertyDecl], hasDeinit: Bool, hasSuperclass: Bool) {
+        self.hasSuperclass = hasSuperclass
+        names = properties.map(\.name)
+        required = properties.filter { !$0.isLazy }.map(\.name)
+        self.hasDeinit = hasDeinit
+        starts = properties.map { property in
+            if property.isLazy { return .absent }
+            if case .literal(let value)? = property.defaultValue, !property.isWeak,
+                property.type.map({ ParameterKind($0).accepts(value) }) ?? true
+            {
+                return .value(value)
+            }
+            if property.defaultValue != nil { return .evaluated }
+            if property.mutable, property.type?.optionalWrapped != nil { return .value(.nothing) }
+            return .absent
+        }
     }
 }
