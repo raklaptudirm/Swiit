@@ -203,6 +203,20 @@ private func aProgramTakesTheSameStepsOnBothEngines(_ program: VMSample) {
 
 private let failing: [VMSample] = [
     VMSample(
+        name: "an assignment through an index out of range, from a value that reads",
+        source: """
+            struct P { var xs = [1, 2, 3] }
+            func f(_ n: Int) -> Int {
+                var p = P()
+                let ys = [4, 5, 6]
+                p.xs[n] = ys[1] + p.xs[0]
+                return p.xs[0]
+            }
+            f(7)
+            """,
+        compiles: ["f"]
+    ),
+    VMSample(
         name: "a path with an index out of range",
         source: """
             func f(_ n: Int) -> Int {

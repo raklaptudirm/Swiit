@@ -218,4 +218,33 @@ let vmExpressions: [VMSample] = [
             """,
         compiles: ["f"]
     ),
+    VMSample(
+        name: "an assignment through a place whose value only reads: members, elements, arithmetic",
+        source: """
+            struct P { var x = 1; var y = 0; var z: Int { x * 3 }; var items = [1, 2, 3] }
+            enum Dir { case north, south }
+            struct Q { var dir = Dir.north; var count = 0 }
+            func f(_ n: Int) -> Int {
+                var p = P()
+                var grid = [[1, 1, 1], [0, 0, 0]]
+                var xs = [5, 6, 7]
+                var d = ["a": 1, "b": 2]
+                var q = Q()
+                for i in 0..<n {
+                    p.y = p.x
+                    p.x += p.y + i
+                    p.y = p.z
+                    p.items[0] = p.items[2] + p.x
+                    grid[1][i % 3] = grid[0][i % 3] + grid[1][(i + 1) % 3]
+                    xs[i % 3] = xs[(i + 1) % 3] * 2
+                    d["a"] = d["b"]! + p.y
+                    q.count = q.count + xs.count
+                    q.dir = .south
+                }
+                return p.x + p.y + p.items[0] + grid[1][0] + xs[0] + d["a"]! + q.count + (q.dir == .south ? 1 : 0)
+            }
+            f(5)
+            """,
+        compiles: ["f"]
+    ),
 ]

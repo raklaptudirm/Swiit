@@ -72,26 +72,26 @@ extension CodeCompiler {
         return found.values.sorted { $0.slot < $1.slot }
     }
 
+    /// The slots a frame for these locals has: the function's locals, and any temporary one of them is
+    /// (the value of an assignment, worked out first).
+    private func frame(of locals: [TreeLocal]) -> Int {
+        max(localCount, (locals.map { Int($0.slot) }.max() ?? -1) + 1)
+    }
+
     /// An expression the tree evaluator runs: it is given a frame with the locals it mentions.
     mutating func treeExpression(_ expression: Expr, into destination: Register) {
+        let locals = mentioned(by: expression)
         code.trees.append(
-            TreeNode(
-                source: .expression(expression),
-                locals: mentioned(by: expression),
-                frameSize: localCount
-            )
+            TreeNode(source: .expression(expression), locals: locals, frameSize: frame(of: locals))
         )
         emit(.evaluateTree(dst: destination, node: UInt32(code.trees.count - 1)))
     }
 
     /// A statement the tree evaluator runs the same way (an assignment through a path).
     mutating func treeStatement(_ statement: Statement, roots: [String]) {
+        let locals = mentioned(by: statement, plus: roots)
         code.trees.append(
-            TreeNode(
-                source: .statement(statement),
-                locals: mentioned(by: statement, plus: roots),
-                frameSize: localCount
-            )
+            TreeNode(source: .statement(statement), locals: locals, frameSize: frame(of: locals))
         )
         emit(.runTree(node: UInt32(code.trees.count - 1)))
     }

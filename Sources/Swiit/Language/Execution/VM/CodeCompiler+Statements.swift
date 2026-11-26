@@ -188,9 +188,66 @@ extension CodeCompiler {
         emit(.finished(value: Register.max, isOptionalTry: false))
     }
 
+    /// `x = v` and `p.x = v` and the rest. A value that only reads (`p.y = p.x`, `xs[i] = xs[j] + 1`) is
+    /// worked out first, into a register a hidden local names, so that what changes the place where it
+    /// is, and the tree evaluator that follows it, take it as they take a local: it is worked out once.
+    private mutating func assign(_ assignment: Assignment, _ statement: Statement) throws {
+        guard !assignment.path.isEmpty, !isPure(assignment.value), isReading(assignment.value),
+            !Interpreter.isCaseLiteral(assignment.value), keysArePure(assignment.path)
+        else { return try assignInPlace(assignment, statement) }
+        let mark = nextTemporary
+        let held = try allocate()
+        try expression(assignment.value, into: held)
+        let hidden = "$value\(held)"
+        scopes[scopes.count - 1].locals[hidden] = Local(slot: held, mutable: false)
+        defer {
+            scopes[scopes.count - 1].locals[hidden] = nil
+            nextTemporary = mark
+        }
+        var named = assignment
+        named.value = .variable(hidden)
+        try assignInPlace(named, .assign(named))
+    }
+
+    private func keysArePure(_ path: [Assignment.Step]) -> Bool {
+        path.allSatisfy { step in
+            switch step {
+            case .member, .unwrap: true
+            case .index(let key): isPure(key)
+            case .indexDefault(let key, let fallback): isPure(key) && isPure(fallback)
+            case .subscripted, .optionalChain: false
+            }
+        }
+    }
+
+    /// Whether working `value` out only reads: locals, members, elements and arithmetic of them, and
+    /// the properties and subscripts of Swift's collections that change nothing. A call may do
+    /// anything, so is not.
+    func isReading(_ value: Expr) -> Bool {
+        switch value {
+        case .literal, .local, .variable: true
+        case .member(let base, _), .forceUnwrap(let base): isReading(base)
+        case .index(let base, let key): isReading(base) && isReading(key)
+        case .unary(_, let operand): isReading(operand)
+        case .binary(let op, let lhs, let rhs):
+            op != .closedRange && op != .halfOpenRange && !Interpreter.isCaseLiteral(lhs)
+                && !Interpreter.isCaseLiteral(rhs) && isReading(lhs) && isReading(rhs)
+        case .bridged(let type, let member, let receiver?, let arguments):
+            if let found = bridged[type]?.lowered, member < found.count,
+                found[member].kind == .property
+                    || (found[member].name == "subscript" && !found[member].isMutating)
+            {
+                isReading(receiver) && arguments.allSatisfy { isReading($0.value) }
+            } else {
+                false
+            }
+        default: false
+        }
+    }
+
     /// `x = v` and `x += v` of a local, or of a variable that is not (a global, or one a closure
     /// captured) which the tree evaluator assigns by name.
-    private mutating func assign(_ assignment: Assignment, _ statement: Statement) throws {
+    private mutating func assignInPlace(_ assignment: Assignment, _ statement: Statement) throws {
         // Through a path (`p.x = 1`, `xs[i] += 1`), or to a constant, which fails as it does there: the
         // tree evaluator's, which finds the root in a frame of the locals the statement mentions.
         let known = lookup(assignment.root)

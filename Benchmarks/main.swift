@@ -16,6 +16,14 @@ struct Case {
 
 let cases = [
     Case(
+        name: "fn: struct field update, 200k",
+        source: """
+            struct P { var x = 0; var y = 0 }
+            func run() -> Int { var p = P(); for _ in 1...200_000 { p.x += 1; p.y = p.x }; return p.y }
+            run()
+            """
+    ),
+    Case(
         name: "closed range loop in a function, 1M",
         source: "func f() -> Int { var s = 0; for i in 1...1_000_000 { s += i }; return s }\nf()"
     ),
