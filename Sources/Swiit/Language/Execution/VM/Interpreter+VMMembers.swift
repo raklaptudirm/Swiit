@@ -452,7 +452,7 @@ extension Interpreter {
             storeAt: cursor.base + Int(operands.receiver),
             storeIn: storeIn
         )
-        stack.callers.append(
+        stack.push(
             VMCaller(
                 code: cursor.code,
                 function: cursor.function,
@@ -461,10 +461,9 @@ extension Interpreter {
                 base: cursor.base,
                 statement: cursor.statement,
                 destination: cursor.base + Int(operands.dst),
-                scopes: saved,
-                sameScopes: false,
                 isMethod: true
-            )
+            ),
+            scopes: saved
         )
         stack.methodExits.append(exit)
         stack.ensure(argumentBase + target.code.frameSize)

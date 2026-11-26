@@ -50,6 +50,7 @@ extension Interpreter {
             leaveFrame(function, code, base: cursor.base, stack)
             guard stack.callers.count > entryDepth else { throw error }
             let caller = stack.callers.removeLast()
+            defer { caller.releaseCallee() }
             if caller.isMethod { abandonMethod(stack.methodExits.removeLast(), on: stack) }
             cursor = VMCursor(
                 function: caller.function,
@@ -58,8 +59,8 @@ extension Interpreter {
                 pc: caller.pc,
                 statement: caller.statement
             )
-            if let own = caller.scopes {
-                task.scopes = own
+            if caller.hasScopes {
+                task.scopes = stack.savedScopes.removeLast()
             } else {
                 setScopes(of: caller.function, from: function, task)
             }

@@ -8,6 +8,11 @@ struct VMCursor {
     var base: Int
     var pc: Int
     var statement: Int32
+
+    /// The function and its code, uncounted.
+    var refs: (Unmanaged<Function>, Unmanaged<Code>) {
+        (.passUnretained(function), .passUnretained(code))
+    }
 }
 
 /// What a call site calls, found without leaving the loop.
@@ -18,26 +23,79 @@ struct VMTarget {
     let sharesScopes: Bool
 }
 
-/// A caller's place while the function it called runs.
+/// A caller's place while the function it called runs. It holds no Swift references that are counted,
+/// so pushing and popping one is a copy of plain words; the function it calls is retained by hand,
+/// and `releaseCallee` lets it go.
 struct VMCaller {
     // Not counted: the caller is held by the frame under this one, or is the entry.
-    unowned(unsafe) var code: Code
-    unowned(unsafe) var function: Function
-    /// The function this call runs, which keeps it alive while it does: the loop does not count the
-    /// function it is in.
-    var callee: Function
+    let codeRef: Unmanaged<Code>
+    let functionRef: Unmanaged<Function>
+    /// The function this call runs, retained, which keeps it alive while it does: the loop does not
+    /// count the function it is in.
+    let calleeRef: Unmanaged<Function>
     var pc: Int
     var base: Int
     var statement: Int32
     /// The register, counted from the stack's start, the callee's result goes to.
     var destination: Int
-    /// The scopes the caller ran in, when it had a scope of its own (a method's `self`, a generic
-    /// function's types) that is not what it captured; nil otherwise.
-    var scopes: [Scope]?
+    /// The scopes the caller ran in were kept in `VMStack.savedScopes`: it had scopes of its own (a
+    /// method's `self`, a generic function's types) that are not what it captured.
+    var hasScopes = false
     /// The call left the scopes as they were, so returning leaves them so.
     var sameScopes = false
     /// A method the loop called with a scope of its own: its `MethodExit` is the last of `methodExits`.
     var isMethod = false
+
+    /// A record made from references the loop already holds uncounted, which keeps Swift from
+    /// counting them again.
+    init(
+        codeRef: Unmanaged<Code>,
+        functionRef: Unmanaged<Function>,
+        calleeRef: Unmanaged<Function>,
+        pc: Int,
+        base: Int,
+        statement: Int32,
+        destination: Int,
+        sameScopes: Bool = false
+    ) {
+        self.codeRef = codeRef
+        self.functionRef = functionRef
+        self.calleeRef = calleeRef.retain()
+        self.pc = pc
+        self.base = base
+        self.statement = statement
+        self.destination = destination
+        self.sameScopes = sameScopes
+    }
+
+    init(
+        code: Code,
+        function: Function,
+        callee: Function,
+        pc: Int,
+        base: Int,
+        statement: Int32,
+        destination: Int,
+        sameScopes: Bool = false,
+        isMethod: Bool = false
+    ) {
+        codeRef = .passUnretained(code)
+        functionRef = .passUnretained(function)
+        calleeRef = .passRetained(callee)
+        self.pc = pc
+        self.base = base
+        self.statement = statement
+        self.destination = destination
+        self.sameScopes = sameScopes
+        self.isMethod = isMethod
+    }
+
+    var code: Code { codeRef.takeUnretainedValue() }
+    var function: Function { functionRef.takeUnretainedValue() }
+    var callee: Function { calleeRef.takeUnretainedValue() }
+
+    /// The call is over: what the record held of its callee is let go.
+    func releaseCallee() { calleeRef.release() }
 }
 
 /// What returning from a method the loop called undoes besides leaving its frame.
@@ -66,6 +124,8 @@ final class VMStack {
     /// The first register no frame uses.
     @exclusivity(unchecked) var top = 0
     let callers = CallerStack()
+    /// The scopes of the callers that had scopes of their own, innermost last.
+    @exclusivity(unchecked) var savedScopes: [[Scope]] = []
     /// What the initializers the loop is in the middle of calling make of the value they were run on when
     /// they return, innermost last.
     @exclusivity(unchecked) var completions: [Completion] = []
@@ -109,6 +169,17 @@ final class VMStack {
         }
     }
 
+    /// A caller's record, and the scopes it ran in when they are not what it captured.
+    @inline(__always)
+    func push(_ caller: VMCaller, scopes: [Scope]? = nil) {
+        var record = caller
+        if let scopes {
+            savedScopes.append(scopes)
+            record.hasScopes = true
+        }
+        callers.append(record)
+    }
+
     /// Room for `needed` registers. A stack that grows moves, so a pointer into it is taken again
     /// afterward.
     func ensure(_ needed: Int) {
@@ -141,7 +212,7 @@ final class CallerStack {
     private(set) var count = 0
 
     deinit {
-        records.deinitialize(count: count)
+        for index in 0..<count { records[index].releaseCallee() }
         records.deallocate()
     }
 
@@ -155,7 +226,7 @@ final class CallerStack {
     @inline(__always)
     func removeLast() -> VMCaller {
         count -= 1
-        return (records + count).move()
+        return records[count]
     }
 
     private func grow() {

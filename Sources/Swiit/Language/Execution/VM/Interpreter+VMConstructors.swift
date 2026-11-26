@@ -234,7 +234,7 @@ extension Interpreter {
         task.scopes = inside
         if let owner = initializer.owner { task.owners.append(owner) }
         task.callDepth += 1
-        stack.callers.append(
+        stack.push(
             VMCaller(
                 code: cursor.code,
                 function: cursor.function,
@@ -243,10 +243,9 @@ extension Interpreter {
                 base: cursor.base,
                 statement: cursor.statement,
                 destination: cursor.base + Int(call.dst),
-                scopes: saved,
-                sameScopes: false,
                 isMethod: true
-            )
+            ),
+            scopes: saved
         )
         stack.methodExits.append(
             MethodExit(

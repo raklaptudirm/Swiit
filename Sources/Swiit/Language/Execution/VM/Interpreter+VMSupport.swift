@@ -18,6 +18,7 @@ extension Interpreter {
         leaveFrame(callee, calleeCode, base: cursor.base, stack)
         if stack.callers.count == entryDepth { return result }
         let caller = stack.callers.removeLast()
+        defer { caller.releaseCallee() }
         cursor = VMCursor(
             function: caller.function,
             code: caller.code,
@@ -25,8 +26,8 @@ extension Interpreter {
             pc: caller.pc,
             statement: caller.statement
         )
-        if let own = caller.scopes {
-            task.scopes = own
+        if caller.hasScopes {
+            task.scopes = stack.savedScopes.removeLast()
         } else if !caller.sameScopes {
             setScopes(of: caller.function, from: callee, task)
         }
@@ -38,15 +39,6 @@ extension Interpreter {
             ?? (calleeCode.returnKind.accepts(result) ? result : conformed(result, to: callee))
         stack.base[caller.destination] = conforming
         return nil
-    }
-
-    /// `checkInterrupt` for the loop, which has the task and its run in hand.
-    @inline(__always)
-    func tick(_ stop: UnsafeMutablePointer<Int32>, _ run: RunState) throws {
-        if hasPendingDeinits { runPendingDeinits() }
-        if stop.pointee != 0 { throw Cancelled() }
-        run.stepsUntilCheck -= 1
-        if run.stepsUntilCheck <= 0 { try checkLimits() }
     }
 
     /// The cell a captured local is kept in.

@@ -45,6 +45,9 @@ extension Interpreter {
         var statement: Int32 = -1
         var regs = stack.base + base
         var instructions = code.program
+        // The same two, uncounted: reading `function` and `code` makes Swift count them.
+        var functionRef = Unmanaged.passUnretained(function)
+        var codeRef = Unmanaged.passUnretained(code)
         let observing = host.didFinishStatement != nil
 
         while true {
@@ -278,18 +281,24 @@ extension Interpreter {
                         // What the site called last time, while the names are as they were.
                         unowned(unsafe) var callee = function
                         unowned(unsafe) var calleeCode = code
+                        var calleeRef = functionRef
+                        var calleeCodeRef = codeRef
                         var sharesScopes = false
                         var found = false
                         if site.cachedVersion == scopeVersion,
                             site.cachedCaller == ObjectIdentifier(function)
                         {
-                            callee = site.cachedCallee.unsafelyUnwrapped.takeUnretainedValue()
-                            calleeCode = site.cachedCode.unsafelyUnwrapped.takeUnretainedValue()
+                            calleeRef = site.cachedCallee.unsafelyUnwrapped
+                            calleeCodeRef = site.cachedCode.unsafelyUnwrapped
+                            callee = calleeRef.takeUnretainedValue()
+                            calleeCode = calleeCodeRef.takeUnretainedValue()
                             sharesScopes = site.cachedSharesScopes
                             found = true
                         } else if let target = vmTarget(of: site, from: function) {
                             (callee, calleeCode, sharesScopes) =
                                 (target.function, target.code, target.sharesScopes)
+                            calleeRef = .passUnretained(callee)
+                            calleeCodeRef = .passUnretained(calleeCode)
                             found = true
                             // Not cached: a call that leaves out parameters places its arguments.
                             if site.lastDefaults, let mapping = site.lastMapping {
@@ -315,20 +324,20 @@ extension Interpreter {
                                 )
                                 break
                             }
-                            stack.callers.append(
+                            stack.push(
                                 VMCaller(
-                                    code: code,
-                                    function: function,
-                                    callee: callee,
+                                    codeRef: codeRef,
+                                    functionRef: functionRef,
+                                    calleeRef: calleeRef,
                                     pc: pc,
                                     base: base,
                                     statement: statement,
                                     destination: base + Int(dst),
-                                    scopes: sameScopes
-                                        || task.scopes.count == function.captured.count
-                                        ? nil : task.scopes,
                                     sameScopes: sameScopes
-                                )
+                                ),
+                                scopes: sameScopes
+                                    || task.scopes.count == function.captured.count
+                                    ? nil : task.scopes
                             )
                             stack.ensure(argumentBase + calleeCode.frameSize)
                             stack.top = argumentBase + calleeCode.frameSize
@@ -336,6 +345,8 @@ extension Interpreter {
                             task.callDepth += 1
                             function = callee
                             code = calleeCode
+                            functionRef = calleeRef
+                            codeRef = calleeCodeRef
                             instructions = calleeCode.program
                             base = argumentBase
                             pc = 0
@@ -358,12 +369,10 @@ extension Interpreter {
                                 regs = stack.base + base
                                 regs[Int(dst)] = value
                             } else {
-                                (function, code, base, pc, statement) =
-                                    (
-                                        cursor.function, cursor.code, cursor.base, cursor.pc,
-                                        cursor.statement
-                                    )
+                                (function, code) = (cursor.function, cursor.code)
+                                (base, pc, statement) = (cursor.base, cursor.pc, cursor.statement)
                                 instructions = code.program
+                                (functionRef, codeRef) = cursor.refs
                                 regs = stack.base + base
                             }
                         }
@@ -404,18 +413,8 @@ extension Interpreter {
                                 throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
                             }
                             try tick(stop, run)
-                            let kinds = calleeCode.kindTable
-                            for index in 0..<calleeCode.parameterCount
-                            where !kinds[index].accepts(at: stack.base + argumentBase + index) {
-                                try checkArguments(
-                                    of: callee,
-                                    calleeCode,
-                                    at: argumentBase,
-                                    on: stack
-                                )
-                                break
-                            }
-                            stack.callers.append(
+                            try checkKinds(callee, calleeCode, at: argumentBase, on: stack)
+                            stack.push(
                                 VMCaller(
                                     code: code,
                                     function: function,
@@ -423,10 +422,10 @@ extension Interpreter {
                                     pc: pc,
                                     base: base,
                                     statement: statement,
-                                    destination: base + Int(dst),
-                                    scopes: task.scopes.count == function.captured.count
-                                        ? nil : task.scopes
-                                )
+                                    destination: base + Int(dst)
+                                ),
+                                scopes: task.scopes.count == function.captured.count
+                                    ? nil : task.scopes
                             )
                             stack.ensure(argumentBase + calleeCode.frameSize)
                             stack.top = argumentBase + calleeCode.frameSize
@@ -434,6 +433,8 @@ extension Interpreter {
                             task.callDepth += 1
                             function = callee
                             code = calleeCode
+                            functionRef = .passUnretained(callee)
+                            codeRef = .passUnretained(calleeCode)
                             instructions = calleeCode.program
                             base = argumentBase
                             pc = 0
@@ -518,12 +519,10 @@ extension Interpreter {
                             regs[Int(dst)] = read
                         } else {
                             // A computed property's getter, which is a frame above this one's registers.
-                            (function, code, base, pc, statement) =
-                                (
-                                    cursor.function, cursor.code, cursor.base, cursor.pc,
-                                    cursor.statement
-                                )
+                            (function, code) = (cursor.function, cursor.code)
+                            (base, pc, statement) = (cursor.base, cursor.pc, cursor.statement)
                             instructions = code.program
+                            (functionRef, codeRef) = cursor.refs
                             regs = stack.base + base
                         }
                     case .callMethod(
@@ -547,12 +546,10 @@ extension Interpreter {
                             offset: offset
                         )
                         if try enterMethod(code.methods[Int(siteIndex)], operands, &cursor, stack) {
-                            (function, code, base, pc, statement) =
-                                (
-                                    cursor.function, cursor.code, cursor.base, cursor.pc,
-                                    cursor.statement
-                                )
+                            (function, code) = (cursor.function, cursor.code)
+                            (base, pc, statement) = (cursor.base, cursor.pc, cursor.statement)
                             instructions = code.program
+                            (functionRef, codeRef) = cursor.refs
                             regs = stack.base + base
                         }
                     case .loadGlobal(let dst, let siteIndex):
@@ -619,14 +616,17 @@ extension Interpreter {
                             VMStack.clear(regs, count: finishedCode.frameSize)
                             task.callDepth -= 1
                             let caller = stack.callers.removeLast()
-                            function = caller.function
-                            code = caller.code
+                            defer { caller.releaseCallee() }
+                            functionRef = caller.functionRef
+                            codeRef = caller.codeRef
+                            function = functionRef._withUnsafeGuaranteedRef { $0 }
+                            code = codeRef._withUnsafeGuaranteedRef { $0 }
                             instructions = code.program
                             base = caller.base
                             pc = caller.pc
                             statement = caller.statement
-                            if let own = caller.scopes {
-                                task.scopes = own
+                            if caller.hasScopes {
+                                task.scopes = stack.savedScopes.removeLast()
                             } else if !caller.sameScopes {
                                 setScopes(of: function, from: caller.callee, task)
                             }
@@ -660,19 +660,18 @@ extension Interpreter {
                             )
                         } catch {
                             // The frame is left before what finishes it fails: the error is the caller's.
-                            (function, code, base, pc, statement) =
-                                (
-                                    cursor.function, cursor.code, cursor.base, cursor.pc,
-                                    cursor.statement
-                                )
+                            (function, code) = (cursor.function, cursor.code)
+                            (base, pc, statement) = (cursor.base, cursor.pc, cursor.statement)
                             instructions = code.program
+                            (functionRef, codeRef) = cursor.refs
                             regs = stack.base + base
                             throw error
                         }
                         if let left { return left }
-                        (function, code, base, pc, statement) =
-                            (cursor.function, cursor.code, cursor.base, cursor.pc, cursor.statement)
+                        (function, code) = (cursor.function, cursor.code)
+                        (base, pc, statement) = (cursor.base, cursor.pc, cursor.statement)
                         instructions = code.program
+                        (functionRef, codeRef) = cursor.refs
                         regs = stack.base + base
                     }
                 }
@@ -685,9 +684,10 @@ extension Interpreter {
                     statement: statement
                 )
                 try unwind(error, &cursor, entryDepth: entryDepth, on: stack)
-                (function, code, base, pc, statement) =
-                    (cursor.function, cursor.code, cursor.base, cursor.pc, cursor.statement)
+                (function, code) = (cursor.function, cursor.code)
+                (base, pc, statement) = (cursor.base, cursor.pc, cursor.statement)
                 instructions = code.program
+                (functionRef, codeRef) = cursor.refs
                 regs = stack.base + base
             }
         }
