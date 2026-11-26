@@ -544,6 +544,8 @@ final class Code {
     /// The register of `self` holds its value, not the cell of it: a method that does not change `self`
     /// (a struct's, an enum's or an extension's) reads the receiver as it is, and makes no cell.
     @exclusivity(unchecked) var selfByValue = false
+    /// The body names `super`, which needs the class it belongs to pushed as it is called.
+    @exclusivity(unchecked) var usesSuper = false
     /// Its function belongs to a class, which a call pushes for `super`.
     @exclusivity(unchecked) var hasOwner = false
     /// The same for an initializer, whose `self` is `.initializing`.

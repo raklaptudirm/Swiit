@@ -51,6 +51,8 @@ struct CodeCompiler {
     var code = Code()
     /// The function is a method that changes its receiver, other than an initializer.
     var changesSelf = false
+    /// `self` is a class's instance, a reference.
+    var selfIsReference = false
     /// The function is a method, other than an initializer, whose `self` may be a class's.
     var isMethod = false
     /// The function is an initializer, whose `self` is being made.
@@ -120,9 +122,13 @@ struct CodeCompiler {
             isInitializer = function.isInitializer
             code.isMethodBody = isMethod
             code.isInitializerBody = isInitializer
+            // A class's method holds the reference to the instance, which it changes where it is: `self`
+            // is held as a value unless `super` needs the cell. A struct's must not be assigned through.
+            code.usesSuper = mentionsSuper(body)
+            selfIsReference = function.owner != nil
             code.selfByValue =
-                function.name != nil && function.owner == nil && !function.isMutating
-                && !function.isInitializer && !assignsToSelf(body)
+                function.name != nil && !function.isMutating && !function.isInitializer
+                && (selfIsReference ? !code.usesSuper : !assignsToSelf(body))
         }
         code.isFailable = function.isFailable
         code.hasOwner = function.owner != nil

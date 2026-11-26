@@ -54,16 +54,17 @@ extension Interpreter {
                 cursor.pc += Int(offset)
             }
         case .assignSelfMember(let cell, let siteIndex, let op, let value, let offset):
-            if case .object(let object) = regs[Int(cell)].storage,
-                let cell = object as? Binding.Cell,
-                setMember(
-                    cursor.code.members[Int(siteIndex)],
-                    in: cell,
-                    op,
-                    regs[Int(value)]
-                )
-            {
-                cursor.pc += Int(offset)
+            // The register holds the cell of `self`, or, in a class's method, the instance.
+            if case .object(let object) = regs[Int(cell)].storage {
+                let site = cursor.code.members[Int(siteIndex)]
+                var done = false
+                if let cell = object as? Binding.Cell {
+                    done = setMember(site, in: cell, op, regs[Int(value)])
+                } else if object is ClassInstance {
+                    var held = regs[Int(cell)]
+                    done = setMember(site, &held, op, regs[Int(value)])
+                }
+                if done { cursor.pc += Int(offset) }
             }
         case .callBridged(let dst, let siteIndex, let receiver, let arguments):
             let value = try callBridged(

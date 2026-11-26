@@ -158,13 +158,25 @@ final class VMStack {
         base.deallocate()
     }
 
-    /// Whether a register holds a struct of the type, which is not copied to be looked at.
+    /// Whether a register holds a struct of the type `type`, or an instance of the class `klass`: the
+    /// receiver a method site found its method for. The value is not copied to be looked at.
     @inline(__always)
-    static func isStruct(at register: UnsafeMutablePointer<Value>, of type: TypeRef?) -> Bool {
-        if case .structure(let structure) = register.pointee.storage {
-            return structure.typeRefIfAny == type
+    static func receiverFits(
+        at register: UnsafeMutablePointer<Value>,
+        struct type: TypeRef?,
+        instance klass: ObjectIdentifier?
+    ) -> Bool {
+        switch register.pointee.storage {
+        case .structure(let structure):
+            return type != nil && structure.typeRefIfAny == type
+        case .object(let object):
+            guard let klass,
+                ObjectIdentifier(Swift.type(of: object)) == ObjectIdentifier(ClassInstance.self)
+            else { return false }
+            return ObjectIdentifier(unsafeDowncast(object, to: ClassInstance.self).type) == klass
+        default:
+            return false
         }
-        return false
     }
 
     /// The integer in a register, which is not copied to be looked at.

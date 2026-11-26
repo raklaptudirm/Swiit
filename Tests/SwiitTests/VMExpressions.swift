@@ -388,4 +388,40 @@ let vmExpressions: [VMSample] = [
             """,
         compiles: ["run"]
     ),
+    VMSample(
+        name:
+            "a class's methods through the loop's own calls: overrides, super, self changes, observers",
+        source: """
+            class Animal {
+                var name: String
+                var energy = 10 { didSet { if energy < 0 { energy = 0 } } }
+                var log: [Int] = []
+                init(name: String) { self.name = name }
+                func sound() -> String { "..." }
+                func tire(_ n: Int) -> Int { energy -= n; log.append(energy); return energy }
+                func twice() -> String { sound() + self.sound() }
+                func depth(_ m: Int) -> Int { m == 0 ? energy : depth(m - 1) + 1 }
+                func later(_ n: Int) -> () -> Int { { [weak self] in (self?.energy ?? -1) + n } }
+            }
+            class Dog: Animal {
+                override func sound() -> String { "woof" }
+                override func tire(_ n: Int) -> Int { super.tire(n * 2) }
+            }
+            class Cat: Animal { override func sound() -> String { "meow" } }
+            func f(_ n: Int) -> String {
+                let animals: [Animal] = [Animal(name: "a"), Dog(name: "d"), Cat(name: "c")]
+                var out = ""
+                var total = 0
+                for i in 0..<n {
+                    for animal in animals {
+                        out += animal.sound()
+                        total += animal.tire(i % 3) + animal.depth(2) + animal.later(i)()
+                    }
+                }
+                return out + animals.map { $0.twice() }.joined() + "\\(total) \\(animals[1].log.count)"
+            }
+            print(f(4), f(8))
+            """,
+        compiles: ["f"]
+    ),
 ]

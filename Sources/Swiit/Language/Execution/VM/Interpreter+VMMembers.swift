@@ -346,13 +346,15 @@ extension Interpreter {
     ) {
         site.fastVersion = -1
         guard site.global == nil, !site.isSuper, !site.isGetter, target.mapping == nil,
-            !target.isClass, !target.function.isMutating, target.function.owner == nil, !ownScope,
-            site.sharesScopes, !extended, !target.code.isInitializerBody,
-            target.code.selfRegister == nil || target.code.selfByValue, site.type != nil
+            !target.function.isMutating, !ownScope, site.sharesScopes, !extended,
+            !target.code.isInitializerBody, !target.code.usesSuper,
+            target.code.selfRegister == nil || target.code.selfByValue,
+            target.isClass ? site.classType != nil : site.type != nil
         else { return }
         site.fastFunction = .passUnretained(target.function)
         site.fastCode = .passUnretained(target.code)
-        site.fastType = site.type
+        site.fastType = target.isClass ? nil : site.type
+        site.fastClass = target.isClass ? site.classType : nil
         site.fastCaller = ObjectIdentifier(caller)
         site.fastVersion = scopeVersion
     }

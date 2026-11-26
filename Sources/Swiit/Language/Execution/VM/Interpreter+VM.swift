@@ -480,7 +480,7 @@ extension Interpreter {
                                 == functionRef._withUnsafeGuaranteedRef({
                                     ObjectIdentifier($0)
                                 }),
-                            VMStack.isStruct(at: regs + Int(receiver), of: methodSite.fastType),
+                            methodSite.receiverFits(at: regs + Int(receiver)),
                             task.scopes.count == own.capturedCount,
                             task.callDepth < maxCallDepth
                         {

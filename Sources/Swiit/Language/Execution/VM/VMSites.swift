@@ -160,6 +160,13 @@ final class MethodSite {
     @exclusivity(unchecked) var fastVersion = -1
     @exclusivity(unchecked) var fastCaller: ObjectIdentifier?
     @exclusivity(unchecked) var fastType: TypeRef?
+    @exclusivity(unchecked) var fastClass: ObjectIdentifier?
+
+    /// Whether the register holds a receiver of the kind the fast path found its method for.
+    @inline(__always)
+    func receiverFits(at register: UnsafeMutablePointer<Value>) -> Bool {
+        VMStack.receiverFits(at: register, struct: fastType, instance: fastClass)
+    }
     @exclusivity(unchecked) var fastFunction: Unmanaged<Function>?
     @exclusivity(unchecked) var fastCode: Unmanaged<Code>?
 

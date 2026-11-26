@@ -45,6 +45,13 @@ extension CodeCompiler {
         return mentions.names.contains("self") || mentions.names.contains("super")
     }
 
+    /// Whether a body names `super`, in its own code or in a closure's.
+    func mentionsSuper(_ body: Program) -> Bool {
+        var mentions = Mentions()
+        mentions.collect(body)
+        return mentions.names.contains("super")
+    }
+
     /// Whether a body assigns to `self` or a part of it, in its own code or a closure's: then the value
     /// of `self` is changed while it runs, and is kept in a cell.
     func assignsToSelf(_ body: Program) -> Bool {
