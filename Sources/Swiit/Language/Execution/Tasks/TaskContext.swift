@@ -53,6 +53,13 @@ final class TaskContext {
     /// waits for it as it closes.
     @exclusivity(unchecked) var children: [(depth: Int, handle: ScriptTask)] = []
 
+    /// Whether its scopes are these, the same objects in the same order.
+    func scopes(are wanted: [Scope]) -> Bool {
+        guard scopes.count == wanted.count else { return false }
+        for index in wanted.indices where scopes[index] !== wanted[index] { return false }
+        return true
+    }
+
     init(globals: [Scope], host: AnyObject? = nil, run: RunState = RunState(limits: .init())) {
         self.scopes = globals
         self.host = host

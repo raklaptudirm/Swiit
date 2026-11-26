@@ -199,7 +199,59 @@ extension Interpreter {
             }
             stack.base[cursor.base + Int(dst)] = result
         default:
-            preconditionFailure("not a value instruction")
+            try executeControlInstruction(instruction, &cursor, stack)
+        }
+    }
+
+    /// `executeMemberInstruction` for matching a pattern, and the errors a `switch`, a `throw`, a
+    /// `catch` and a `guard` give.
+    func executeControlInstruction(
+        _ instruction: Instruction,
+        _ cursor: inout VMCursor,
+        _ stack: VMStack
+    ) throws {
+        var regs = stack.base + cursor.base
+        switch instruction {
+        case .match(let patternIndex, let value, let fail):
+            let site = cursor.code.patterns[Int(patternIndex)]
+            var bindings: [String: Binding] = [:]
+            let matched = try match(site.pattern, regs[Int(value)], into: &bindings)
+            regs = stack.base + cursor.base
+            if matched {
+                for (name, register) in site.slots {
+                    regs[Int(register)] = bindings[name]?.value ?? .nothing
+                }
+            } else {
+                cursor.pc += Int(fail)
+            }
+        case .jumpIfWhereFalse(let condition, let offset):
+            guard case .bool(let truth) = regs[Int(condition)].storage else {
+                throw RuntimeError(
+                    "a case's where must be a Bool, not \(regs[Int(condition)].typeName)"
+                )
+            }
+            if !truth { cursor.pc += Int(offset) }
+        case .noMatch(let value):
+            let subject = regs[Int(value)]
+            let shown = subject.description.isEmpty ? subject.typeName : subject.description
+            throw RuntimeError("switch over \(shown) matched no case; add one, or a default")
+        case .throwValue(let register):
+            let value = regs[Int(register)]
+            throw RuntimeError((try? describing(value)) ?? value.description, thrown: value)
+        case .fatalize:
+            let error = stack.caught.removeLast()
+            guard let runtime = error as? RuntimeError else { throw error }
+            throw FatalError(error: runtime)
+        case .reportDeferred:
+            report("error: \(stack.caught.removeLast())")
+        case .guardCarriedOn:
+            throw RuntimeError("guard's else carried on")
+        case .deferMark(let register, let bit):
+            if case .int(let marks) = regs[Int(register)].storage {
+                regs[Int(register)] = .int(marks | (1 << Int(bit)))
+            }
+        default:
+            preconditionFailure("not a control instruction")
         }
     }
 

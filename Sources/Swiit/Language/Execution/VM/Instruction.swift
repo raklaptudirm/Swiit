@@ -395,6 +395,16 @@ enum ParameterKind: UInt8 {
     }
 }
 
+/// What the loop reads of a function's code as it calls it or returns from it, as plain values: taken
+/// from the code in one step, so that Swift does not count the code to read each of them.
+struct CodeFacts {
+    let kinds: UnsafeMutablePointer<ParameterKind>
+    let parameterCount: Int
+    let frameSize: Int
+    let program: UnsafeMutablePointer<Instruction>
+    let returnKind: ParameterKind
+}
+
 /// What a function body compiled to.
 final class Code {
     @exclusivity(unchecked) var instructions: [Instruction] = []
@@ -426,6 +436,13 @@ final class Code {
         kindTable.deallocate()
         kindTable = .allocate(capacity: max(1, parameterKinds.count))
         kindTable.initialize(from: parameterKinds, count: parameterKinds.count)
+        facts = CodeFacts(
+            kinds: kindTable,
+            parameterCount: parameterCount,
+            frameSize: frameSize,
+            program: program,
+            returnKind: returnKind
+        )
     }
 
     deinit {
@@ -468,6 +485,18 @@ final class Code {
     @exclusivity(unchecked) var ranges: [SourceRange?] = []
     /// How many registers a run of it uses: the locals the frame resolver counted, then temporaries.
     @exclusivity(unchecked) var frameSize = 0
+    /// What the loop reads of it, made by `seal` when the compiler is done.
+    @exclusivity(unchecked) private(set) var facts: CodeFacts
+
+    init() {
+        facts = CodeFacts(
+            kinds: kindTable,
+            parameterCount: 0,
+            frameSize: 0,
+            program: program,
+            returnKind: .any
+        )
+    }
     @exclusivity(unchecked) var parameterCount = 0
     /// What each parameter asks of an argument, for the common types a call can check at a glance.
     @exclusivity(unchecked) var parameterKinds: [ParameterKind] = []
@@ -492,6 +521,8 @@ final class Code {
     /// function captured, and the scope that binds `self` by name is made when something looks for it
     /// (`Interpreter.ensureSelfScope`).
     @exclusivity(unchecked) var isMethodBody = false
+    /// Its function belongs to a class, which a call pushes for `super`.
+    @exclusivity(unchecked) var hasOwner = false
     /// The same for an initializer, whose `self` is `.initializing`.
     @exclusivity(unchecked) var isInitializerBody = false
     /// Something in it looks names up in the scopes: a tree node, an evaluation by name, a closure.

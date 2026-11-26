@@ -36,7 +36,8 @@ extension Interpreter {
         let run = task.run
         let maxCallDepth = run.maxCallDepth
         let stop = task.cancellation.word
-        let entryDepth = stack.callers.count
+        let callers = stack.callers
+        let entryDepth = callers.count
         unowned(unsafe) var function = entry
         unowned(unsafe) var code = entryCode
         var base = entryBase
@@ -209,56 +210,12 @@ extension Interpreter {
                         }
                         VMStack.put(.int(next), at: regs + Int(variable))
                         VMStack.put(.int(next + 1), at: regs + Int(counter))
-                    case .match(let patternIndex, let value, let fail):
-                        let site = code.patterns[Int(patternIndex)]
-                        var bindings: [String: Binding] = [:]
-                        let matched = try match(site.pattern, regs[Int(value)], into: &bindings)
-                        regs = stack.base + base
-                        if matched {
-                            for (name, register) in site.slots {
-                                regs[Int(register)] = bindings[name]?.value ?? .nothing
-                            }
-                        } else {
-                            pc += Int(fail)
-                        }
-                    case .jumpIfWhereFalse(let condition, let offset):
-                        guard case .bool(let truth) = regs[Int(condition)].storage else {
-                            throw RuntimeError(
-                                "a case's where must be a Bool, not \(regs[Int(condition)].typeName)"
-                            )
-                        }
-                        if !truth { pc += Int(offset) }
-                    case .noMatch(let value):
-                        let subject = regs[Int(value)]
-                        let shown =
-                            subject.description.isEmpty ? subject.typeName : subject.description
-                        throw RuntimeError(
-                            "switch over \(shown) matched no case; add one, or a default"
-                        )
                     case .jumpIfNil(let register, let offset):
                         if regs[Int(register)] == .nothing { pc += Int(offset) }
-                    case .throwValue(let register):
-                        let value = regs[Int(register)]
-                        throw RuntimeError(
-                            (try? describing(value)) ?? value.description,
-                            thrown: value
-                        )
                     case .caughtTaken:
                         stack.caught.removeLast()
                     case .rethrow:
                         throw stack.caught.removeLast()
-                    case .fatalize:
-                        let error = stack.caught.removeLast()
-                        guard let runtime = error as? RuntimeError else { throw error }
-                        throw FatalError(error: runtime)
-                    case .reportDeferred:
-                        report("error: \(stack.caught.removeLast())")
-                    case .guardCarriedOn:
-                        throw RuntimeError("guard's else carried on")
-                    case .deferMark(let register, let bit):
-                        if case .int(let marks) = regs[Int(register)].storage {
-                            regs[Int(register)] = .int(marks | (1 << Int(bit)))
-                        }
                     case .jumpIfNotDeferred(let register, let bit, let offset):
                         if case .int(let marks) = regs[Int(register)].storage,
                             marks & (1 << Int(bit)) != 0
@@ -272,7 +229,10 @@ extension Interpreter {
                     case .quietEnd:
                         observesStatements = stack.quiet.removeLast()
                     case .call(let dst, let siteIndex, let arguments):
-                        unowned(unsafe) let site = code.callSiteTable[Int(siteIndex)]
+                        unowned(unsafe) let site =
+                            codeRef._withUnsafeGuaranteedRef {
+                                $0.callSiteTable[Int(siteIndex)]
+                            }
                             .takeUnretainedValue()
                         let argumentBase = base + Int(arguments)
                         // What the site called last time, while the names are as they were.
@@ -283,7 +243,8 @@ extension Interpreter {
                         var sharesScopes = false
                         var found = false
                         if site.cachedVersion == scopeVersion,
-                            site.cachedCaller == ObjectIdentifier(function)
+                            site.cachedCaller
+                                == functionRef._withUnsafeGuaranteedRef { ObjectIdentifier($0) }
                         {
                             calleeRef = site.cachedCallee.unsafelyUnwrapped
                             calleeCodeRef = site.cachedCode.unsafelyUnwrapped
@@ -305,14 +266,16 @@ extension Interpreter {
                         }
                         if found {
                             // The scopes are the caller's own and stay so: nothing to save or set.
-                            let sameScopes = sharesScopes && code.isPlain
+                            let sameScopes =
+                                sharesScopes && codeRef._withUnsafeGuaranteedRef { $0.isPlain }
                             guard task.callDepth < maxCallDepth else {
                                 throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
                             }
                             try tick(stop, run)
-                            let kinds = calleeCode.kindTable
-                            for index in 0..<calleeCode.parameterCount
-                            where !kinds[index].accepts(at: stack.base + argumentBase + index) {
+                            let facts = calleeCodeRef._withUnsafeGuaranteedRef { $0.facts }
+                            for index in 0..<facts.parameterCount
+                            where !facts.kinds[index].accepts(at: stack.base + argumentBase + index)
+                            {
                                 try checkArguments(
                                     of: callee,
                                     calleeCode,
@@ -336,15 +299,15 @@ extension Interpreter {
                                     || task.scopes.count == function.captured.count
                                     ? nil : task.scopes
                             )
-                            stack.ensure(argumentBase + calleeCode.frameSize)
-                            stack.top = argumentBase + calleeCode.frameSize
+                            stack.ensure(argumentBase + facts.frameSize)
+                            stack.top = argumentBase + facts.frameSize
                             if !sameScopes { setScopes(of: callee, from: function, task) }
                             task.callDepth += 1
                             function = callee
                             code = calleeCode
                             functionRef = calleeRef
                             codeRef = calleeCodeRef
-                            instructions = calleeCode.program
+                            instructions = facts.program
                             base = argumentBase
                             pc = 0
                             statement = -1
@@ -477,7 +440,10 @@ extension Interpreter {
                     case .fastMember, .fastGlobalMember, .assignMember, .assignGlobalMember,
                         .assignSelfMember, .callBridged, .interpolate, .assignElement,
                         .assignGlobalElement, .makeList, .makeDictionary, .makeTuple,
-                        .requireValue, .describe, .cast, .index, .dictionaryValue, .assignPath:
+                        .requireValue, .describe, .cast, .index, .dictionaryValue, .assignPath,
+                        .match,
+                        .jumpIfWhereFalse, .noMatch, .throwValue, .fatalize, .reportDeferred,
+                        .guardCarriedOn, .deferMark:
                         var cursor = VMCursor(
                             function: function,
                             code: code,
@@ -558,7 +524,8 @@ extension Interpreter {
                         unowned(unsafe) let site = code.globalTable[Int(siteIndex)]
                             .takeUnretainedValue()
                         if site.version == scopeVersion,
-                            site.function == ObjectIdentifier(function),
+                            site.function
+                                == functionRef._withUnsafeGuaranteedRef { ObjectIdentifier($0) },
                             let cell = site.cell
                         {
                             let value = cell.value
@@ -575,7 +542,8 @@ extension Interpreter {
                         unowned(unsafe) let site = code.globalTable[Int(global)]
                             .takeUnretainedValue()
                         if site.version == scopeVersion,
-                            site.function == ObjectIdentifier(function),
+                            site.function
+                                == functionRef._withUnsafeGuaranteedRef { ObjectIdentifier($0) },
                             site.isMutable, let cell = site.cell,
                             setNumber(
                                 in: cell,
@@ -614,34 +582,43 @@ extension Interpreter {
                         }
                         // The common return, to a frame of this loop with no task started: what `leave`
                         // does, without building a cursor.
-                        if stack.callers.count > entryDepth, task.children.isEmpty {
-                            unowned(unsafe) let finishedCode = code
-                            VMStack.clear(regs, count: finishedCode.frameSize)
+                        if callers.count > entryDepth, task.children.isEmpty {
+                            let finished = codeRef._withUnsafeGuaranteedRef { $0.facts }
+                            VMStack.clear(regs, count: finished.frameSize)
                             task.callDepth -= 1
-                            let caller = stack.callers.removeLast()
+                            let caller = callers.removeLast()
                             defer { caller.releaseCallee() }
                             functionRef = caller.functionRef
                             codeRef = caller.codeRef
                             function = functionRef._withUnsafeGuaranteedRef { $0 }
                             code = codeRef._withUnsafeGuaranteedRef { $0 }
-                            instructions = code.program
+                            let resumed = codeRef._withUnsafeGuaranteedRef { $0.facts }
+                            instructions = resumed.program
                             base = caller.base
                             pc = caller.pc
                             statement = caller.statement
                             if caller.hasScopes {
                                 task.scopes = stack.savedScopes.removeLast()
                             } else if !caller.sameScopes {
-                                setScopes(of: function, from: caller.callee, task)
+                                caller.calleeRef._withUnsafeGuaranteedRef {
+                                    setScopes(of: function, from: $0, task)
+                                }
                             }
-                            stack.top = base + code.frameSize
+                            stack.top = base + resumed.frameSize
                             var made: Value?
                             if caller.isMethod {
                                 made = try finishMethod(stack.methodExits.removeLast(), on: stack)
                             }
-                            let conforming =
-                                try made
-                                ?? (finishedCode.returnKind.accepts(result)
-                                    ? result : conformed(result, to: caller.callee))
+                            let conforming: Value
+                            if let made {
+                                conforming = made
+                            } else if finished.returnKind.accepts(result) {
+                                conforming = result
+                            } else {
+                                conforming = try caller.calleeRef._withUnsafeGuaranteedRef {
+                                    try conformed(result, to: $0)
+                                }
+                            }
                             VMStack.put(conforming, at: stack.base + caller.destination)
                             regs = stack.base + base
                             continue

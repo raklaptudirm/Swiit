@@ -122,6 +122,7 @@ struct CodeCompiler {
             code.isInitializerBody = isInitializer
         }
         code.isFailable = function.isFailable
+        code.hasOwner = function.owner != nil
         code.parameterCount = function.parameters.count
         code.parameterKinds = function.parameters.map { ParameterKind($0.type) }
         code.returnKind = function.returnType.map(ParameterKind.init) ?? .any

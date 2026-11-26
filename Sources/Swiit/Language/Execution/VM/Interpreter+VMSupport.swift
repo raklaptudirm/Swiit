@@ -222,17 +222,27 @@ extension Interpreter {
         vmEntries += 1
         let base = stack.top
         stack.ensure(base + code.frameSize)
-        for (index, parameter) in function.parameters.enumerated() {
-            stack.base[base + index] =
-                registers.map { stack.base[$0 + index] }
-                ?? arguments[parameter.name]?.value ?? .nothing
+        // By position, so that no parameter is copied to be looked at.
+        for index in 0..<function.parameters.count {
+            if let registers {
+                stack.base[base + index] = stack.base[registers + index]
+            } else {
+                stack.base[base + index] =
+                    arguments[function.parameters[index].name]?.value ?? .nothing
+            }
         }
         stack.top = base + code.frameSize
-        let saved = (scopes: task.scopes, frame: task.frame, frameBase: task.frameBase)
-        task.scopes = function.captured
+        let saved = (frame: task.frame, frameBase: task.frameBase)
+        // Called where its scopes already are (a closure a native body runs), they are left as they are.
+        let ownsScopes = receiver != nil || !code.isPlain
+        var savedScopes: [Scope]?
+        if ownsScopes || !task.scopes(are: function.captured) {
+            savedScopes = task.scopes
+            task.scopes = function.captured
+        }
         // A method has `self`, and a generic function its type parameters, in a scope of the call.
         var own: Scope?
-        if receiver != nil || !code.isPlain {
+        if ownsScopes {
             let made = Scope()
             openTypeParameters(of: function, arguments, in: made)
             if let receiver {
@@ -245,7 +255,7 @@ extension Interpreter {
             task.scopes.append(made)
             own = made
         }
-        if let owner = function.owner { task.owners.append(owner) }
+        if code.hasOwner, let owner = function.owner { task.owners.append(owner) }
         if !code.isProgram { task.callDepth += 1 }
         task.frame = nil
         if let register = code.selfRegister, let binding = lookup("self") {
@@ -253,14 +263,14 @@ extension Interpreter {
         }
         defer {
             if let receiver, let changed = own?.bindings["self"]?.value { receiver.value = changed }
-            task.scopes = saved.scopes
+            if let savedScopes { task.scopes = savedScopes }
             task.frame = saved.frame
             task.frameBase = saved.frameBase
-            if function.owner != nil { task.owners.removeLast() }
+            if code.hasOwner, function.owner != nil { task.owners.removeLast() }
             stack.top = base
         }
         let result = try execute(function, code, base: base, on: stack)
-        return try conformed(result, to: function)
+        return code.returnKind.accepts(result) ? result : try conformed(result, to: function)
     }
 
     /// `result` as the function's return type says, or the error the tree evaluator gives.
@@ -649,8 +659,8 @@ extension Interpreter {
         } else {
             return nil
         }
-        guard case .swiit = function.body, function.parameters.count == arguments.count,
-            function.inoutNames.isEmpty, let code = compiled(function), code.isPlain
+        guard function.parameters.count == arguments.count, function.inoutNames.isEmpty,
+            let code = compiled(function), code.isPlain
         else { return nil }
         let maxCallDepth = task.run.maxCallDepth
         guard task.callDepth < maxCallDepth else {
