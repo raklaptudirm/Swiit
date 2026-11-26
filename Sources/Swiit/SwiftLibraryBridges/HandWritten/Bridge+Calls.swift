@@ -13,12 +13,33 @@ extension Interpreter {
         guard let member = bridged[typeName]?.lowered[index] else {
             throw RuntimeError("no bridged member #\(index) of \(typeName)")
         }
+        return try runBridged(typeName, member, receiver: receiver, arguments)
+    }
+
+    /// `runBridged` of a member found already, which is not copied or made a function of again for
+    /// each call: what the loop keeps for a call it makes often.
+    func runBridged(
+        _ typeName: String,
+        _ member: BridgedMember,
+        receiver: Expr?,
+        _ arguments: [Argument]
+    ) throws -> Value {
         let function = Function(
             name: member.name,
             parameters: member.parameters,
             returnType: nil,
             body: member.body
         )
+        return try runBridged(typeName, member, function, receiver: receiver, arguments)
+    }
+
+    func runBridged(
+        _ typeName: String,
+        _ member: BridgedMember,
+        _ function: Function,
+        receiver: Expr?,
+        _ arguments: [Argument]
+    ) throws -> Value {
         var bindings = try bind(arguments, to: function).bindings
         if member.isMutating, let receiver,
             let result = try runMutatingInPlace(member, function, bindings, receiver)

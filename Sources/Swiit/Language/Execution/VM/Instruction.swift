@@ -425,6 +425,8 @@ final class BridgedSite {
     let type: String
     let member: Int
     let labels: [String?]
+    /// The member and the function made of it, found when the site first runs.
+    @exclusivity(unchecked) var found: (member: BridgedMember, function: Function)?
 
     init(type: String, member: Int, labels: [String?]) {
         self.type = type

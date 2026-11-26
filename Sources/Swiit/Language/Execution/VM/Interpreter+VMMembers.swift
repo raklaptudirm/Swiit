@@ -496,9 +496,29 @@ extension Interpreter {
             )
             stack.base[arguments + index] = .nothing
         }
+        if site.found == nil, let member = bridged[site.type]?.lowered[site.member] {
+            site.found = (
+                member,
+                Function(
+                    name: member.name,
+                    parameters: member.parameters,
+                    returnType: nil,
+                    body: member.body
+                )
+            )
+        }
+        guard let (member, function) = site.found else {
+            return try runBridged(
+                site.type,
+                site.member,
+                receiver: receiver.map { .literal($0) },
+                given
+            )
+        }
         return try runBridged(
             site.type,
-            site.member,
+            member,
+            function,
             receiver: receiver.map { .literal($0) },
             given
         )

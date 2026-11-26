@@ -33,16 +33,37 @@ enum Waiting {
         // use of it: it is set for the span of its own call (`inCurrentTask`) or for a task its
         // interpreter waits for.
         unowned(unsafe) var host: WaitingHost?
-        init(_ host: WaitingHost?) { self.host = host }
+        /// The same, as the interpreter it is, found once where it is set and not where it is read.
+        unowned(unsafe) var interpreter: Interpreter?
+        init(_ host: WaitingHost?) {
+            self.host = host
+            interpreter = host as? Interpreter
+        }
     }
 
-    private static let key = "SwiitKit.Waiting.host"
+    /// Where each thread keeps its host: a slot of its own, read without a lookup by name, which the
+    /// bridged members do on every call.
+    private static let slot: pthread_key_t = {
+        var key = pthread_key_t()
+        pthread_key_create(&key) { Unmanaged<Box>.fromOpaque($0).release() }
+        return key
+    }()
+
+    private static var box: Box? {
+        pthread_getspecific(slot).map { Unmanaged<Box>.fromOpaque($0).takeUnretainedValue() }
+    }
 
     /// What runs the Swiit code on this thread, if anything does.
     static var host: WaitingHost? {
-        get { (Thread.current.threadDictionary[key] as? Box)?.host }
-        set { Thread.current.threadDictionary[key] = Box(newValue) }
+        get { box?.host }
+        set {
+            if let old = pthread_getspecific(slot) { Unmanaged<Box>.fromOpaque(old).release() }
+            pthread_setspecific(slot, Unmanaged.passRetained(Box(newValue)).toOpaque())
+        }
     }
+
+    /// The interpreter that runs the Swiit code on this thread, if one does.
+    static var interpreter: Interpreter? { box?.interpreter }
 
     /// Runs `body`, letting other Swiit tasks run while it waits. It must not
     /// touch the interpreter, or Swiit values that others could change.
@@ -85,7 +106,7 @@ extension Interpreter {
     /// The interpreter running the script code that called this one, from inside a body: how a
     /// member of a type reaches the interpreter to call a closure it was given, as a function does
     /// by holding its own. Nil on a thread that is running no script's code (NativeBodies).
-    public static var running: Interpreter? { Waiting.host as? Interpreter }
+    public static var running: Interpreter? { Waiting.interpreter }
 
     /// A host function that blocks says so, or it holds up every script task: the other tasks run
     /// while `wait` does.
