@@ -356,6 +356,28 @@ let vmKinds: [VMSample] = [
         entirely: true
     ),
     VMSample(
+        name: "fields and elements changed in place by each plain kind's operators",
+        source: """
+            struct S { var d = 9.0; var t = "a"; var n = 7; var b = true }
+            func f() -> String {
+                var s = S()
+                s.d /= 2
+                s.d -= 0.25
+                s.t += "bc"
+                s.n %= 4
+                s.n *= -3
+                s.b = false
+                var xs = [1.5, 2.5]
+                xs[1] /= 5
+                var names = ["x": "p"]
+                names["x"]! += "q"
+                return "\\(s.d) \\(s.t) \\(s.n) \\(s.b) \\(xs) \\(names)"
+            }
+            f()
+            """,
+        compiles: ["f"]
+    ),
+    VMSample(
         name: "a method calling a plain function and being called from one",
         source: """
             func double(_ x: Int) -> Int { x * 2 }

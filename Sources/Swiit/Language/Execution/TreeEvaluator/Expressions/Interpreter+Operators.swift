@@ -117,16 +117,13 @@ extension Interpreter {
         }
     }
 
-    // swiftlint:disable:next cyclomatic_complexity - one branch for each case; splitting it is item 25 of Docs/agenda.md
     func apply(_ op: BinaryOperator, _ lhs: Value, _ rhs: Value) throws -> Value {
-        // Two integers, the common case: nothing below applies to them but the arithmetic.
+        // Two values of one plain kind, the common case (two Ints most of all): nothing below applies
+        // to them, and an Int has no other operators.
         if case .int(let a) = lhs.storage, case .int(let b) = rhs.storage {
-            switch op {
-            case .equal: return .bool(a == b)
-            case .notEqual: return .bool(a != b)
-            default: return try integerArithmetic(op, a, b)
-            }
+            return try Value.integerArithmetic(op, a, b)
         }
+        if let result = try Value.plainOperation(op, lhs, rhs) { return result }
         if isDeclaredValue(lhs) || isDeclaredValue(rhs) {
             if let result = try userOperator(op.rawValue, [lhs, rhs]) { return result }
             if let result = try derivedOperator(op, lhs, rhs) { return result }
@@ -157,21 +154,15 @@ extension Interpreter {
             return .bool(lhs.isEqual(to: rhs))
         case (.notEqual, _, _):
             return .bool(!lhs.isEqual(to: rhs))
-        case (.add, .string(let a), .string(let b)):
-            return .string(a + b)
         case (.add, .list(let a), .list(let b)):
             return .list(a + b)
-        case (_, .string(let a), .string(let b)):
-            if let result = compare(op, a, b) { return .bool(result) }
-        case (_, .int(let a), .int(let b)):
-            return try integerArithmetic(op, a, b)
-        case (_, .int, .double), (_, .double, .int), (_, .double, .double):
-            if let result = try floatingArithmetic(op, lhs.asDouble!, rhs.asDouble!) {
+        case (_, .int, .double), (_, .double, .int):
+            if let result = Value.floatingOperation(op, lhs.asDouble!, rhs.asDouble!) {
                 return result
             }
         // A Comparable enum: in the order its cases are declared.
         case (_, .enumValue(let a), .enumValue(let b)) where a.type === b.type:
-            if let result = compare(op, a.index, b.index) { return .bool(result) }
+            if let result = Value.comparison(op, a.index, b.index) { return .bool(result) }
         default:
             break
         }
@@ -211,52 +202,4 @@ extension Interpreter {
         )
     }
 
-    func integerArithmetic(_ op: BinaryOperator, _ a: Int, _ b: Int) throws -> Value {
-        let result: (partialValue: Int, overflow: Bool)
-        switch op {
-        case .add: result = a.addingReportingOverflow(b)
-        case .subtract: result = a.subtractingReportingOverflow(b)
-        case .multiply: result = a.multipliedReportingOverflow(by: b)
-        case .divide, .remainder:
-            guard b != 0 else { throw RuntimeError("division by zero") }
-            result =
-                op == .divide
-                ? a.dividedReportingOverflow(by: b) : a.remainderReportingOverflow(dividingBy: b)
-        case .bitAnd: return .int(a & b)
-        case .bitOr: return .int(a | b)
-        case .bitXor: return .int(a ^ b)
-        case .shiftLeft: return .int(a << b)
-        case .shiftRight: return .int(a >> b)
-        case .maskShiftLeft: return .int(a &<< b)
-        case .maskShiftRight: return .int(a &>> b)
-        case .wrapAdd: return .int(a &+ b)
-        case .wrapSubtract: return .int(a &- b)
-        case .wrapMultiply: return .int(a &* b)
-        default:
-            if let comparison = compare(op, a, b) { return .bool(comparison) }
-            throw RuntimeError("'\(op.rawValue)' can't be applied to Int and Int")
-        }
-        guard !result.overflow else { throw RuntimeError("arithmetic overflow") }
-        return .int(result.partialValue)
-    }
-
-    func floatingArithmetic(_ op: BinaryOperator, _ a: Double, _ b: Double) throws -> Value? {
-        switch op {
-        case .add: .double(a + b)
-        case .subtract: .double(a - b)
-        case .multiply: .double(a * b)
-        case .divide: .double(a / b)
-        default: compare(op, a, b).map(Value.bool)
-        }
-    }
-
-    func compare<T: Comparable>(_ op: BinaryOperator, _ a: T, _ b: T) -> Bool? {
-        switch op {
-        case .less: a < b
-        case .lessEqual: a <= b
-        case .greater: a > b
-        case .greaterEqual: a >= b
-        default: nil
-        }
-    }
 }

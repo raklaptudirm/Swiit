@@ -79,7 +79,7 @@ extension Interpreter {
                     case .binary(let op, let dst, let lhs, let rhs):
                         if let x = VMStack.integer(at: regs + Int(lhs)),
                             let y = VMStack.integer(at: regs + Int(rhs)),
-                            let result = try Interpreter.arithmetic(op, x, y)
+                            let result = try Value.commonIntegerOperation(op, x, y)
                         {
                             VMStack.put(result, at: regs + Int(dst))
                             continue
@@ -89,7 +89,7 @@ extension Interpreter {
                         regs[Int(dst)] = value
                     case .binaryImmediate(let op, let dst, let lhs, let value):
                         if let x = VMStack.integer(at: regs + Int(lhs)),
-                            let result = try Interpreter.arithmetic(op, x, Int(value))
+                            let result = try Value.commonIntegerOperation(op, x, Int(value))
                         {
                             VMStack.put(result, at: regs + Int(dst))
                             continue
@@ -124,7 +124,7 @@ extension Interpreter {
                         if case .int(let x) = regs[Int(local)].storage,
                             case .int(let y) = regs[Int(value)].storage
                         {
-                            let result = try integerArithmetic(op, x, y)
+                            let result = try Value.integerArithmetic(op, x, y)
                             regs = stack.base + base
                             VMStack.put(result, at: regs + Int(local))
                             continue

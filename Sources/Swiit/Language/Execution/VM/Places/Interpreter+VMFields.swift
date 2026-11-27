@@ -196,3 +196,30 @@ extension Interpreter {
         }
     }
 }
+
+extension Value {
+    /// What a field or an element holding `old` is set to by `value`, or by `old op value`: `value`, or
+    /// what the operator gives, when both are of one plain kind and the result is of that kind too.
+    /// Nil for any other, which needs the conversion or the operator the general assignment has, and
+    /// for an operation that fails, which the general assignment then fails as it does.
+    static func combined(_ old: Value, _ op: BinaryOperator?, _ value: Value) -> Value? {
+        switch (old.storage, value.storage) {
+        case (.int, .int), (.double, .double), (.bool, .bool), (.string, .string):
+            guard let op else { return value }
+            guard let done = (try? plainOperation(op, old, value)) ?? nil,
+                done.isOfPlainKind(of: old)
+            else { return nil }
+            return done
+        default:
+            return nil
+        }
+    }
+
+    /// Whether this is of the plain kind `other` is: an Int, a Double, a Bool or a String.
+    private func isOfPlainKind(of other: Value) -> Bool {
+        switch (storage, other.storage) {
+        case (.int, .int), (.double, .double), (.bool, .bool), (.string, .string): true
+        default: false
+        }
+    }
+}

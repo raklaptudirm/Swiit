@@ -50,12 +50,14 @@ extension Interpreter {
             case .loadConstant(let dst, let constant):
                 registers[Int(dst)] = code.constants[Int(constant)]
             case .binary(let op, let dst, let lhs, let rhs):
-                guard let value = leafBinary(op, registers[Int(lhs)], registers[Int(rhs)]) else {
+                guard let value = Value.leafOperation(op, registers[Int(lhs)], registers[Int(rhs)])
+                else {
                     return nil
                 }
                 registers[Int(dst)] = value
             case .binaryImmediate(let op, let dst, let lhs, let immediate):
-                guard let value = leafBinary(op, registers[Int(lhs)], .int(Int(immediate))) else {
+                guard let value = Value.leafOperation(op, registers[Int(lhs)], .int(Int(immediate)))
+                else {
                     return nil
                 }
                 registers[Int(dst)] = value
@@ -113,7 +115,9 @@ extension Interpreter {
             guard let truth = registers[Int(condition)].leafBool else { return .giveUp }
             return truth ? .by(Int(offset)) : .stay
         case .jumpUnlessCompare(let op, let lhs, let immediate, let offset):
-            guard let truth = leafBinary(op, registers[Int(lhs)], .int(Int(immediate)))?.leafBool
+            guard
+                let truth = Value.leafOperation(op, registers[Int(lhs)], .int(Int(immediate)))?
+                    .leafBool
             else { return .giveUp }
             return truth ? .stay : .by(Int(offset))
         case .jumpIfNil(let register, let offset):
@@ -135,41 +139,19 @@ extension Interpreter {
         }
     }
 
-    /// `lhs op rhs` where both are of one plain kind and nothing goes wrong; nil otherwise.
-    private func leafBinary(_ op: BinaryOperator, _ lhs: Value, _ rhs: Value) -> Value? {
-        switch (lhs.storage, rhs.storage) {
-        case (.int(let x), .int(let y)):
-            if let result = try? Interpreter.arithmetic(op, x, y) { return result }
-            switch op {
-            case .divide, .remainder: return try? integerArithmetic(op, x, y)
-            default: return nil
-            }
-        case (.double(let x), .double(let y)):
-            switch op {
-            case .equal: return .bool(x == y)
-            case .notEqual: return .bool(x != y)
-            default: return (try? floatingArithmetic(op, x, y)) ?? nil
-            }
-        case (.string(let x), .string(let y)):
-            switch op {
-            case .equal: return .bool(x == y)
-            case .notEqual: return .bool(x != y)
-            case .add: return .string(x + y)
-            default: return nil
-            }
-        case (.bool(let x), .bool(let y)):
-            switch op {
-            case .equal: return .bool(x == y)
-            case .notEqual: return .bool(x != y)
-            default: return nil
-            }
-        default:
-            return nil
-        }
-    }
 }
 
 extension Value {
+    /// `lhs op rhs` where both are of one plain kind and nothing goes wrong; nil otherwise, where the
+    /// call is made the long way, which gives the error.
+    fileprivate static func leafOperation(
+        _ op: BinaryOperator,
+        _ lhs: Value,
+        _ rhs: Value
+    ) -> Value? {
+        (try? plainOperation(op, lhs, rhs)) ?? nil
+    }
+
     /// The Bool it is, if it is one.
     fileprivate var leafBool: Bool? {
         if case .bool(let truth) = storage { truth } else { nil }
