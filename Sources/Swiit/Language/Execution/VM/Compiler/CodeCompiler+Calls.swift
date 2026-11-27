@@ -98,7 +98,7 @@ extension CodeCompiler {
             if place.boxed {
                 let outcome = try allocate()
                 emit(.calls(.takeInout(dst: outcome, index: UInt16(place.index))))
-                emit(.storeCell(box: place.slot, src: outcome))
+                emit(.captures(.storeCell(box: place.slot, src: outcome)))
             } else {
                 emit(.calls(.takeInout(dst: place.slot, index: UInt16(place.index))))
             }
@@ -142,7 +142,7 @@ extension CodeCompiler {
                 receiver = cell
             } else {
                 receiver = try allocate()
-                emit(.loadCell(dst: receiver, box: cell))
+                emit(.captures(.loadCell(dst: receiver, box: cell)))
             }
         }
         var global: GlobalSite?
@@ -150,7 +150,7 @@ extension CodeCompiler {
             global = GlobalSite(name: globalName)
             code.globals.append(global!)
             receiver = try allocate()
-            emit(.loadGlobal(dst: receiver, site: UInt32(code.globals.count - 1)))
+            emit(.globals(.loadGlobal(dst: receiver, site: UInt32(code.globals.count - 1))))
         }
         let first = Register(nextTemporary)
         for argument in arguments {
@@ -193,7 +193,7 @@ extension CodeCompiler {
         else { return false }
         let mark = nextTemporary
         let held = try allocate()
-        emit(.loadCell(dst: held, box: selfRegister))
+        emit(.captures(.loadCell(dst: held, box: selfRegister)))
         let first = Register(nextTemporary)
         for argument in arguments {
             try self.expression(argument.value, into: try allocate())

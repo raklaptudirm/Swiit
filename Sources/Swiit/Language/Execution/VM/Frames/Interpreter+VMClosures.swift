@@ -77,3 +77,12 @@ extension Interpreter {
         )
     }
 }
+
+extension Interpreter {
+    /// The binding of `self` a closure the loop calls captured: a function of its own, so that the
+    /// lookup is not made part of the loop.
+    @inline(never)
+    func capturedSelf() -> Binding? {
+        lookup("self")
+    }
+}

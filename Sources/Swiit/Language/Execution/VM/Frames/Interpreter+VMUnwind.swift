@@ -7,6 +7,7 @@ extension Interpreter {
     /// statement it was in, and the call it ended. A frame that has code for it (a `catch`, a `defer`,
     /// a `try?`) goes on there instead, with the cursor at it; an error nothing in the run handles is
     /// thrown.
+    @inline(never)
     func unwind(
         _ failure: Error,
         _ cursor: inout VMCursor,

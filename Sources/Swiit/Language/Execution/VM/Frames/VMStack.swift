@@ -95,6 +95,7 @@ struct VMCaller {
     var callee: Function { calleeRef.takeUnretainedValue() }
 
     /// The call is over: what the record held of its callee is let go.
+    @inline(__always)
     func releaseCallee() { calleeRef.release() }
 }
 
@@ -283,6 +284,7 @@ final class VMStack {
     /// of there, so that the callee holds it alone while it changes it: into the callee's register
     /// (`inPlace`) or into a cell. What the register of `self` starts with is returned, and the exit
     /// that puts the struct back where it came from as the method returns or fails is pushed.
+    @inline(never)
     func moveReceiver(at register: Int, of global: Binding.Cell?, inPlace: Bool) -> Value {
         let receiver = base[register]
         base[register] = .nothing
@@ -301,8 +303,14 @@ final class VMStack {
 
     /// Room for `needed` registers. A stack that grows moves, so a pointer into it is taken again
     /// afterward.
+    @inline(__always)
     func ensure(_ needed: Int) {
-        guard needed > capacity else { return }
+        if needed > capacity { grow(to: needed) }
+    }
+
+    /// `ensure` for a stack that has to grow: moved to storage twice as large, or more.
+    @inline(never)
+    private func grow(to needed: Int) {
         var larger = capacity
         while larger < needed { larger *= 2 }
         let moved = UnsafeMutablePointer<Value>.allocate(capacity: larger)

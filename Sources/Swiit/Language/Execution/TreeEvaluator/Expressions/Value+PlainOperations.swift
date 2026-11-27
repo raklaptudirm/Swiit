@@ -35,6 +35,7 @@ extension Value {
 
     /// `a op b` on two Ints: an overflow and a division by zero are errors, as in Swift, and so is an
     /// operator Int does not have.
+    @inline(never)
     static func integerArithmetic(_ op: BinaryOperator, _ a: Int, _ b: Int) throws -> Value {
         if let result = try commonIntegerOperation(op, a, b) { return result }
         let result: (partialValue: Int, overflow: Bool)

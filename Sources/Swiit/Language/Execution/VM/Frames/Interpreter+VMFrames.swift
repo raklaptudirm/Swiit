@@ -124,6 +124,7 @@ extension Interpreter {
 
 extension Interpreter {
     /// `result` as the function's return type says, or the error the tree evaluator gives.
+    @inline(never)
     func conformed(_ result: Value, to function: Function) throws -> Value {
         guard let returnType = function.returnType else { return result }
         guard let conforming = conform(result, to: returnType) else {
@@ -140,6 +141,7 @@ extension Interpreter {
     /// A frame returns `result`. The entry frame's is the run's; another's goes to the register its
     /// caller named, and the caller goes on. The result is conformed to the callee's return type once
     /// the callee is gone, which is where the tree evaluator does it.
+    @inline(never)
     func leave(
         with result: Value,
         _ cursor: inout VMCursor,
@@ -193,6 +195,7 @@ extension Interpreter {
 
     /// Makes the scopes of `callee` the task's, which are those of `caller` already when both are
     /// functions of the global scopes: the task's scopes are always its running function's.
+    @inline(__always)
     func setScopes(of callee: Function, from caller: Function, _ task: TaskContext) {
         let wanted = callee.captured
         let current = caller.captured

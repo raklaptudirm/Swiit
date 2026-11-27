@@ -10,6 +10,20 @@ extension Interpreter {
     ) throws {
         let regs = stack.base + cursor.base
         switch instruction {
+        case .caughtTaken:
+            stack.caught.removeLast()
+        case .rethrow:
+            throw stack.caught.removeLast()
+        case .jumpIfNotDeferred(let register, let bit, let offset):
+            if case .int(let marks) = regs[Int(register)].storage, marks & (1 << Int(bit)) != 0 {
+                return
+            }
+            cursor.pc += Int(offset)
+        case .quietBegin:
+            stack.quiet.append(observesStatements)
+            observesStatements = false
+        case .quietEnd:
+            observesStatements = stack.quiet.removeLast()
         case .throwValue(let register):
             let value = regs[Int(register)]
             throw RuntimeError((try? describing(value)) ?? value.description, thrown: value)

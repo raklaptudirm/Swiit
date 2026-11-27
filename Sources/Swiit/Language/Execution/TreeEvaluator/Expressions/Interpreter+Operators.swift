@@ -23,6 +23,7 @@ extension Interpreter {
         return truth
     }
 
+    @inline(never)
     func apply(_ op: UnaryOperator, _ value: Value) throws -> Value {
         switch (op, value.storage) {
         case (.not, .bool(let b)):
@@ -117,6 +118,7 @@ extension Interpreter {
         }
     }
 
+    @inline(never)
     func apply(_ op: BinaryOperator, _ lhs: Value, _ rhs: Value) throws -> Value {
         // Two values of one plain kind, the common case (two Ints most of all): nothing below applies
         // to them, and an Int has no other operators.

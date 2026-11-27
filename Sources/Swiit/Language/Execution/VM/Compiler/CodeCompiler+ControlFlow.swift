@@ -300,8 +300,8 @@ extension CodeCompiler {
                 subject: error,
                 anyName: "error",
                 isSwitch: false,
-                whenTaken: .caughtTaken,
-                noMatch: .rethrow
+                whenTaken: .errors(.caughtTaken),
+                noMatch: .errors(.rethrow)
             )
         )
         patch(end, to: here)

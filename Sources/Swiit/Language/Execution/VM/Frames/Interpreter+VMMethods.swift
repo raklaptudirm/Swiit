@@ -223,6 +223,7 @@ extension Interpreter {
     /// A call of a method the loop makes: when the site is one it can, the frame of the method is
     /// pushed and the cursor is that of its first instruction, and the caller's resumes after the code
     /// that makes the call the long way. False, with nothing done, otherwise.
+    @inline(never)
     func enterMethod(
         _ site: MethodSite,
         _ operands: CallOperands,
@@ -324,6 +325,7 @@ extension Interpreter {
 extension Interpreter {
     /// `value.name` that is not a stored field: a computed property's getter entered as a frame (nil),
     /// or what `member(_:of:)` gives.
+    @inline(never)
     func readMember(
         _ site: MethodSite,
         _ name: String,
@@ -340,6 +342,7 @@ extension Interpreter {
     /// What returning from a method the loop called undoes, and, for an initializer, the value it gives:
     /// the class pushed for `super` is popped, and a struct the method changed goes back where the
     /// receiver came from.
+    @inline(never)
     func finishMethod(_ exit: MethodExit, on stack: VMStack) throws -> Value? {
         if exit.popsOwner { task.owners.removeLast() }
         switch exit.ending {

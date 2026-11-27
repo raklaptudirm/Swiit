@@ -237,7 +237,7 @@ struct CodeCompiler {
 
     /// A local was just bound in `slot`: a cell is made of it if a closure shares it.
     mutating func bindBox(_ slot: Register) {
-        if capturedSlots.contains(Int(slot)) { emit(.box(register: slot)) }
+        if capturedSlots.contains(Int(slot)) { emit(.captures(.box(register: slot))) }
     }
 
     /// The function ends with `result`. What its `inout` parameters hold is handed back first.
@@ -248,7 +248,7 @@ struct CodeCompiler {
             for slot in inoutParameters {
                 let held = try allocate()
                 if capturedSlots.contains(Int(slot)) {
-                    emit(.loadCell(dst: held, box: slot))
+                    emit(.captures(.loadCell(dst: held, box: slot)))
                 } else {
                     emit(.move(dst: held, src: slot))
                 }
@@ -420,11 +420,13 @@ extension CodeCompiler {
             code.instructions[index] = .jumpIfNotNil(register: register, offset: offset)
         case .jumpIfNil(let register, _):
             code.instructions[index] = .jumpIfNil(register: register, offset: offset)
-        case .jumpIfNotDeferred(let register, let bit, _):
-            code.instructions[index] = .jumpIfNotDeferred(
-                register: register,
-                bit: bit,
-                offset: offset
+        case .errors(.jumpIfNotDeferred(let register, let bit, _)):
+            code.instructions[index] = .errors(
+                .jumpIfNotDeferred(
+                    register: register,
+                    bit: bit,
+                    offset: offset
+                )
             )
         case .patterns(.match(let pattern, let value, _)):
             code.instructions[index] = .patterns(

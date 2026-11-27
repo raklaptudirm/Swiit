@@ -235,6 +235,7 @@ extension Interpreter {
 
     /// `lhs op= rhs` where the value at `slot` is changed in place when it can be: a list or a
     /// string grows.
+    @inline(never)
     func applyInPlace(_ op: BinaryOperator, _ slot: inout Value, _ rhs: Value) throws {
         if op == .add {
             if case .list(var items) = slot.storage, case .list(let more) = rhs.storage {

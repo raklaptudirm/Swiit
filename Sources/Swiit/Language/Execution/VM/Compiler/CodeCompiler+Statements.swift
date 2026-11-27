@@ -29,7 +29,7 @@ extension CodeCompiler {
         let over = emit(.jump(offset: 0))
         aimHandler(guarded)
         try emitCleanup(of: scopes.count - 1)
-        emit(.rethrow)
+        emit(.errors(.rethrow))
         patch(over, to: here)
     }
 
@@ -66,9 +66,9 @@ extension CodeCompiler {
     mutating func emitCleanup(of scopeIndex: Int) throws {
         let scope = scopes[scopeIndex]
         guard !scope.defers.isEmpty, let mask = scope.deferMask else { return }
-        emit(.quietBegin)
+        emit(.errors(.quietBegin))
         for (bit, body) in scope.defers.enumerated().reversed() {
-            let skip = emit(.jumpIfNotDeferred(register: mask, bit: UInt8(bit), offset: 0))
+            let skip = emit(.errors(.jumpIfNotDeferred(register: mask, bit: UInt8(bit), offset: 0)))
             let guarded = openHandler(catches: .everything, keepsError: true)
             try block(body)
             closeHandler(guarded)
@@ -78,7 +78,7 @@ extension CodeCompiler {
             patch(done, to: here)
             patch(skip, to: here)
         }
-        emit(.quietEnd)
+        emit(.errors(.quietEnd))
     }
 
     /// What leaving the scopes from `depth` out, by `break`, `continue`, `fallthrough` or `return`,
@@ -300,9 +300,9 @@ extension CodeCompiler {
         if let local = known {
             if local.boxed {
                 if let op = assignment.op {
-                    emit(.assignCell(box: local.slot, op: op, value: value))
+                    emit(.captures(.assignCell(box: local.slot, op: op, value: value)))
                 } else {
-                    emit(.storeCell(box: local.slot, src: value))
+                    emit(.captures(.storeCell(box: local.slot, src: value)))
                 }
             } else {
                 emit(.assign(local: local.slot, op: assignment.op, value: value))
@@ -313,7 +313,13 @@ extension CodeCompiler {
             if assignment.path.isEmpty {
                 code.globals.append(GlobalSite(name: assignment.root))
                 emit(
-                    .assignGlobal(global: UInt32(code.globals.count - 1), site: site, value: value)
+                    .globals(
+                        .assignGlobal(
+                            global: UInt32(code.globals.count - 1),
+                            site: site,
+                            value: value
+                        )
+                    )
                 )
             } else {
                 emit(.fallback(.assignByName(site: site, value: value)))
@@ -609,7 +615,7 @@ extension CodeCompiler {
         let bounds = nextTemporary
         let first = try operand(lower)
         let last = try operand(upper)
-        emit(.rangeStart(op: op, counter: counter, lower: first, upper: last))
+        emit(.iteration(.rangeStart(op: op, counter: counter, lower: first, upper: last)))
         nextTemporary = bounds
         let head = here
         let next = emit(.rangeNext(counter: counter, variable: variable ?? scratch, exit: 0))

@@ -120,12 +120,12 @@ extension CodeCompiler {
         } else if name == "self", let register = code.selfRegister {
             emit(
                 code.selfStorage.holdsCell
-                    ? .loadCell(dst: destination, box: register)
+                    ? .captures(.loadCell(dst: destination, box: register))
                     : .move(dst: destination, src: register)
             )
         } else {
             code.globals.append(GlobalSite(name: name))
-            emit(.loadGlobal(dst: destination, site: UInt32(code.globals.count - 1)))
+            emit(.globals(.loadGlobal(dst: destination, site: UInt32(code.globals.count - 1))))
         }
     }
 
@@ -326,7 +326,7 @@ extension CodeCompiler {
     /// A local's value into `destination`, out of its cell when a closure shares it.
     private mutating func read(_ slot: Register, boxed: Bool, into destination: Register) {
         if boxed {
-            emit(.loadCell(dst: destination, box: slot))
+            emit(.captures(.loadCell(dst: destination, box: slot)))
         } else if slot != destination {
             emit(.move(dst: destination, src: slot))
         }

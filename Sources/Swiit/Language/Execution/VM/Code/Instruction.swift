@@ -33,10 +33,6 @@ enum Instruction {
 
     case move(dst: Register, src: Register)
 
-    /// `loadVariable` of a global, which finds the variable's cell once and keeps it while the names
-    /// stay as they were.
-    case loadGlobal(dst: Register, site: UInt32)
-
     /// `local.name(arguments)` of a struct's method that is plain (not mutating, taking its arguments
     /// as written): run from the registers, without the tree evaluator's lookups and tables. The next
     /// `offset` instructions, which do it the long way, are skipped when it ran.
@@ -90,10 +86,6 @@ enum Instruction {
 
     case jumpIfTrue(condition: Register, offset: Int32)
 
-    /// `for i in a..<b`: reads the Int bounds from `lower` and `upper` and leaves the range in the two
-    /// registers from `counter` (the next value and the end).
-    case rangeStart(op: BinaryOperator, counter: Register, lower: Register, upper: Register)
-
     /// The next value of a range into `variable`, or a jump out of the loop.
     case rangeNext(counter: Register, variable: Register, exit: Int32)
 
@@ -103,37 +95,9 @@ enum Instruction {
 
     // MARK: Errors
 
-    /// An error `Code.handlers` caught is dealt with: kept by the clause that took it, thrown again
-    /// when none did, thrown as a fatal one for `try!`, or told to the host for a `defer` that failed.
-    case caughtTaken
-
-    case rethrow
-
     // MARK: Deferred blocks
 
-    /// Jumps over a `defer` the block has not reached.
-    case jumpIfNotDeferred(register: Register, bit: UInt8, offset: Int32)
-
-    /// Deferred blocks run without telling the host's observer each statement; these bracket them.
-    case quietBegin
-
-    case quietEnd
-
     // MARK: Captured variables
-
-    /// The local in this register is captured by a closure: from here on it is a cell the closure
-    /// shares, and the register holds the cell.
-    case box(register: Register)
-
-    case loadCell(dst: Register, box: Register)
-
-    case storeCell(box: Register, src: Register)
-
-    case assignCell(box: Register, op: BinaryOperator, value: Register)
-
-    /// `assignByName` of a whole variable, which sets a number held in a number's cell directly and
-    /// leaves the rest to the assignment.
-    case assignGlobal(global: UInt32, site: UInt32, value: Register)
 
     // MARK: What the tree evaluator runs
 
@@ -159,17 +123,37 @@ enum Instruction {
 
     // What the loop hands to the executor of the family, off its common path (`executeHandedOff`).
     case members(Members)
+
     case collections(Collections)
+
     case conversions(Conversions)
+
     case patterns(Patterns)
+
     case iteration(Iteration)
+
     case errors(Errors)
+
     case fallback(Fallback)
+
     case captures(Captures)
+
     case calls(Calls)
+    case globals(Globals)
 }
 
 extension Instruction {
+    /// Global variables, read and set through the cells the loop keeps for them.
+    enum Globals {
+        /// `loadVariable` of a global, which finds the variable's cell once and keeps it while the names
+        /// stay as they were.
+        case loadGlobal(dst: Register, site: UInt32)
+
+        /// `assignByName` of a whole variable, which sets a number held in a number's cell directly and
+        /// leaves the rest to the assignment.
+        case assignGlobal(global: UInt32, site: UInt32, value: Register)
+    }
+
     /// The fields of structs and instances, read and set where they are.
     enum Members {
         /// `fastMember` of a global list or string, read or changed in its cell.
@@ -322,6 +306,10 @@ extension Instruction {
 
     /// A `for` over a collection, a dictionary or an iterator.
     enum Iteration {
+        /// `for i in a..<b`: reads the Int bounds from `lower` and `upper` and leaves the range in the two
+        /// registers from `counter` (the next value and the end).
+        case rangeStart(op: BinaryOperator, counter: Register, lower: Register, upper: Register)
+
         /// `for x in s`: the iterator over a collection, a string, a dictionary or whatever `makeIterator`
         /// gives.
         case iterate(dst: Register, sequence: Register, awaiting: Bool)
@@ -349,6 +337,20 @@ extension Instruction {
 
     /// Errors thrown, reported or made fatal, and the deferred blocks that run as they leave.
     enum Errors {
+        /// An error `Code.handlers` caught is dealt with: kept by the clause that took it, thrown again
+        /// when none did, thrown as a fatal one for `try!`, or told to the host for a `defer` that failed.
+        case caughtTaken
+
+        case rethrow
+
+        /// Jumps over a `defer` the block has not reached.
+        case jumpIfNotDeferred(register: Register, bit: UInt8, offset: Int32)
+
+        /// Deferred blocks run without telling the host's observer each statement; these bracket them.
+        case quietBegin
+
+        case quietEnd
+
         /// `throw value`.
         case throwValue(Register)
 
@@ -385,6 +387,16 @@ extension Instruction {
 
     /// Closures, and the variables they capture that hold a reference weakly.
     enum Captures {
+        /// The local in this register is captured by a closure: from here on it is a cell the closure
+        /// shares, and the register holds the cell.
+        case box(register: Register)
+
+        case loadCell(dst: Register, box: Register)
+
+        case storeCell(box: Register, src: Register)
+
+        case assignCell(box: Register, op: BinaryOperator, value: Register)
+
         /// A `weak` or `unowned` variable is read as what it refers to, or nil once that is gone.
         case derefWeak(register: Register)
 

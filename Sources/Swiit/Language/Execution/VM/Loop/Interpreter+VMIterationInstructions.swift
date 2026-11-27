@@ -11,6 +11,11 @@ extension Interpreter {
         let regs = stack.base + cursor.base
         let base = cursor.base
         switch instruction {
+        case .rangeStart(let op, let counter, let lower, let upper):
+            let range = try intRange(op, regs[Int(lower)], regs[Int(upper)])
+            let registers = stack.base + base
+            VMStack.put(.int(range.lowerBound), at: registers + Int(counter))
+            VMStack.put(.int(range.upperBound), at: registers + Int(counter) + 1)
         case .iterate(let dst, let sequence, let awaiting):
             // A list, and the entries of a dictionary, are read by position; the rest by an iterator.
             let source = regs[Int(sequence)]

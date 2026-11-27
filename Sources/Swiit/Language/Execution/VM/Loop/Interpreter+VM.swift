@@ -5,7 +5,18 @@ import Foundation
 extension Interpreter {
     /// The code the VM runs for `function`, compiled the first time it is asked for; nil when the
     /// function stays on the tree evaluator.
+    @inline(__always)
     func compiled(_ function: Function) -> Code? {
+        switch function.vmCode {
+        case .code(let code): return code
+        case .unsupported: return nil
+        case .untried: return compileFirst(function)
+        }
+    }
+
+    /// `compiled` the first time: the function is compiled, or marked as one the tree evaluator runs.
+    @inline(never)
+    private func compileFirst(_ function: Function) -> Code? {
         switch function.vmCode {
         case .code(let code): return code
         case .unsupported: return nil
@@ -124,6 +135,10 @@ extension Interpreter {
                         if case .int(let x) = regs[Int(local)].storage,
                             case .int(let y) = regs[Int(value)].storage
                         {
+                            if let result = try Value.commonIntegerOperation(op, x, y) {
+                                VMStack.put(result, at: regs + Int(local))
+                                continue
+                            }
                             let result = try Value.integerArithmetic(op, x, y)
                             regs = stack.base + base
                             VMStack.put(result, at: regs + Int(local))
@@ -178,11 +193,6 @@ extension Interpreter {
                             )
                         }
                         if truth { pc += Int(offset) }
-                    case .rangeStart(let op, let counter, let lower, let upper):
-                        let range = try intRange(op, regs[Int(lower)], regs[Int(upper)])
-                        regs = stack.base + base
-                        VMStack.put(.int(range.lowerBound), at: regs + Int(counter))
-                        VMStack.put(.int(range.upperBound), at: regs + Int(counter) + 1)
                     case .rangeNext(let counter, let variable, let exit):
                         guard case .int(let next) = regs[Int(counter)].storage,
                             case .int(let end) = regs[Int(counter) + 1].storage, next < end
@@ -194,22 +204,6 @@ extension Interpreter {
                         VMStack.put(.int(next + 1), at: regs + Int(counter))
                     case .jumpIfNil(let register, let offset):
                         if regs[Int(register)] == .nothing { pc += Int(offset) }
-                    case .caughtTaken:
-                        stack.caught.removeLast()
-                    case .rethrow:
-                        throw stack.caught.removeLast()
-                    case .jumpIfNotDeferred(let register, let bit, let offset):
-                        if case .int(let marks) = regs[Int(register)].storage,
-                            marks & (1 << Int(bit)) != 0
-                        {
-                            continue
-                        }
-                        pc += Int(offset)
-                    case .quietBegin:
-                        stack.quiet.append(observesStatements)
-                        observesStatements = false
-                    case .quietEnd:
-                        observesStatements = stack.quiet.removeLast()
                     case .call(let dst, let siteIndex, let arguments):
                         unowned(unsafe) let site =
                             codeRef._withUnsafeGuaranteedRef {
@@ -381,7 +375,7 @@ extension Interpreter {
                             statement = -1
                             regs = stack.base + base
                             // A closure that names `self` has the cell of it, which it captured, in a register.
-                            if let register = code.selfRegister, let binding = lookup("self") {
+                            if let register = code.selfRegister, let binding = capturedSelf() {
                                 regs[Int(register)] = .object(binding.cell)
                             }
                         } else {
@@ -390,19 +384,6 @@ extension Interpreter {
                             regs = stack.base + base
                             regs[Int(dst)] = value
                         }
-                    case .box(let register):
-                        regs[Int(register)] = .object(Binding.Cell(regs[Int(register)]))
-                    case .loadCell(let dst, let box):
-                        regs[Int(dst)] = try cell(regs[Int(box)]).value
-                    case .storeCell(let box, let src):
-                        try cell(regs[Int(box)]).value = regs[Int(src)]
-                    case .assignCell(let box, let op, let value):
-                        let held = try cell(regs[Int(box)])
-                        var slot = held.value
-                        held.value = .nothing
-                        defer { held.value = slot }
-                        try applyInPlace(op, &slot, regs[Int(value)])
-                        regs = stack.base + base
                     case .loadMember(let dst, let baseRegister, let name, let siteIndex):
                         if let field = storedField(
                             code.names[Int(name)],
@@ -535,42 +516,6 @@ extension Interpreter {
                             (functionRef, codeRef) = cursor.refs
                             regs = stack.base + base
                         }
-                    case .loadGlobal(let dst, let siteIndex):
-                        unowned(unsafe) let site = code.globalTable[Int(siteIndex)]
-                            .takeUnretainedValue()
-                        if site.version == scopeVersion,
-                            site.function
-                                == functionRef._withUnsafeGuaranteedRef { ObjectIdentifier($0) },
-                            let cell = site.cell
-                        {
-                            let value = cell.value
-                            if case .object(is WeakReference) = value.storage {
-                            } else {
-                                regs[Int(dst)] = value
-                                continue
-                            }
-                        }
-                        let value = try globalValue(site, function, code)
-                        regs = stack.base + base
-                        regs[Int(dst)] = value
-                    case .assignGlobal(let global, let assignmentIndex, let value):
-                        unowned(unsafe) let site = code.globalTable[Int(global)]
-                            .takeUnretainedValue()
-                        if site.version == scopeVersion,
-                            site.function
-                                == functionRef._withUnsafeGuaranteedRef { ObjectIdentifier($0) },
-                            site.isMutable, let cell = site.cell,
-                            setNumber(
-                                in: cell,
-                                code.assignments[Int(assignmentIndex)].op,
-                                to: regs[Int(value)]
-                            )
-                        {
-                            continue
-                        }
-                        let assignment = code.assignments[Int(assignmentIndex)]
-                        try assignGlobal(site, assignment, regs[Int(value)], function, code)
-                        regs = stack.base + base
                     case .returnValue, .returnNothing:
                         let result: Value
                         if case .returnValue(let register) = instruction {
@@ -655,7 +600,7 @@ extension Interpreter {
                         (functionRef, codeRef) = cursor.refs
                         regs = stack.base + base
                     case .members, .collections, .conversions, .patterns, .iteration, .errors,
-                        .fallback, .captures, .calls:
+                        .fallback, .captures, .calls, .globals:
                         var cursor = VMCursor(
                             function: function,
                             code: code,

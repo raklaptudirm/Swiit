@@ -5,6 +5,7 @@ import Foundation
 extension Interpreter {
     /// The function a value is, when the VM can call it without leaving its loop: a compiled
     /// function that takes this many arguments, called through a value, so labels are not asked.
+    @inline(never)
     func vmTarget(ofValue value: Value, arguments: Int) -> (Function, Code)? {
         guard case .function(let callable) = value.storage else { return nil }
         let only: Function
@@ -23,6 +24,7 @@ extension Interpreter {
 
     /// The function a call site calls, when the VM can call it without leaving its loop: the one
     /// function the name is bound to, compiled, taking these arguments as written.
+    @inline(never)
     func vmTarget(of site: CallSite, from caller: Function) -> VMTarget? {
         // A name found to be a struct's is not looked up again for a function.
         if site.constructedType != nil || site.constructedClass != nil,
@@ -161,6 +163,7 @@ extension Interpreter {
 
     /// Puts the arguments of a call in the places of the parameters they are for, from the registers
     /// at `base`, and the defaults of the parameters left out, as `bind` evaluates them.
+    @inline(never)
     func placeArguments(_ mapping: [Int], of function: Function, at base: Int) throws {
         let stack = task.vm
         let needed = base + mapping.count
