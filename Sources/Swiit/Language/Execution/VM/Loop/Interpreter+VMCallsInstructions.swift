@@ -15,7 +15,8 @@ extension Interpreter {
             let value = try callBridged(
                 cursor.code.bridgedSites[Int(siteIndex)],
                 receiver: receiver == Register.max ? nil : regs[Int(receiver)],
-                arguments: cursor.base + Int(arguments)
+                arguments: cursor.base + Int(arguments),
+                on: stack
             )
             regs = stack.base + cursor.base
             regs[Int(dst)] = value

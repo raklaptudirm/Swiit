@@ -28,9 +28,12 @@ extension Interpreter {
 
     /// The call of a planned member: what `bind` and `invoke` do for the call, without the table of
     /// arguments by name.
-    private func callPlanned(_ plan: BridgedPlan, receiver: Value?, arguments: Int) throws -> Value
-    {
-        let stack = task.vm
+    private func callPlanned(
+        _ plan: BridgedPlan,
+        receiver: Value?,
+        arguments: Int,
+        on stack: VMStack
+    ) throws -> Value {
         var values = stack.argumentArrays.popLast() ?? []
         values.reserveCapacity(plan.kinds.count)
         for index in plan.kinds.indices {
@@ -44,12 +47,16 @@ extension Interpreter {
         // Through `?.`: nil stays nil.
         if let receiver, receiver == .nothing, !plan.keepsNilReceiver { return .nothing }
         defer { if task.lastCallee !== plan.function { task.lastCallee = plan.function } }
-        let maxCallDepth = task.run.limits.maxCallDepth
+        let maxCallDepth = task.run.maxCallDepth
         guard callDepth < maxCallDepth else {
             throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
         }
         try checkInterrupt()
-        let result = try plan.positional(self, receiver ?? .nothing, values)
+        // An error it throws is one a script can catch, as a function's is.
+        let result: Value
+        do { result = try plan.positional(receiver ?? .nothing, values) } catch {
+            throw hostFailure(error, in: plan.place)
+        }
         // A body that kept the array has made the storage its own: it is not reused.
         values.removeAll(keepingCapacity: true)
         stack.argumentArrays.append(values)
@@ -60,12 +67,16 @@ extension Interpreter {
 extension Interpreter {
     /// A member of a Swift type run as the tree evaluator runs it, with the receiver and the arguments
     /// (in the registers from `arguments` on) taken as they are.
-    func callBridged(_ site: BridgedSite, receiver: Value?, arguments: Int) throws -> Value {
+    func callBridged(
+        _ site: BridgedSite,
+        receiver: Value?,
+        arguments: Int,
+        on stack: VMStack
+    ) throws -> Value {
         if !site.isPlanned { plan(site) }
         if let plan = site.plan {
-            return try callPlanned(plan, receiver: receiver, arguments: arguments)
+            return try callPlanned(plan, receiver: receiver, arguments: arguments, on: stack)
         }
-        let stack = task.vm
         var given: [Argument] = []
         given.reserveCapacity(site.labels.count)
         for index in 0..<site.labels.count {

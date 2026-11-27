@@ -174,21 +174,7 @@ extension BridgedMember {
                 }
             )
             made.plain = call
-            if let positional {
-                let (typeName, name) = (typeName, member.name)
-                @Sendable func wrapped(
-                    _ interpreter: Interpreter,
-                    _ receiver: Value,
-                    _ values: [Value]
-                )
-                    throws -> Value
-                {
-                    do { return try positional(receiver, values) } catch {
-                        throw interpreter.hostFailure(error, in: "\(typeName).\(name)")
-                    }
-                }
-                made.positional = wrapped
-            }
+            made.positional = positional
             return made
         }
     }
@@ -207,7 +193,7 @@ extension BridgedMember {
                     parameters: parameters(function),
                     returns: function.returns.byText,
                     function: function,
-                    positional: { receiver, arguments in try body(receiver, arguments) }
+                    positional: body
                 ) { try body($0["self"] ?? .nothing, order($0)) }
             ]
         case (.method(let method), .mutatingMethod(let body)):

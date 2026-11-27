@@ -140,8 +140,10 @@ struct BridgedMember: Sendable {
     var plain: (@Sendable (Arguments) throws -> Value)?
     /// The same call with the receiver and the arguments in order, as the glue takes them, for a call
     /// that gives each parameter its argument and needs none of the binding a call does (`bind`): what
-    /// the loop calls a member by. Nil for a member that changes its receiver, and for a setter.
-    var positional: (@Sendable (Interpreter, Value, [Value]) throws -> Value)?
+    /// the loop calls a member by. Nil for a member that changes its receiver, and for a setter. An
+    /// error it throws is the host's as it is: the caller makes it the member's
+    /// (`Interpreter.hostFailure`).
+    var positional: (@Sendable (Value, [Value]) throws -> Value)?
     /// `throws(Failure)`, for a generic parameter of its type: it throws
     /// unless that is `Never` (`Task<Int, Never>.value` doesn't).
     var typedThrows: String?

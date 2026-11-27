@@ -297,7 +297,9 @@ final class PathSite {
 /// member that changes its receiver, takes a variadic or a defaulted parameter, or is called with other
 /// labels than its parameters', has no plan, and is called as a call is.
 final class BridgedPlan {
-    let positional: @Sendable (Interpreter, Value, [Value]) throws -> Value
+    let positional: @Sendable (Value, [Value]) throws -> Value
+    /// `Type.member`, which an error the member throws is said to come from.
+    let place: String
     let function: Function
     let parameters: [Parameter]
     let kinds: [ParameterKind]
@@ -306,11 +308,12 @@ final class BridgedPlan {
     let keepsNilReceiver: Bool
 
     init(
-        positional: @escaping @Sendable (Interpreter, Value, [Value]) throws -> Value,
+        positional: @escaping @Sendable (Value, [Value]) throws -> Value,
         function: Function,
         typeName: String
     ) {
         self.positional = positional
+        place = "\(typeName).\(function.name ?? "member")"
         self.function = function
         parameters = function.parameters
         kinds = function.parameters.map { ParameterKind($0.type) }
