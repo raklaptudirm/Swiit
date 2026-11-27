@@ -26,7 +26,7 @@ extension Interpreter {
         case .makeClosure(let dst, let site):
             ensureSelfScope(function, code, base: base, on: stack)
             let made = try makeClosure(code.closures[Int(site)], stack.base + base)
-            stack.base[base + Int(dst)] = made
+            stack.base[base + Int(dst)] = .function(made)
         case .derefWeak(let register):
             let slot = base + Int(register)
             if case .object(let reference as WeakReference) = stack.base[slot].storage {

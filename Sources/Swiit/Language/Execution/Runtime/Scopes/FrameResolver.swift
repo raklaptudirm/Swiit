@@ -16,6 +16,7 @@ struct FrameResolver {
     private var next = 0
     private var size = 0
     private var placeable = true
+    private var declares = false
     /// The locals that can be named where the resolver is, innermost last: a variable that names
     /// one is read from its slot.
     private var visible: [Program.Local] = []
@@ -39,13 +40,45 @@ struct FrameResolver {
         guard resolver.placeable else { return body }
         resolved.frameSize = resolver.size
         resolved.capturedSlots = resolver.captures.slots
+        resolved.hasDeclaringBlocks = resolver.declares
         return resolved
     }
 
-    /// A declaration inside a block, which is bound by name where it is: its block gets no frame.
+    /// A declaration Swift allows only at the top level, met in a block: its body gets no frame.
     private mutating func unplaced(_ statement: Statement) -> Statement {
         placeable = false
         return statement
+    }
+
+    /// A function or type declared in a block: the block binds it by name, and the rest of the body
+    /// keeps its frame. A local a nested function names is shared with it, as with a closure.
+    private mutating func nested(_ statement: Statement, declaring: inout Bool) -> Statement {
+        declaring = true
+        switch statement {
+        case .function(var decl):
+            for name in decl.names.names {
+                if let local = visible.last(where: { $0.name == name }) {
+                    captures.slots.insert(local.slot)
+                }
+            }
+            decl.body = FrameResolver.resolve(
+                body: decl.body,
+                isProgram: false,
+                parameters: decl.parameters
+            )
+            return .function(decl)
+        case .structDecl(var decl):
+            FrameResolver.resolve(members: &decl)
+            return .structDecl(decl)
+        case .classDecl(var decl):
+            FrameResolver.resolve(members: &decl.members)
+            return .classDecl(decl)
+        case .enumDecl(var decl):
+            FrameResolver.resolve(enum: &decl)
+            return .enumDecl(decl)
+        default:
+            return unplaced(statement)
+        }
     }
 
     private mutating func slot() -> Int {
@@ -66,9 +99,12 @@ struct FrameResolver {
         var locals = names.filter { $0 != "_" }.map { Program.Local(name: $0, slot: slot()) }
         visible += locals
         var resolved = program
+        var declaring = false
         resolved.statements = program.statements.map {
-            statement($0, isProgram: isProgram, locals: &locals)
+            statement($0, isProgram: isProgram, locals: &locals, declaring: &declaring)
         }
+        resolved.declaresByName = declaring
+        declares = declares || declaring
         next = start
         visible.removeLast(visible.count - seen)
         if !isProgram { resolved.locals = locals }
@@ -78,9 +114,13 @@ struct FrameResolver {
     private mutating func statement(
         _ statement: Statement,
         isProgram: Bool,
-        locals: inout [Program.Local]
+        locals: inout [Program.Local],
+        declaring: inout Bool
     ) -> Statement {
         switch statement {
+        case .function, .structDecl, .classDecl,
+            .enumDecl where !isProgram:
+            return nested(statement, declaring: &declaring)
         case .declare(let name, let mutable, let value):
             let value = expression(value)
             if isProgram || name == "_" {
@@ -92,10 +132,6 @@ struct FrameResolver {
             visible.append(local)
             return .declareLocal(local, mutable: mutable, value: value)
         case .function(var decl):
-            guard isProgram else {
-                placeable = false
-                return statement
-            }
             decl.body = FrameResolver.resolve(
                 body: decl.body,
                 isProgram: false,
@@ -103,11 +139,9 @@ struct FrameResolver {
             )
             return .function(decl)
         case .structDecl(var decl):
-            guard isProgram else { return unplaced(statement) }
             FrameResolver.resolve(members: &decl)
             return .structDecl(decl)
         case .classDecl(var decl):
-            guard isProgram else { return unplaced(statement) }
             FrameResolver.resolve(members: &decl.members)
             return .classDecl(decl)
         case .typeExtension(var decl):
@@ -115,12 +149,7 @@ struct FrameResolver {
             FrameResolver.resolve(members: &decl.members)
             return .typeExtension(decl)
         case .enumDecl(var decl):
-            guard isProgram else { return unplaced(statement) }
-            decl.methods = FrameResolver.resolved(decl.methods)
-            decl.staticMethods = FrameResolver.resolved(decl.staticMethods)
-            decl.initializers = FrameResolver.resolved(decl.initializers)
-            decl.properties = FrameResolver.resolved(decl.properties)
-            decl.staticProperties = FrameResolver.resolved(decl.staticProperties)
+            FrameResolver.resolve(enum: &decl)
             return .enumDecl(decl)
         case .protocolDecl, .extensionDecl, .operatorDeclaration:
             return isProgram ? statement : unplaced(statement)
@@ -349,6 +378,15 @@ extension FrameResolver {
 
 // The bodies of a type's members, which are each a frame of their own as a function is.
 extension FrameResolver {
+    /// An enum's methods, initializers and properties, each a body of its own.
+    fileprivate static func resolve(enum decl: inout EnumDecl) {
+        decl.methods = resolved(decl.methods)
+        decl.staticMethods = resolved(decl.staticMethods)
+        decl.initializers = resolved(decl.initializers)
+        decl.properties = resolved(decl.properties)
+        decl.staticProperties = resolved(decl.staticProperties)
+    }
+
     /// The methods, initializers and static methods of a type, each a frame of its own as a
     /// function is.
     fileprivate static func resolve(members decl: inout StructDecl) {

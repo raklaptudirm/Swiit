@@ -32,6 +32,8 @@ struct CodeCompiler {
         var defers: [Program] = []
         var deferMask: Register?
         var deferred = 0
+        /// Its block declares a function or a type, which it binds by name in a scope of its own.
+        var declaresByName = false
     }
 
     /// A loop or a switch: where `break` and `continue` go.
@@ -72,6 +74,9 @@ struct CodeCompiler {
     /// The registers of the parameters that are `inout`, which the function hands back as it ends.
     var inoutParameters: [Register] = []
     var scopes: [Scope] = []
+    /// For a nested function, its own name, which is the function running (`loadCallee`), as the
+    /// tree evaluator binds it for each call.
+    var ownName: String?
     var breakables: [Breakable] = []
     var nextTemporary = 0
     var highest = 0
@@ -86,11 +91,8 @@ struct CodeCompiler {
         }
         guard let frameSize = body.frameSize else {
             return .failure(
-                Unsupported("a body with no frame: a function or type declared in a block")
+                Unsupported("a body the frame resolver gave no frame (the prelude's own)")
             )
-        }
-        guard function.isCompilable else {
-            return .failure(Unsupported("a named function with more than the global scopes"))
         }
         var compiler = CodeCompiler()
         compiler.bridged = bridged
@@ -164,6 +166,12 @@ struct CodeCompiler {
         }
         scopes = [parameters]
         for slot in function.parameters.indices { bindBox(Register(slot)) }
+        if function.name != nil, function.captured.count > 2 { ownName = function.name }
+        if body.hasDeclaringBlocks {
+            let mark = try allocate()
+            code.scopeMark = mark
+            emit(.declarations(.markScopes(dst: mark)))
+        }
         if let expression = function.implicitReturn {
             code.isImplicitReturn = true
             let result = try operand(expression)
@@ -218,7 +226,8 @@ struct CodeCompiler {
                 catches: catches,
                 register: register,
                 keepsError: keepsError,
-                isExpression: isExpression
+                isExpression: isExpression,
+                scopeDepth: scopes.count { $0.declaresByName }
             )
         )
         return code.handlers.count - 1

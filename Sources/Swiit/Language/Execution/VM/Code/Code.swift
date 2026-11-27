@@ -115,6 +115,9 @@ final class Code {
     @exclusivity(unchecked) var patterns: [PatternSite] = []
     @exclusivity(unchecked) var destructures: [DestructureSite] = []
     @exclusivity(unchecked) var closures: [ClosureSite] = []
+    /// For a body with a block that declares by name, the register `markScopes` keeps how many scopes
+    /// the frame began with in.
+    @exclusivity(unchecked) var scopeMark: Register?
     @exclusivity(unchecked) var trees: [TreeNode] = []
     /// Assignments to what is not a local, which `assignByName` makes with the value it is given.
     @exclusivity(unchecked) var assignments: [Assignment] = []

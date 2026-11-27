@@ -415,22 +415,33 @@ struct TakenValue {
     let isUnowned: Bool
 }
 
-/// A closure as written: what it captures from the code that makes it.
+/// A closure as written, or a function declared in a block: what it captures from the code that makes
+/// it.
 final class ClosureSite {
-    let literal: ClosureLiteral
+    /// What the functions it makes are written as.
+    enum Source {
+        case literal(ClosureLiteral)
+        /// A nested function, which is a closure with a name.
+        case declaration(FunctionDecl)
+    }
+
+    let source: Source
     /// The locals it names, each kept in a cell the closure shares.
     let cells: [CapturedCell]
     /// The other names it uses, which are the enclosing closure's own captures, if anything.
     let others: [String]
     let captures: [TakenValue]
+    /// What the VM made of the first function it made, which those made with as many scopes share:
+    /// each is a new `Function`, and would be compiled again.
+    @exclusivity(unchecked) var code = VMCode.untried
 
     init(
-        literal: ClosureLiteral,
+        source: Source,
         cells: [CapturedCell],
         others: [String],
         captures: [TakenValue]
     ) {
-        self.literal = literal
+        self.source = source
         self.cells = cells
         self.others = others
         self.captures = captures
@@ -457,6 +468,9 @@ struct Handler {
     /// Whether it guards an expression (`try?`, `try!`) and not statements: the error has not left a
     /// statement yet, so it has not been told which one.
     var isExpression = false
+    /// How many blocks that declare by name are open around it: an error it catches leaves the
+    /// task's scopes at those the frame began with and theirs (`Code.scopeMark`).
+    var scopeDepth = 0
 }
 
 /// How the loop calls a function written in Swift by name (`max(a, b)`): its body, and what each

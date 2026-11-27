@@ -136,7 +136,7 @@ extension Interpreter {
             do {
                 _ = try withFrame(size: body.frameSize) {
                     bindParameters()
-                    return try run(body)
+                    return try runScoped(body)
                 }
                 result = .nothing
             } catch ControlFlow.returned(let value) {

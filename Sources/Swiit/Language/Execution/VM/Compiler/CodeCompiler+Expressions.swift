@@ -117,6 +117,8 @@ extension CodeCompiler {
     private mutating func variable(_ name: String, into destination: Register) {
         if let local = lookup(name) {
             read(local.slot, boxed: local.boxed, into: destination)
+        } else if name == ownName {
+            emit(.declarations(.loadCallee(dst: destination)))
         } else if name == "self", let register = code.selfRegister {
             emit(
                 code.selfStorage.holdsCell
@@ -336,10 +338,25 @@ extension CodeCompiler {
     /// A closure: made when this runs, of the cells of the locals it names and the values its
     /// capture list takes.
     private mutating func closure(_ literal: ClosureLiteral, into destination: Register) throws {
+        let site = try closureSite(
+            .literal(literal),
+            names: literal.names.names,
+            captures: literal.captures
+        )
+        emit(.captures(.makeClosure(dst: destination, site: site)))
+    }
+
+    /// What a closure, or a function declared in a block, is made of: the cells of the locals it
+    /// names, and the values its capture list takes.
+    mutating func closureSite(
+        _ source: ClosureSite.Source,
+        names: Set<String>,
+        captures list: [ClosureLiteral.Capture]
+    ) throws -> UInt32 {
         var cells: [CapturedCell] = []
         var others: [String] = []
-        let taken = Set(literal.captures.map(\.name))
-        for name in literal.names.names.subtracting(taken).sorted() {
+        let taken = Set(list.map(\.name))
+        for name in names.subtracting(taken).sorted() {
             guard let local = lookup(name) else {
                 others.append(name)
                 continue
@@ -348,7 +365,7 @@ extension CodeCompiler {
             cells.append(CapturedCell(name: name, register: local.slot, mutable: local.mutable))
         }
         var captures: [TakenValue] = []
-        for capture in literal.captures {
+        for capture in list {
             let register = try allocate()
             try expression(capture.value, into: register)
             captures.append(
@@ -361,8 +378,8 @@ extension CodeCompiler {
             )
         }
         code.closures.append(
-            ClosureSite(literal: literal, cells: cells, others: others, captures: captures)
+            ClosureSite(source: source, cells: cells, others: others, captures: captures)
         )
-        emit(.captures(.makeClosure(dst: destination, site: UInt32(code.closures.count - 1))))
+        return UInt32(code.closures.count - 1)
     }
 }

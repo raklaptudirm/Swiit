@@ -209,3 +209,21 @@ extension Arguments {
         parameters.map { self[$0.name] ?? .nothing }
     }
 }
+
+extension Function {
+    /// The function a declaration makes, in the scopes it captured.
+    convenience init(declared decl: FunctionDecl, captured: [Scope]) {
+        self.init(
+            name: decl.name,
+            parameters: decl.parameters,
+            returnType: decl.returnType,
+            body: .swiit(decl.body),
+            captured: captured,
+            documentation: decl.documentation,
+            attributes: decl.attributes,
+            isThrowing: decl.isThrowing,
+            effect: decl.effect,
+            typeParameters: decl.runtimeTypeParameters
+        )
+    }
+}

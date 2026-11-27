@@ -28,19 +28,22 @@ extension Interpreter {
     }
 
     /// A closure, as the tree evaluator makes one: it keeps the global scopes, the cells of the
-    /// locals it names, and the values its capture list takes, each weakly if it says so.
+    /// locals it names, and the values its capture list takes, each weakly if it says so. A nested
+    /// function is made the same way, with the name and the facts its declaration gives it.
     func makeClosure(
         _ site: ClosureSite,
         _ registers: UnsafeMutablePointer<Value>
-    ) throws
-        -> Value
-    {
+    ) throws -> Function {
         let capture = Scope()
         for local in site.cells {
-            capture.bindings[local.name] = Binding(
-                cell: try cell(registers[Int(local.register)]),
-                mutable: local.mutable
-            )
+            let held = registers[Int(local.register)]
+            guard case .object(let object) = held.storage, let cell = object as? Binding.Cell else {
+                // A function declared in a block is made as the block begins, too, before the
+                // locals declared after it, which it cannot name.
+                if case .declaration = site.source, held == .nothing { continue }
+                throw RuntimeError("a captured variable lost its cell")
+            }
+            capture.bindings[local.name] = Binding(cell: cell, mutable: local.mutable)
         }
         for name in site.others {
             if let binding = localBinding(name) { capture.bindings[name] = binding }
@@ -66,15 +69,32 @@ extension Interpreter {
             }
             captured.append(taken)
         }
-        return .function(
-            Function(
+        let made: Function
+        switch site.source {
+        case .literal(let literal):
+            made = Function(
                 name: nil,
-                parameters: site.literal.parameters,
-                returnType: site.literal.returnType,
-                body: .swiit(site.literal.body),
+                parameters: literal.parameters,
+                returnType: literal.returnType,
+                body: .swiit(literal.body),
                 captured: captured
             )
-        )
+        case .declaration(let decl):
+            made = Function(declared: decl, captured: captured)
+        }
+        // Each is a new function; the code of the first serves the others the same scopes hold.
+        switch site.code {
+        case .code(let shared) where shared.capturedCount == captured.count:
+            made.vmCode = site.code
+        case .unsupported:
+            made.vmCode = site.code
+        case .untried:
+            _ = compiled(made)
+            site.code = made.vmCode
+        case .code:
+            break
+        }
+        return made
     }
 }
 

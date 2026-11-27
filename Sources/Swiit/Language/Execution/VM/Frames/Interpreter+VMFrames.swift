@@ -108,6 +108,7 @@ extension Interpreter {
         )
         body.frameSize = frameSize
         body.capturedSlots = program.capturedSlots
+        body.hasDeclaringBlocks = program.hasDeclaringBlocks
         let function = Function(
             name: nil,
             parameters: [],
@@ -186,6 +187,7 @@ extension Interpreter {
         if case .inPlace(let register, _) = code.selfStorage {
             stack.leftSelf = stack.base[base + Int(register)]
         }
+        if code.scopeMark != nil { restoreScopes(of: code, base: base, opening: 0, on: stack) }
         VMStack.clear(stack.base + base, count: code.frameSize)
         let task = self.task
         if !code.isProgram { task.callDepth -= 1 }

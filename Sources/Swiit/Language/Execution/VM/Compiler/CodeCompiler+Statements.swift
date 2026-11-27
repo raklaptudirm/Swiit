@@ -8,11 +8,13 @@ extension CodeCompiler {
     /// and `return` run them in line; an error is sent to code after the block that runs them and
     /// throws it again.
     mutating func contents(of program: Program) throws {
+        if program.declaresByName { try openDeclarations(of: program) }
         let defers = program.statements.compactMap { statement -> Program? in
             if case .deferBlock(let body) = statement { body } else { nil }
         }
         guard !defers.isEmpty else {
             try statements(of: program)
+            if program.declaresByName { emit(.declarations(.closeScope)) }
             return
         }
         guard defers.count <= 60 else { throw Unsupported("many defers in a block") }
@@ -26,11 +28,33 @@ extension CodeCompiler {
         try statements(of: program)
         closeHandler(guarded)
         try emitCleanup(of: scopes.count - 1)
+        if program.declaresByName { emit(.declarations(.closeScope)) }
         let over = emit(.jump(offset: 0))
         aimHandler(guarded)
         try emitCleanup(of: scopes.count - 1)
         emit(.errors(.rethrow))
         patch(over, to: here)
+    }
+
+    /// A block that declares begins: its scope is opened, and what it declares is bound there before
+    /// its first statement, as the tree evaluator hoists it. A function is declared again where it
+    /// is written, with the locals declared before it.
+    private mutating func openDeclarations(of program: Program) throws {
+        emit(.declarations(.openScope))
+        scopes[scopes.count - 1].declaresByName = true
+        for statement in program.statements {
+            switch statement {
+            case .function(let decl): try declare(decl)
+            case .structDecl, .classDecl, .enumDecl: treeStatement(statement, roots: [])
+            default: break
+            }
+        }
+    }
+
+    /// A function declared in a block: a closure with its name, bound in the block's scope.
+    private mutating func declare(_ decl: FunctionDecl) throws {
+        let site = try closureSite(.declaration(decl), names: decl.names.names, captures: [])
+        emit(.declarations(.declareFunction(site: site)))
     }
 
     mutating func statements(of program: Program) throws {
@@ -86,6 +110,7 @@ extension CodeCompiler {
     mutating func emitExit(downTo depth: Int, clearing: Bool) throws {
         for index in (depth..<scopes.count).reversed() {
             try emitCleanup(of: index)
+            if scopes[index].declaresByName { emit(.declarations(.closeScope)) }
             if clearing, let cleared = scopes[index].cleared {
                 emit(.clear(first: cleared.first, count: cleared.count))
             }
@@ -96,9 +121,15 @@ extension CodeCompiler {
 
     mutating func compile(_ statement: Statement, range: Int32) throws {
         switch statement {
-        case .function, .enumDecl, .structDecl, .classDecl, .protocolDecl, .typeExtension,
-            .extensionDecl, .operatorDeclaration:
-            throw Unsupported("a declaration in a body")
+        case .function(let decl):
+            emit(.step(range: range))
+            try declare(decl)
+            return
+        case .enumDecl, .structDecl, .classDecl:
+            // Declared where the block began.
+            return
+        case .protocolDecl, .typeExtension, .extensionDecl, .operatorDeclaration:
+            throw Unsupported("a declaration Swift allows only at the top level")
         case .deferBlock:
             // Not a step: the tree evaluator only collects it. It is registered where it is reached.
             let scope = scopes.count - 1

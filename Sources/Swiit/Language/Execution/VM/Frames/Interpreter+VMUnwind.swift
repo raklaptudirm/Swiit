@@ -35,6 +35,7 @@ extension Interpreter {
                 error = runtime
             }
             if let handler = guarded {
+                restoreScopes(of: code, base: cursor.base, opening: handler.scopeDepth, on: stack)
                 if handler.keepsError { stack.caught.append(error) }
                 if let register = handler.register, let runtime = error as? RuntimeError {
                     stack.base[cursor.base + Int(register)] = runtime.value

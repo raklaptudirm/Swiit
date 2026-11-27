@@ -139,7 +139,34 @@ enum Instruction {
     case captures(Captures)
 
     case calls(Calls)
+
     case globals(Globals)
+
+    case declarations(Declarations)
+}
+
+extension Instruction {
+    /// Functions and types declared in a block, which binds them by name in a scope of its own while
+    /// it runs, as the tree evaluator's `runScoped` does.
+    enum Declarations {
+        /// How many scopes the task has as the frame begins, into `dst`: what the frame's end, and an
+        /// error caught in it, bring them back to (`Code.scopeMark`).
+        case markScopes(dst: Register)
+
+        /// A block that declares begins: a scope for what it binds by name.
+        case openScope
+
+        /// It ends.
+        case closeScope
+
+        /// The function `Code.closures[site]` declares, made of the cells of the locals it names and
+        /// bound by name in the block's scope.
+        case declareFunction(site: UInt32)
+
+        /// The function running: what a nested function's own name is, as the tree evaluator binds
+        /// it for each call (there, as an overload set of the one function).
+        case loadCallee(dst: Register)
+    }
 }
 
 extension Instruction {

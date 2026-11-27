@@ -44,6 +44,10 @@ extension CodeCompiler {
         }
         let target: Target
         switch named {
+        case .variable(let called) where lookup(called) == nil && called == ownName:
+            let held = try allocate()
+            emit(.declarations(.loadCallee(dst: held)))
+            target = .value(held)
         case .variable(let called) where lookup(called) == nil: target = .name(called)
         case .member(let base, _) where isConstant(base): target = .member
         case .local, .variable:

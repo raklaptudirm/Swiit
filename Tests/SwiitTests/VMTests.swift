@@ -162,7 +162,7 @@ private let programs: [VMSample] = [
 private let everyProgram: [VMSample] = [
     programs, vmControlFlow, vmMoreControlFlow, vmClosures, vmRuntimeNodes, vmKinds,
     vmParameterKinds, vmAsync, vmTopLevel, vmFastMembers, vmStructMembers, vmClasses, vmEntered,
-    vmCallbacks, vmExpressions,
+    vmCallbacks, vmExpressions, vmDeclarations,
 ]
 .flatMap { $0 }
 

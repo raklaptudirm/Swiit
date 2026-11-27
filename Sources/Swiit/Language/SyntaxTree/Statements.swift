@@ -20,6 +20,12 @@ struct Program: Equatable, Sendable {
     /// For a body given a frame, the slots of the locals a closure in it names: these are kept in
     /// a cell, which the closure shares, and not in the slot itself (the VM, `Docs/vm.md`).
     var capturedSlots: Set<Int> = []
+    /// For a block of a body given a frame, whether it declares a function or a type: those are bound
+    /// by name, in a scope the block has while it runs, as Swift scopes a local function to its block.
+    var declaresByName = false
+    /// For a body given a frame, whether any of its blocks declares by name: a frame of it keeps how
+    /// many scopes it began with, which it goes back to (the VM's `Code.scopeMark`).
+    var hasDeclaringBlocks = false
 
     /// A local and the slot of its frame it lives in.
     struct Local: Equatable, Sendable {

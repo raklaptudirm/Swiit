@@ -22,6 +22,8 @@ extension Interpreter {
         case .captures(let captures): try executeCaptures(captures, &cursor, stack)
         case .calls(let calls): try executeCalls(calls, &cursor, stack)
         case .globals(let globals): try executeGlobals(globals, &cursor, stack)
+        case .declarations(let declarations):
+            try executeDeclarations(declarations, &cursor, stack)
         default: preconditionFailure("an instruction of the loop's own")
         }
     }

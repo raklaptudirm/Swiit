@@ -607,7 +607,7 @@ extension Interpreter {
                         (functionRef, codeRef) = cursor.refs
                         regs = stack.base + base
                     case .members, .collections, .conversions, .patterns, .iteration, .errors,
-                        .fallback, .captures, .calls, .globals:
+                        .fallback, .captures, .calls, .globals, .declarations:
                         var cursor = VMCursor(
                             function: function,
                             code: code,

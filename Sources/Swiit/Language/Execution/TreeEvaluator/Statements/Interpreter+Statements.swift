@@ -159,7 +159,7 @@ extension Interpreter {
     func runBlock(_ program: Program, declaring bindings: [String: Binding] = [:]) throws {
         // A block of a body given a frame that binds nothing needs nothing made for it.
         if program.locals?.isEmpty == true, bindings.isEmpty {
-            _ = try run(program)
+            _ = try runScoped(program)
             return
         }
         guard let locals = program.locals, let frame = task.frame else {
@@ -176,7 +176,16 @@ extension Interpreter {
             frame.bind(name, binding, at: local.slot)
         }
         defer { frame.clear(locals) }
-        try run(program)
+        _ = try runScoped(program)
+    }
+
+    /// Runs a block of a body given a frame, in a scope of its own when it declares a function or a
+    /// type, which it binds there by name.
+    func runScoped(_ program: Program) throws -> Value {
+        guard program.declaresByName else { return try run(program) }
+        scopes.append(Scope())
+        defer { scopes.removeLast() }
+        return try run(program)
     }
 
     func run(_ statement: Statement) throws {
@@ -273,28 +282,23 @@ extension Interpreter {
     /// A function declared at the top level or in a block: it captures the scope it is bound in, so
     /// it can call itself.
     private func declareFunction(_ decl: FunctionDecl) {
-        let function = Function(
-            name: decl.name,
-            parameters: decl.parameters,
-            returnType: decl.returnType,
-            body: .swiit(decl.body),
-            captured: captureScopes(decl.names),
-            documentation: decl.documentation,
-            attributes: decl.attributes,
-            isThrowing: decl.isThrowing,
-            effect: decl.effect,
-            typeParameters: decl.runtimeTypeParameters
-        )
-        // A function of a builtin's name overloads it: `print(_ p: Point)` beside
-        // `print(_ items: Any...)`.
+        bindDeclared(Function(declared: decl, captured: captureScopes(decl.names)))
+    }
+
+    /// A function declared at the top level or in a block, bound by name in the innermost scope. One
+    /// of a builtin's name overloads it: `print(_ p: Point)` beside `print(_ items: Any...)`.
+    func bindDeclared(_ function: Function) {
+        guard let name = function.name else {
+            preconditionFailure("a declared function has a name")
+        }
         let current = scopes[scopes.count - 1]
-        if current.bindings[decl.name] == nil, scopes.count > 1,
-            let builtin = scopes[0].bindings[decl.name],
+        if current.bindings[name] == nil, scopes.count > 1,
+            let builtin = scopes[0].bindings[name],
             builtin.isFunction
         {
-            current.bindings[decl.name] = builtin
+            current.bindings[name] = builtin
         }
-        current.declare(function, named: decl.name)
+        current.declare(function, named: name)
     }
 
     private func runDoCatch(_ body: Program, _ clauses: [SwitchCase]) throws {

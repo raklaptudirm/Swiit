@@ -33,6 +33,6 @@ extension Function {
     /// captured, whose parameters are taken as they come.
     var isCompilable: Bool {
         guard case .swiit(let program) = body else { return false }
-        return program.frameSize != nil && !(name != nil && captured.count > 2)
+        return program.frameSize != nil
     }
 }

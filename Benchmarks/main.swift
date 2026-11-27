@@ -39,6 +39,51 @@ func register(on swiit: Interpreter) {
 
 let cases = [
     Case(
+        name: "nested: function, 200k",
+        source: """
+            func run() -> Int {
+                func f(_ x: Int) -> Int { x + 1 }
+                var t = 0
+                for i in 0..<200_000 { t += f(i) }
+                return t
+            }
+            run()
+            """
+    ),
+    Case(
+        name: "nested: struct, 200k",
+        source: """
+            func run() -> Int {
+                struct P { var x: Int; func sum() -> Int { x + 1 } }
+                var t = 0
+                for i in 0..<200_000 { let p = P(x: i); t += p.sum() }
+                return t
+            }
+            run()
+            """
+    ),
+    Case(
+        name: "nested: recursion, fib(22)",
+        source: """
+            func run() -> Int {
+                func fib(_ n: Int) -> Int { n < 2 ? n : fib(n - 1) + fib(n - 2) }
+                return fib(22)
+            }
+            run()
+            """
+    ),
+    Case(
+        name: "nested: declared per call, 50k",
+        source: """
+            func g(_ x: Int) -> Int {
+                func h(_ y: Int) -> Int { y * 2 }
+                return h(x) + 1
+            }
+            func run() -> Int { var t = 0; for i in 0..<50_000 { t += g(i) }; return t }
+            run()
+            """
+    ),
+    Case(
         name: "host: property, 100k",
         source: """
             func run() -> Int { let m = Meter.of(3); var n = 0; for _ in 0..<100_000 { n += m.value }; return n }
