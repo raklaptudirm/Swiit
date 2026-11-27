@@ -18,8 +18,9 @@ extension Interpreter {
         vmEntries += 1
         let base = stack.top
         stack.ensure(base + code.frameSize)
-        // By position, so that no parameter is copied to be looked at.
-        for index in 0..<function.parameters.count {
+        // By position, so that no parameter is copied to be looked at; arguments written where the
+        // frame begins (a native body's call of a closure) are where they belong already.
+        for index in 0..<function.parameters.count where registers != base {
             if let registers {
                 stack.base[base + index] = stack.base[registers + index]
             } else {

@@ -6,7 +6,7 @@
 /// these names is the current task's.
 final class TaskContext {
     /// The registers and callers of the compiled code this task runs (`Docs/vm.md`).
-    lazy var vm = VMStack()
+    let vm = VMStack()
     /// Variable scopes, innermost last. The outermost two are the global
     /// ones every task shares: the builtins, then what is declared at the
     /// prompt, so a `func` there shadows a builtin rather than overloading it.

@@ -210,10 +210,11 @@ final class VMStack {
     /// What `observesStatements` was before each deferred block that is running began.
     var quiet: [Bool] = []
 
+    /// A stack with no registers yet: the first frame's `ensure` makes them, so that a task that runs
+    /// no compiled code makes none.
     init() {
-        capacity = 1 << 12
-        base = .allocate(capacity: capacity)
-        base.initialize(repeating: .nothing, count: capacity)
+        capacity = 0
+        base = .allocate(capacity: 1)
     }
 
     deinit {
@@ -313,7 +314,7 @@ final class VMStack {
     /// `ensure` for a stack that has to grow: moved to storage twice as large, or more.
     @inline(never)
     private func grow(to needed: Int) {
-        var larger = capacity
+        var larger = Swift.max(capacity, 1 << 12)
         while larger < needed { larger *= 2 }
         let moved = UnsafeMutablePointer<Value>.allocate(capacity: larger)
         moved.moveInitialize(from: base, count: capacity)
