@@ -321,6 +321,41 @@ let vmKinds: [VMSample] = [
         entirely: true
     ),
     VMSample(
+        name: "sorting numbers, counting in a dictionary with a default, and adding literal lists",
+        source: """
+            func f(_ n: Int) -> String {
+                var out = ""
+                let ints = (0..<n).map { ($0 * 7919) % 101 }
+                out += "\\(ints.sorted().prefix(5)) \\(ints.sorted().last ?? -1) "
+                let doubles = ints.map { Double($0) / 4 }
+                out += "\\(doubles.sorted().prefix(3)) "
+                let words = ["pear", "apple", "fig"]
+                out += "\\(words.sorted()) \\(([] as [Int]).sorted()) \\([3, 1, 2].sorted(by: >)) "
+                var counts: [Int: Int] = [:]
+                var names: [String: Int] = [:]
+                for i in 0..<n {
+                    counts[i % 7, default: 0] += 1
+                    names["k\\(i % 3)", default: 10] += i
+                    counts[i % 7, default: 0] -= i % 2
+                }
+                out += "\\(counts[0] ?? -1) \\(counts[6] ?? -1) \\(names["k1"] ?? -1) \\(counts.count) "
+                var xs: [Int] = []
+                var ys = [String]()
+                for i in 0..<n {
+                    xs += [i]
+                    xs += [i * 2, i * 3]
+                    xs += []
+                    ys += ["a\\(i)"]
+                }
+                out += "\\(xs.count) \\(xs[xs.count - 1]) \\(ys.joined())"
+                return out
+            }
+            f(6)
+            """,
+        compiles: ["f"],
+        entirely: true
+    ),
+    VMSample(
         name: "a method calling a plain function and being called from one",
         source: """
             func double(_ x: Int) -> Int { x * 2 }

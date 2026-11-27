@@ -616,18 +616,29 @@ extension Value {
         _ value: Value
     ) -> Bool {
         guard case .dictionary(var dictionary) = storage else { return false }
+        let found = dictionary.index(forKey: key)
         let new: Value
         if let op {
-            guard let current = dictionary[key] ?? fallback, current != .nothing,
-                let combined = Value.combined(current, op, value)
+            guard let current = found.map({ dictionary.values[$0] }) ?? fallback,
+                current != .nothing, let combined = Value.combined(current, op, value)
             else { return false }
             new = combined
         } else {
             guard fallback == nil else { return false }
             new = value
         }
+        // Nothing else holds the dictionary while it changes, so that it changes where it is. An entry
+        // that is there is found once, by its index.
         storage = .nothing
-        dictionary[key] = new == .nothing ? nil : new
+        if let found {
+            if new == .nothing {
+                dictionary.remove(at: found)
+            } else {
+                dictionary.values[found] = new
+            }
+        } else if new != .nothing {
+            dictionary[key] = new
+        }
         storage = .dictionary(dictionary)
         return true
     }

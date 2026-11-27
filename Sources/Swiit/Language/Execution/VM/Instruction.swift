@@ -70,6 +70,10 @@ enum Instruction {
     case dictionaryValue(dst: Register, base: Register, key: Register, offset: Int32)
     /// A list of the `count` registers from `first`, which are let go of: the values of a literal.
     case makeList(dst: Register, first: Register, count: Register)
+    /// `xs += [a, b]`: the `count` registers from `first`, which are let go of, are added to the list in
+    /// `local` where it is, and no list is made of them; to anything else, a list of them is added as
+    /// `+=` adds one.
+    case appendValues(local: Register, first: Register, count: Register)
     /// A dictionary of the `count` pairs of registers from `first` (a key, then its value), which are
     /// let go of.
     case makeDictionary(dst: Register, first: Register, count: Register)

@@ -153,6 +153,24 @@ extension Interpreter {
         switch instruction {
         case .makeList(let dst, let first, let count):
             regs[Int(dst)] = .list(takeValues(regs + Int(first), count: Int(count)))
+        case .appendValues(let local, let first, let count):
+            var slot = regs[Int(local)]
+            regs[Int(local)] = .nothing
+            defer { stack.base[cursor.base + Int(local)] = slot }
+            if case .list(var items) = slot.storage {
+                slot = .nothing
+                for index in 0..<Int(count) {
+                    items.append(regs[Int(first) + index])
+                    regs[Int(first) + index] = .nothing
+                }
+                slot = .list(items)
+            } else {
+                try applyInPlace(
+                    .add,
+                    &slot,
+                    .list(takeValues(regs + Int(first), count: Int(count)))
+                )
+            }
         case .makeDictionary(let dst, let first, let count):
             let pairs = takeValues(regs + Int(first), count: Int(count) * 2)
             var dictionary: [Value: Value] = [:]

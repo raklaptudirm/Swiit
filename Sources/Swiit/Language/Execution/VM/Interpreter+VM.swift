@@ -406,7 +406,7 @@ extension Interpreter {
                         regs = stack.base + base
                     case .fastMember, .fastGlobalMember, .assignMember, .assignGlobalMember,
                         .assignSelfMember, .callBridged, .interpolate, .assignElement,
-                        .assignGlobalElement, .makeList, .makeDictionary, .makeTuple,
+                        .assignGlobalElement, .makeList, .appendValues, .makeDictionary, .makeTuple,
                         .requireValue, .describe, .cast, .index, .dictionaryValue, .assignPath,
                         .match, .destructure, .iterate, .iteratePairs, .iterateNextPair,
                         .jumpIfWhereFalse, .noMatch, .throwValue,

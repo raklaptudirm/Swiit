@@ -268,6 +268,16 @@ extension CodeCompiler {
             return
         }
         let mark = nextTemporary
+        // `xs += [a, b]` adds the elements, and makes no list of them.
+        if assignment.op == .add, let local = known, !local.boxed,
+            case .list(let items) = assignment.value, items.count <= 200
+        {
+            let first = Register(nextTemporary)
+            for item in items { try expression(item, into: try allocate()) }
+            emit(.appendValues(local: local.slot, first: first, count: Register(items.count)))
+            nextTemporary = mark
+            return
+        }
         let value = try allocate()
         try expression(assignment.value, into: value)
         if let local = known {

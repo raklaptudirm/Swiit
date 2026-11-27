@@ -153,6 +153,42 @@ extension Value: Comparable {
     }
 }
 
+extension Array where Element == Value {
+    /// The values in ascending order. Where they are all Ints, or all Doubles with no NaN among them,
+    /// that is the order of the numbers, which are sorted as numbers (comparing `Value`s moves 24 bytes
+    /// and calls `<` for each pair); the rest are ordered as `Value.<` has them.
+    func sorted() -> [Value] {
+        if let first = first {
+            switch first.storage {
+            case .int:
+                var numbers: [Int] = []
+                numbers.reserveCapacity(count)
+                for value in self {
+                    guard case .int(let number) = value.storage else { break }
+                    numbers.append(number)
+                }
+                if numbers.count == count {
+                    numbers.sort()
+                    return numbers.map(Value.int)
+                }
+            case .double:
+                var numbers: [Double] = []
+                numbers.reserveCapacity(count)
+                for value in self {
+                    guard case .double(let number) = value.storage, !number.isNaN else { break }
+                    numbers.append(number)
+                }
+                if numbers.count == count {
+                    numbers.sort()
+                    return numbers.map(Value.double)
+                }
+            default: break
+            }
+        }
+        return sorted(by: <)
+    }
+}
+
 extension Value {
     /// A struct or class instance, which a program's `<` may order.
     fileprivate var isOfProgramsType: Bool {
