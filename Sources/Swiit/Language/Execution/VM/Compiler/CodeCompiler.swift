@@ -114,21 +114,22 @@ struct CodeCompiler {
             code.takesArgumentsAsWritten && function.owner == nil && !function.isMutating
         // A body that names `self` has the cell of it in a register of its own, after the locals.
         if !function.parameters.contains(where: { $0.name == "self" }), mentionsSelf(body) {
-            code.selfRegister = Register(frameSize)
+            let register = Register(frameSize)
             nextTemporary = frameSize + 1
             highest = max(highest, frameSize)
             changesSelf = function.isMutating && !function.isInitializer
             isMethod = !function.isInitializer
             isInitializer = function.isInitializer
-            code.isMethodBody = isMethod
-            code.isInitializerBody = isInitializer
             // A class's method holds the reference to the instance, which it changes where it is: `self`
             // is held as a value unless `super` needs the cell. A struct's must not be assigned through.
             code.usesSuper = mentionsSuper(body)
             selfIsReference = function.owner != nil
-            code.selfByValue =
-                function.name != nil && !function.isMutating && !function.isInitializer
+            let readsSelfOnly =
+                function.name != nil && !function.isMutating
                 && (selfIsReference ? !code.usesSuper : !assignsToSelf(body))
+            code.selfStorage =
+                function.isInitializer
+                ? .initializing(register) : readsSelfOnly ? .value(register) : .cell(register)
         }
         code.isFailable = function.isFailable
         code.hasOwner = function.owner != nil

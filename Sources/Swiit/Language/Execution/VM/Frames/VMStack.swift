@@ -98,22 +98,56 @@ struct VMCaller {
     func releaseCallee() { calleeRef.release() }
 }
 
-/// What returning from a method the loop called undoes besides leaving its frame.
+/// What returning from a method or an initializer the loop called undoes besides leaving its frame.
 struct MethodExit {
-    /// The cell of `self`, which the receiver is read back from; nil for a method whose body does not
-    /// name `self`.
+    /// The cell of `self`, which the receiver or the value made is read back from; nil for a body that
+    /// holds `self` as a value or does not name it.
     let selfCell: Binding.Cell?
     /// The call pushed the class whose body it is, for `super`.
     let popsOwner: Bool
-    /// The register, counted from the stack's start, a struct the method changed is stored back in;
-    /// negative where it is not.
-    let storeReceiverAt: Int
-    /// The cell of the caller's `self`, where a struct the method changed goes back when `self` was
-    /// the receiver.
-    var storeReceiverIn: Binding.Cell?
-    /// The frame is an initializer's: what it makes is the last of `VMStack.completions`.
-    var isConstructor = false
+    let ending: Ending
 
+    /// What the frame's end gives: a method's, nothing but what goes back to its receiver; an
+    /// initializer's, the value it made.
+    enum Ending {
+        case method(WriteBack)
+        case initializer(Completion)
+    }
+
+    /// Where a struct a method changed goes back to: what the receiver was moved out of, so that the
+    /// cell of `self` held it alone. Changes are kept whether the method returns or fails, as Swift
+    /// keeps them.
+    enum WriteBack {
+        /// Nothing goes back: a method that does not change its receiver, or a class's.
+        case none
+        /// The register, counted from the stack's start, the receiver was in.
+        case register(Int)
+        /// The cell of the global, or of the caller's `self`, the receiver was in.
+        case cell(Binding.Cell)
+
+        /// Something goes back: the receiver was moved out of where it was.
+        var changesReceiver: Bool {
+            if case .none = self { false } else { true }
+        }
+
+        /// Puts `value` where the receiver came from.
+        func store(_ value: Value, on stack: VMStack) {
+            switch self {
+            case .none: break
+            case .register(let register): stack.base[register] = value
+            case .cell(let cell): cell.value = value
+            }
+        }
+    }
+
+    /// The value a constructor's frame gives back in place of the initializer's result.
+    enum Completion {
+        /// A struct, its fields put in the order the type declares them.
+        case structValue(StructType)
+        /// A class's instance, which the initializer's superclass part completes; what `calledSuperInit`
+        /// was before the call, which is put back.
+        case classInstance(ClassInstance, Function, savedSuperInit: Bool)
+    }
 }
 
 /// The registers of a task's compiled code, one frame after another, and where each caller was. A
@@ -127,21 +161,9 @@ final class VMStack {
     let callers = CallerStack()
     /// The scopes of the callers that had scopes of their own, innermost last.
     @exclusivity(unchecked) var savedScopes: [[Scope]] = []
-    /// What the initializers the loop is in the middle of calling make of the value they were run on when
-    /// they return, innermost last.
-    @exclusivity(unchecked) var completions: [Completion] = []
     /// Emptied argument arrays of bridged calls, with their storage, so that a call takes one
     /// instead of allocating; one is out for each bridged call that has not returned.
     @exclusivity(unchecked) var argumentArrays: [[Value]] = []
-
-    /// The value a constructor's frame gives back in place of the initializer's result.
-    enum Completion {
-        /// A struct, its fields put in the order the type declares them.
-        case structValue(StructType)
-        /// A class's instance, which the initializer's superclass part completes; what `calledSuperInit`
-        /// was before the call, which is put back.
-        case classInstance(ClassInstance, Function, savedSuperInit: Bool)
-    }
 
     /// What the methods the loop is in the middle of calling undo as they return, innermost last.
     @exclusivity(unchecked) var methodExits: [MethodExit] = []
@@ -233,8 +255,7 @@ final class VMStack {
             MethodExit(
                 selfCell: cell,
                 popsOwner: false,
-                storeReceiverAt: global == nil ? register : -1,
-                storeReceiverIn: global
+                ending: .method(global.map(MethodExit.WriteBack.cell) ?? .register(register))
             )
         )
         return cell

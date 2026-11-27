@@ -14,8 +14,8 @@ extension CodeCompiler {
             return local.slot
         }
         // The value of `self` is read where it is.
-        if case .variable("self") = expression, code.selfByValue, lookup("self") == nil,
-            let register = code.selfRegister
+        if case .variable("self") = expression, case .value(let register) = code.selfStorage,
+            lookup("self") == nil
         {
             return register
         }
@@ -38,9 +38,9 @@ extension CodeCompiler {
                 read(local.slot, boxed: local.boxed, into: destination)
             } else if name == "self", let register = code.selfRegister {
                 emit(
-                    code.selfByValue
-                        ? .move(dst: destination, src: register)
-                        : .loadCell(dst: destination, box: register)
+                    code.selfStorage.holdsCell
+                        ? .loadCell(dst: destination, box: register)
+                        : .move(dst: destination, src: register)
                 )
             } else {
                 code.globals.append(GlobalSite(name: name))
@@ -344,7 +344,7 @@ extension CodeCompiler {
         _ expression: Expr,
         into destination: Register
     ) throws -> Bool {
-        guard let selfRegister = code.selfRegister, !code.selfByValue, name != "init",
+        guard let selfRegister = code.selfRegister, code.selfStorage.holdsCell, name != "init",
             arguments.allSatisfy({ isPure($0.value) })
         else { return false }
         let mark = nextTemporary
@@ -408,7 +408,7 @@ extension CodeCompiler {
         let mark = nextTemporary
         var receiver = held?.slot ?? 0
         if onSelf, let cell = code.selfRegister {
-            if code.selfByValue {
+            if !code.selfStorage.holdsCell {
                 receiver = cell
             } else {
                 receiver = try allocate()

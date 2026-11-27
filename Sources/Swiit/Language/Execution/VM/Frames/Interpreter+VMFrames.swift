@@ -52,13 +52,13 @@ extension Interpreter {
             own = made
         }
         // The class is pushed for `super`, which only a body that names it asks for.
-        let owner = code.usesSuper && code.hasOwner ? function.owner : nil
+        let owner = superclassOwner(of: function, code)
         if let owner { task.owners.append(owner) }
         if !code.isProgram { task.callDepth += 1 }
         task.frame = nil
         if let register = code.selfRegister, let binding = lookup("self") {
             stack.base[base + Int(register)] =
-                code.selfByValue ? binding.value : .object(binding.cell)
+                code.selfStorage.holdsCell ? .object(binding.cell) : binding.value
         }
         defer {
             if let receiver, let changed = own?.bindings["self"]?.value { receiver.value = changed }

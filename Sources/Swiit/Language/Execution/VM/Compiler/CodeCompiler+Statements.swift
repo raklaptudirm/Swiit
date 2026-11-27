@@ -255,7 +255,7 @@ extension CodeCompiler {
         let isWeak = known.map { weakSlots.contains(Int($0.slot)) } ?? false
         guard assignment.path.isEmpty, known?.mutable ?? true, !isWeak else {
             if known == nil, assignment.root == "self", let register = code.selfRegister,
-                !code.selfByValue || selfIsReference, assignment.path.count == 1,
+                code.selfStorage.holdsCell || selfIsReference, assignment.path.count == 1,
                 isPure(assignment.value),
                 case .member(let name) = assignment.path[0]
             {

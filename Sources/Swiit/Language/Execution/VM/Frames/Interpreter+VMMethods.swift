@@ -3,6 +3,51 @@ import Foundation
 // Calling a method from the loop: finding it for the receiver, and what its frame does with `self` as it
 // begins and ends.
 
+/// What a method's or an initializer's frame begins with: where it is in the stack, where the caller
+/// resumes, how `self` is held, and what returning gives.
+struct MethodFrame {
+    let function: Function
+    let code: Code
+    /// The register, counted from the stack's start, of the first argument, which is the frame's first.
+    let argumentBase: Int
+    /// The instruction the caller resumes at.
+    let resumeAt: Int
+    /// The register, counted from the stack's start, the result goes to.
+    let destination: Int
+    /// The caller's scopes, kept to be put back, when the call runs in scopes of its own.
+    let savedScopes: [Scope]?
+    let held: HeldSelf
+    let ending: MethodExit.Ending
+}
+
+/// How a frame holds `self`: what the register of `self` starts with, and the cell `self` is held in,
+/// through which what the body changes is read back.
+struct HeldSelf {
+    /// What the register of `self` starts with; nil for a body that has none.
+    let register: Value?
+    let cell: Binding.Cell?
+
+    /// The receiver of a method, as its body holds it.
+    static func receiver(_ receiver: Value, as storage: Code.SelfStorage) -> HeldSelf {
+        switch storage {
+        case .none:
+            return HeldSelf(register: nil, cell: nil)
+        case .value:
+            return HeldSelf(register: receiver, cell: nil)
+        case .cell, .initializing:
+            let cell = Binding.Cell(receiver)
+            return HeldSelf(register: .object(cell), cell: cell)
+        }
+    }
+
+    /// The value an initializer makes: held in a cell whether or not the body names `self`, because
+    /// the value is read back from it as the initializer returns.
+    static func made(_ start: Value, as storage: Code.SelfStorage) -> HeldSelf {
+        let cell = Binding.Cell(start)
+        return HeldSelf(register: storage.register == nil ? nil : .object(cell), cell: cell)
+    }
+}
+
 /// The registers a `callMethod` instruction names.
 struct CallOperands {
     let dst: Register
@@ -146,14 +191,13 @@ extension Interpreter {
         // A method that changes a struct is one the loop calls where the receiver is a local or a global
         // that it can move into the cell of `self`, and not `self`.
         let changes = target.function.isMutating && !target.isClass
+        let holdsCell = if case .cell = target.code.selfStorage { true } else { false }
         guard !site.isSuper, !site.isGetter, target.mapping == nil,
             !ownScope, site.sharesScopes, !extended,
-            !target.code.isInitializerBody, !target.code.usesSuper,
+            !target.code.usesSuper,
             changes
-                ? !site.receiverIsSelf && target.code.selfRegister != nil
-                    && !target.code.selfByValue
-                : !target.function.isMutating
-                    && (target.code.selfRegister == nil || target.code.selfByValue),
+                ? !site.receiverIsSelf && holdsCell
+                : !target.function.isMutating && !target.code.selfStorage.holdsCell,
             target.isClass ? site.classType != nil : site.type != nil
         else { return }
         site.fastChangesReceiver = changes
@@ -222,61 +266,46 @@ extension Interpreter {
             storeIn = object as? Binding.Cell
         }
         let receiverValue = stack.base[cursor.base + Int(operands.receiver)]
-        let exit: MethodExit
+        let back = writeBack(
+            of: target,
+            storeAt: cursor.base + Int(operands.receiver),
+            storeIn: storeIn
+        )
+        let held: HeldSelf
         if ownScope {
-            exit = enterMethodScope(
-                target,
-                receiver: stack.base[cursor.base + Int(operands.receiver)],
-                storeAt: cursor.base + Int(operands.receiver),
-                storeIn: storeIn
+            held = bindSelfInScope(
+                receiverValue,
+                of: target.function,
+                mutable: target.isClass || target.function.isMutating,
+                special: nil
             )
         } else {
-            exit = enterLightMethod(
-                target,
-                receiver: receiverValue,
-                storeAt: cursor.base + Int(operands.receiver),
-                storeIn: storeIn
-            )
-            // The cell of `self` holds the struct alone while the method changes it, so that it is
-            // changed where it is; it goes back where it came from as the method returns or fails.
-            if exit.selfCell != nil, exit.storeReceiverAt >= 0 || exit.storeReceiverIn != nil {
-                stack.base[cursor.base + Int(operands.receiver)] = .nothing
-                exit.storeReceiverIn?.value = .nothing
-            }
+            held = .receiver(receiverValue, as: target.code.selfStorage)
             if !site.sharesScopes || extended {
                 setScopes(of: target.function, from: cursor.function, task)
             }
         }
-        stack.push(
-            VMCaller(
-                code: cursor.code,
-                function: cursor.function,
-                callee: target.function,
-                pc: cursor.pc + Int(operands.offset),
-                base: cursor.base,
-                statement: cursor.statement,
-                destination: cursor.base + Int(operands.dst),
-                isMethod: true
-            ),
-            scopes: saved
-        )
-        stack.methodExits.append(exit)
-        stack.ensure(argumentBase + target.code.frameSize)
-        stack.top = argumentBase + target.code.frameSize
-        cursor = VMCursor(
-            function: target.function,
-            code: target.code,
-            base: argumentBase,
-            pc: 0,
-            statement: -1
-        )
-        if let register = target.code.selfRegister {
-            if let cell = exit.selfCell {
-                stack.base[argumentBase + Int(register)] = .object(cell)
-            } else if target.code.selfByValue {
-                stack.base[argumentBase + Int(register)] = receiverValue
-            }
+        let ending = MethodExit.Ending.method(held.cell == nil ? .none : back)
+        // The cell of `self` holds the struct alone while the method changes it, so that it is changed
+        // where it is; it goes back where it came from as the method returns or fails.
+        if held.cell != nil, back.changesReceiver {
+            stack.base[cursor.base + Int(operands.receiver)] = .nothing
+            back.store(.nothing, on: stack)
         }
+        enterMethodFrame(
+            MethodFrame(
+                function: target.function,
+                code: target.code,
+                argumentBase: argumentBase,
+                resumeAt: cursor.pc + Int(operands.offset),
+                destination: cursor.base + Int(operands.dst),
+                savedScopes: saved,
+                held: held,
+                ending: ending
+            ),
+            &cursor,
+            stack
+        )
         return true
     }
 }
@@ -297,31 +326,19 @@ extension Interpreter {
 }
 
 extension Interpreter {
-    /// What returning from a method the loop called undoes (and, for an initializer, the value it gives): the class pushed for `super` is popped,
-    /// and a struct the method changed goes back in the register it was called on.
+    /// What returning from a method the loop called undoes, and, for an initializer, the value it gives:
+    /// the class pushed for `super` is popped, and a struct the method changed goes back where the
+    /// receiver came from.
     func finishMethod(_ exit: MethodExit, on stack: VMStack) throws -> Value? {
         if exit.popsOwner { task.owners.removeLast() }
-        if let cell = exit.selfCell {
-            if exit.storeReceiverAt >= 0 { stack.base[exit.storeReceiverAt] = cell.value }
-            exit.storeReceiverIn?.value = cell.value
-        }
-        guard exit.isConstructor, let cell = exit.selfCell else { return nil }
-        switch stack.completions.removeLast() {
-        case .structValue(let type):
-            guard let made = cell.value.record else {
-                throw RuntimeError("\(type.name).init must leave self a \(type.name)")
-            }
-            // The fields set in the order the type declares them are the value as they are.
-            if made.hasKeys(type.storedNames) { return Value(record: made) }
-            var record = Value.Record(typeRef: type.typeRef, capacity: type.stored.count)
-            for property in type.stored {
-                guard let value = made[property.name] else {
-                    throw RuntimeError("\(type.name).init must set '\(property.name)'")
-                }
-                record.appendDistinct(property.name, value)
-            }
-            return Value(record: record)
-        case .classInstance(let instance, let initializer, let saved):
+        switch exit.ending {
+        case .method(let back):
+            if let cell = exit.selfCell { back.store(cell.value, on: stack) }
+            return nil
+        case .initializer(.structValue(let type)):
+            guard let cell = exit.selfCell else { return nil }
+            return try madeStruct(of: type, from: cell)
+        case .initializer(.classInstance(let instance, let initializer, let saved)):
             defer { task.calledSuperInit = saved }
             try completeInitialization(of: instance, by: initializer)
             try checkAllSet(instance)
@@ -329,43 +346,48 @@ extension Interpreter {
         }
     }
 
-    /// An error left a method's frame: what it pushed is undone, and nothing is stored.
+    /// The struct an initializer of `type` left in the cell of `self`: the fields set in the order the
+    /// type declares them are the value as they are, and the rest are put in that order.
+    private func madeStruct(of type: StructType, from cell: Binding.Cell) throws -> Value {
+        guard let made = cell.value.record else {
+            throw RuntimeError("\(type.name).init must leave self a \(type.name)")
+        }
+        if made.hasKeys(type.storedNames) { return Value(record: made) }
+
+        var record = Value.Record(typeRef: type.typeRef, capacity: type.stored.count)
+        for property in type.stored {
+            guard let value = made[property.name] else {
+                throw RuntimeError("\(type.name).init must set '\(property.name)'")
+            }
+            record.appendDistinct(property.name, value)
+        }
+        return Value(record: record)
+    }
+
+    /// An error left a method's frame: what it pushed is undone, and what a method changed of its
+    /// receiver before it failed is kept, as Swift keeps it. An initializer makes nothing.
     func abandonMethod(_ exit: MethodExit, on stack: VMStack) {
         if exit.popsOwner { task.owners.removeLast() }
-        // What a mutating method changed before it failed is kept, as Swift keeps it.
-        if !exit.isConstructor, let cell = exit.selfCell {
-            if exit.storeReceiverAt >= 0 { stack.base[exit.storeReceiverAt] = cell.value }
-            exit.storeReceiverIn?.value = cell.value
-        }
-        if exit.isConstructor, case .classInstance(_, _, let saved) = stack.completions.removeLast()
-        {
+        switch exit.ending {
+        case .method(let back):
+            if let cell = exit.selfCell { back.store(cell.value, on: stack) }
+        case .initializer(.classInstance(_, _, let saved)):
             task.calledSuperInit = saved
+        case .initializer(.structValue):
+            break
         }
     }
 
-    /// What a call of a method that runs in the scopes it captured leaves to undo: `self` is a cell in
-    /// a register of the frame, for a body that names it, and the scope that binds it by name is made
-    /// only if the body looks names up (`ensureSelfScope`).
-    func enterLightMethod(
-        _ target: MethodTarget,
-        receiver: Value,
+    /// Where what a method changed of a struct goes back to: the cell of the global or of the caller's
+    /// `self` the receiver came from, or the register it was in. Nothing for a method that does not
+    /// change it, or a class's.
+    func writeBack(
+        of target: MethodTarget,
         storeAt: Int,
         storeIn: Binding.Cell?
-    ) -> MethodExit {
-        let cell =
-            target.code.selfRegister == nil || target.code.selfByValue
-            ? nil : Binding.Cell(receiver)
-        // The class is pushed for `super`, which only a body that names it asks for.
-        let owner = target.code.usesSuper && target.code.hasOwner ? target.function.owner : nil
-        if let owner { task.owners.append(owner) }
-        task.callDepth += 1
-        let changes = cell != nil && target.function.isMutating && !target.isClass
-        return MethodExit(
-            selfCell: cell,
-            popsOwner: owner != nil,
-            storeReceiverAt: changes && storeIn == nil ? storeAt : -1,
-            storeReceiverIn: changes ? storeIn : nil
-        )
+    ) -> MethodExit.WriteBack {
+        guard target.function.isMutating, !target.isClass else { return .none }
+        return storeIn.map(MethodExit.WriteBack.cell) ?? .register(storeAt)
     }
 
     /// In the frame of a method, the scope that binds `self` by name, which what looks names up
@@ -376,12 +398,11 @@ extension Interpreter {
     }
 
     func makeSelfScope(_ function: Function, _ code: Code, base: Int, on stack: VMStack) {
-        guard code.isMethodBody || code.isInitializerBody, let register = code.selfRegister,
-            task.scopes.count == function.captured.count
+        guard let register = code.selfRegister, task.scopes.count == function.captured.count
         else { return }
         let held = stack.base[base + Int(register)]
         var binding: Binding
-        if code.selfByValue {
+        if !code.selfStorage.holdsCell {
             // The value of `self` was put in the register; a cell of its own is made for the scope.
             var mutable = false
             if case .object(is ClassInstance) = held.storage { mutable = true }
@@ -390,45 +411,84 @@ extension Interpreter {
             guard case .object(let object) = held.storage, let cell = object as? Binding.Cell else {
                 return
             }
-            var mutable = function.isMutating || code.isInitializerBody
+            let initializing = if case .initializing = code.selfStorage { true } else { false }
+            var mutable = function.isMutating || initializing
             if case .object(is ClassInstance) = cell.value.storage { mutable = true }
             binding = Binding(cell: cell, mutable: mutable)
-            if code.isInitializerBody { binding.special = .initializing }
+            if initializing { binding.special = .initializing }
         }
         var table = BindingTable(capacity: 1)
         table["self"] = binding
         task.scopes = function.captured + [Scope(table: table)]
     }
 
-    /// The scope a method call runs in, with `self` bound in it: after what the method captured.
-    func enterMethodScope(
-        _ target: MethodTarget,
-        receiver: Value,
-        storeAt: Int,
-        storeIn: Binding.Cell?
-    ) -> MethodExit {
-        let binding = Binding(
-            value: receiver,
-            mutable: target.isClass || target.function.isMutating,
-            special: nil
+}
+
+extension Interpreter {
+    /// Pushes the frame of a method or an initializer and moves the cursor to its first instruction:
+    /// what every call of one the loop makes does, whatever made the receiver.
+    @inline(__always)
+    func enterMethodFrame(
+        _ frame: consuming MethodFrame,
+        _ cursor: inout VMCursor,
+        _ stack: VMStack
+    ) {
+        // The class is pushed for `super`, which only a body that names it asks for.
+        let owner = superclassOwner(of: frame.function, frame.code)
+        if let owner { task.owners.append(owner) }
+        task.callDepth += 1
+
+        stack.push(
+            VMCaller(
+                code: cursor.code,
+                function: cursor.function,
+                callee: frame.function,
+                pc: frame.resumeAt,
+                base: cursor.base,
+                statement: cursor.statement,
+                destination: frame.destination,
+                isMethod: true
+            ),
+            scopes: frame.savedScopes
         )
+        stack.methodExits.append(
+            MethodExit(selfCell: frame.held.cell, popsOwner: owner != nil, ending: frame.ending)
+        )
+
+        stack.ensure(frame.argumentBase + frame.code.frameSize)
+        stack.top = frame.argumentBase + frame.code.frameSize
+        cursor = VMCursor(
+            function: frame.function,
+            code: frame.code,
+            base: frame.argumentBase,
+            pc: 0,
+            statement: -1
+        )
+        if let register = frame.code.selfRegister, let value = frame.held.register {
+            stack.base[frame.argumentBase + Int(register)] = value
+        }
+    }
+
+    /// The class a call of `function` pushes for `super`: its own, for a body that names `super`.
+    func superclassOwner(of function: Function, _ code: Code) -> ClassType? {
+        code.usesSuper && code.hasOwner ? function.owner : nil
+    }
+
+    /// `self` bound by name in a scope of the call's own, after the scopes `function` captured: for a
+    /// body that looks names up and has no register of `self`.
+    func bindSelfInScope(
+        _ receiver: Value,
+        of function: Function,
+        mutable: Bool,
+        special: Binding.Special?
+    ) -> HeldSelf {
+        let binding = Binding(value: receiver, mutable: mutable, special: special)
         // A scope made for a call is seen by nothing made before it, so the names are not changed.
         var table = BindingTable(capacity: 1)
         table["self"] = binding
-        let made = Scope(table: table)
-        var inside = target.function.captured
-        inside.append(made)
+        var inside = function.captured
+        inside.append(Scope(table: table))
         task.scopes = inside
-        // The class is pushed for `super`, which only a body that names it asks for.
-        let owner = target.code.usesSuper && target.code.hasOwner ? target.function.owner : nil
-        if let owner { task.owners.append(owner) }
-        task.callDepth += 1
-        return MethodExit(
-            selfCell: binding.cell,
-            popsOwner: owner != nil,
-            storeReceiverAt: target.function.isMutating && !target.isClass && storeIn == nil
-                ? storeAt : -1,
-            storeReceiverIn: target.function.isMutating && !target.isClass ? storeIn : nil
-        )
+        return HeldSelf(register: nil, cell: binding.cell)
     }
 }

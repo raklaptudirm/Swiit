@@ -149,14 +149,8 @@ final class Code {
     /// Its arguments are taken as written, in registers, whether or not it changes its receiver: what a
     /// method the loop calls itself must be.
     @exclusivity(unchecked) var takesArgumentsAsWritten = true
-    /// The register that holds the cell of `self`, for a body that names it: filled as the call
-    /// begins, so that it is not looked up by name each time. Such code is entered by a call that has
-    /// the receiver, never by the loop's own.
-    @exclusivity(unchecked) var selfRegister: Register?
-    /// The body of a method (not an initializer) that names `self`: it runs in the scopes its
-    /// function captured, and the scope that binds `self` by name is made when something looks for it
-    /// (`Interpreter.ensureSelfScope`).
-    @exclusivity(unchecked) var isMethodBody = false
+    /// How the body holds `self`, if it names it.
+    @exclusivity(unchecked) var selfStorage = SelfStorage.none
     /// Its instructions only read registers, constants and the stored fields of what they hold, compute
     /// with them, jump forward and return: no call, no write outside the frame, no name looked up. A
     /// native body that calls it may run it by `Interpreter.runLeaf`, which gives up (and the call is
@@ -164,15 +158,10 @@ final class Code {
     @exclusivity(unchecked) private(set) var isLeaf = false
     /// How many scopes its function captured, which are the task's while it runs.
     @exclusivity(unchecked) var capturedCount = 0
-    /// The register of `self` holds its value, not the cell of it: a method that does not change `self`
-    /// (a struct's, an enum's or an extension's) reads the receiver as it is, and makes no cell.
-    @exclusivity(unchecked) var selfByValue = false
     /// The body names `super`, which needs the class it belongs to pushed as it is called.
     @exclusivity(unchecked) var usesSuper = false
     /// Its function belongs to a class, which a call pushes for `super`.
     @exclusivity(unchecked) var hasOwner = false
-    /// The same for an initializer, whose `self` is `.initializing`.
-    @exclusivity(unchecked) var isInitializerBody = false
     /// Something in it looks names up in the scopes: a tree node, an evaluation by name, a closure.
     @exclusivity(unchecked) private(set) var looksUpNames = false
     /// An initializer that may fail, whose `return nil` ends the construction.
@@ -180,4 +169,42 @@ final class Code {
     /// A statement of a program's own code, not a function: it is no call, so it adds no entry to an
     /// error's calls and no depth to the call stack.
     @exclusivity(unchecked) var isProgram = false
+}
+
+extension Code {
+    /// How a body that names `self` holds it: in a register of its own after the locals, filled as the
+    /// call begins, so that it is not looked up by name each time. Such code is entered by a call that
+    /// has the receiver, never by the loop's own. The scope that binds `self` by name is made only when
+    /// something looks for it (`Interpreter.ensureSelfScope`).
+    enum SelfStorage {
+        /// The body does not name `self`.
+        case none
+        /// The receiver as it is, and no cell: a method that does not change `self` (a struct's, an
+        /// enum's or an extension's), or a class's method that does not name `super`.
+        case value(Register)
+        /// The cell of `self`, through which what the body changes goes back to the receiver: a method
+        /// that changes it or names `super`, and a closure in a method.
+        case cell(Register)
+        /// The cell of the value an initializer makes, whose `self` is `.initializing`.
+        case initializing(Register)
+
+        /// The register of `self`, if the body names it.
+        var register: Register? {
+            switch self {
+            case .none: nil
+            case .value(let register), .cell(let register), .initializing(let register): register
+            }
+        }
+
+        /// The register holds a cell of `self`, not its value.
+        var holdsCell: Bool {
+            switch self {
+            case .cell, .initializing: true
+            case .none, .value: false
+            }
+        }
+    }
+
+    /// The register of `self`, if the body names it.
+    var selfRegister: Register? { selfStorage.register }
 }

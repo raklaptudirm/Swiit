@@ -24,7 +24,7 @@ struct ConstructorFrame {
     let initializer: Function
     let code: Code
     let receiver: Value
-    let completion: VMStack.Completion
+    let completion: MethodExit.Completion
 }
 
 /// What a struct's memberwise initializer does with each argument: which stored property takes it, and
@@ -381,59 +381,29 @@ extension Interpreter {
         }
         let extended = task.scopes.count != cursor.code.capturedCount
         let saved: [Scope]? = ownScope || extended ? task.scopes : nil
-        let cell: Binding.Cell
+        let held: HeldSelf
         if ownScope {
-            let binding = Binding(value: receiver, mutable: true, special: .initializing)
-            var table = BindingTable(capacity: 1)
-            table["self"] = binding
-            var inside = initializer.captured
-            inside.append(Scope(table: table))
-            task.scopes = inside
-            cell = binding.cell
+            held = bindSelfInScope(receiver, of: initializer, mutable: true, special: .initializing)
         } else {
-            cell = Binding.Cell(receiver)
+            held = .made(receiver, as: code.selfStorage)
             if !site.sharesScopes || extended {
                 setScopes(of: initializer, from: cursor.function, task)
             }
         }
-        // The class is pushed for `super`, which only a body that names it asks for.
-        let owner = code.usesSuper && code.hasOwner ? initializer.owner : nil
-        if let owner { task.owners.append(owner) }
-        task.callDepth += 1
-        stack.push(
-            VMCaller(
-                code: cursor.code,
-                function: cursor.function,
-                callee: initializer,
-                pc: cursor.pc,
-                base: cursor.base,
-                statement: cursor.statement,
+        enterMethodFrame(
+            MethodFrame(
+                function: initializer,
+                code: code,
+                argumentBase: call.argumentBase,
+                resumeAt: cursor.pc,
                 destination: cursor.base + Int(call.dst),
-                isMethod: true
+                savedScopes: saved,
+                held: held,
+                ending: .initializer(completion)
             ),
-            scopes: saved
+            &cursor,
+            stack
         )
-        stack.methodExits.append(
-            MethodExit(
-                selfCell: cell,
-                popsOwner: owner != nil,
-                storeReceiverAt: -1,
-                isConstructor: true
-            )
-        )
-        stack.completions.append(completion)
-        stack.ensure(call.argumentBase + code.frameSize)
-        stack.top = call.argumentBase + code.frameSize
-        cursor = VMCursor(
-            function: initializer,
-            code: code,
-            base: call.argumentBase,
-            pc: 0,
-            statement: -1
-        )
-        if let register = code.selfRegister {
-            stack.base[call.argumentBase + Int(register)] = .object(cell)
-        }
     }
 }
 
