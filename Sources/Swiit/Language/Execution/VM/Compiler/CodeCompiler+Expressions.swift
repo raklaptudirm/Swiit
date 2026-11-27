@@ -14,8 +14,8 @@ extension CodeCompiler {
             return local.slot
         }
         // The value of `self` is read where it is.
-        if case .variable("self") = expression, case .value(let register) = code.selfStorage,
-            lookup("self") == nil
+        if case .variable("self") = expression, !code.selfStorage.holdsCell,
+            let register = code.selfRegister, lookup("self") == nil
         {
             return register
         }

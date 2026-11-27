@@ -378,6 +378,51 @@ let vmKinds: [VMSample] = [
         compiles: ["f"]
     ),
     VMSample(
+        name: "a struct held in place by its mutating methods and initializers, through every path",
+        source: """
+            struct Inner { var count = 0 }
+            struct Box {
+                var items: [Int] = []
+                var inner = Inner()
+                var name: String
+                init(name: String) { self.name = name }
+                init() { self.init(name: "none") }
+                mutating func add(_ x: Int) throws {
+                    items.append(x)
+                    inner.count += 1
+                    name = "\\(name)\\(x)"
+                    if x > 3 { throw Stop.big }
+                    let span = 0...x
+                    items.append(span.count)
+                }
+                mutating func sortDown() { items.sort { $0 > $1 } }
+                mutating func reset() { self = Box(name: "reset") }
+                mutating func twice(_ x: Int) throws { try add(x); try add(x + 1) }
+                mutating func bumpDeep() { self.inner.count += 10 }
+            }
+            enum Stop: Error { case big }
+            func f() -> String {
+                var b = Box(name: "b")
+                var failed = 0
+                for i in 0..<6 {
+                    do { try b.twice(i) } catch { failed += 1 }
+                }
+                b.bumpDeep()
+                b.sortDown()
+                var log = "\\(b.items) \\(b.inner.count) \\(b.name) \\(failed)"
+                b.reset()
+                let other = Box()
+                log += " \\(b.name) \\(b.items.count) \\(other.name)"
+                return log
+            }
+            var g = Box(name: "g")
+            try g.add(1)
+            g.bumpDeep()
+            print(f(), g.items, g.inner.count, g.name)
+            """,
+        compiles: ["f"]
+    ),
+    VMSample(
         name: "a method calling a plain function and being called from one",
         source: """
             func double(_ x: Int) -> Int { x * 2 }

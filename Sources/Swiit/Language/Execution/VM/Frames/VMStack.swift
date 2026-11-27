@@ -100,12 +100,43 @@ struct VMCaller {
 
 /// What returning from a method or an initializer the loop called undoes besides leaving its frame.
 struct MethodExit {
-    /// The cell of `self`, which the receiver or the value made is read back from; nil for a body that
-    /// holds `self` as a value or does not name it.
-    let selfCell: Binding.Cell?
+    /// Where `self` is while the body runs, which the receiver or the value made is read back from.
+    let holder: SelfHolder
     /// The call pushed the class whose body it is, for `super`.
     let popsOwner: Bool
     let ending: Ending
+
+    /// Where a frame holds `self` while its body runs.
+    enum SelfHolder {
+        /// Nowhere it is read back from: a body that holds `self` as a value it does not change, or
+        /// does not name it.
+        case none
+        /// A cell, which the scope that binds `self` by name may share.
+        case cell(Binding.Cell)
+        /// The register of `self` (`Code.SelfStorage.inPlace`). The end of the frame leaves the value
+        /// in `VMStack.leftSelf`, since its registers are let go before its exit runs.
+        case register
+
+        /// What `self` holds as the frame ends: read from the cell, or taken from where the frame
+        /// left it. Nil for `none`.
+        func value(on stack: VMStack) -> Value? {
+            switch self {
+            case .none:
+                return nil
+            case .cell(let cell):
+                return cell.value
+            case .register:
+                let value = stack.leftSelf
+                stack.leftSelf = .nothing
+                return value
+            }
+        }
+
+        /// The receiver was moved here, so that the frame holds it alone.
+        var holdsReceiver: Bool {
+            if case .none = self { false } else { true }
+        }
+    }
 
     /// What the frame's end gives: a method's, nothing but what goes back to its receiver; an
     /// initializer's, the value it made.
@@ -165,6 +196,10 @@ final class VMStack {
     /// instead of allocating; one is out for each bridged call that has not returned.
     @exclusivity(unchecked) var argumentArrays: [[Value]] = []
 
+    /// The value of `self` a frame that held it in its register left as it ended, for its exit to read
+    /// (`MethodExit.SelfHolder.register`). Frames end one at a time, and each exit runs right after its
+    /// frame ends, so one is enough.
+    @exclusivity(unchecked) var leftSelf = Value.nothing
     /// What the methods the loop is in the middle of calling undo as they return, innermost last.
     @exclusivity(unchecked) var methodExits: [MethodExit] = []
     /// Errors a handler caught, kept for the code it jumped to: the last is the one it is about.
@@ -244,21 +279,24 @@ final class VMStack {
         callers.append(record)
     }
 
-    /// The struct in a register, and in the cell of the global it was loaded from, if it was, moved into
-    /// a cell that holds it alone while a method changes it. The exit puts it back where it came from
-    /// as the method returns or fails.
-    func moveReceiverIntoCell(at register: Int, of global: Binding.Cell?) -> Binding.Cell {
-        let cell = Binding.Cell(base[register])
+    /// The struct in a register, and in the cell of the global it was loaded from, if it was, moved out
+    /// of there, so that the callee holds it alone while it changes it: into the callee's register
+    /// (`inPlace`) or into a cell. What the register of `self` starts with is returned, and the exit
+    /// that puts the struct back where it came from as the method returns or fails is pushed.
+    func moveReceiver(at register: Int, of global: Binding.Cell?, inPlace: Bool) -> Value {
+        let receiver = base[register]
         base[register] = .nothing
         global?.value = .nothing
-        methodExits.append(
-            MethodExit(
-                selfCell: cell,
-                popsOwner: false,
-                ending: .method(global.map(MethodExit.WriteBack.cell) ?? .register(register))
+        let back = global.map(MethodExit.WriteBack.cell) ?? .register(register)
+        if inPlace {
+            methodExits.append(
+                MethodExit(holder: .register, popsOwner: false, ending: .method(back))
             )
-        )
-        return cell
+            return receiver
+        }
+        let cell = Binding.Cell(receiver)
+        methodExits.append(MethodExit(holder: .cell(cell), popsOwner: false, ending: .method(back)))
+        return .object(cell)
     }
 
     /// Room for `needed` registers. A stack that grows moves, so a pointer into it is taken again

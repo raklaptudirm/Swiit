@@ -20,31 +20,37 @@ struct MethodFrame {
     let ending: MethodExit.Ending
 }
 
-/// How a frame holds `self`: what the register of `self` starts with, and the cell `self` is held in,
-/// through which what the body changes is read back.
+/// How a frame holds `self`: what the register of `self` starts with, and where `self` is held, which
+/// what the body changes is read back from.
 struct HeldSelf {
     /// What the register of `self` starts with; nil for a body that has none.
     let register: Value?
-    let cell: Binding.Cell?
+    let holder: MethodExit.SelfHolder
 
     /// The receiver of a method, as its body holds it.
     static func receiver(_ receiver: Value, as storage: Code.SelfStorage) -> HeldSelf {
         switch storage {
         case .none:
-            return HeldSelf(register: nil, cell: nil)
+            return HeldSelf(register: nil, holder: .none)
         case .value:
-            return HeldSelf(register: receiver, cell: nil)
+            return HeldSelf(register: receiver, holder: .none)
+        case .inPlace:
+            return HeldSelf(register: receiver, holder: .register)
         case .cell, .initializing:
             let cell = Binding.Cell(receiver)
-            return HeldSelf(register: .object(cell), cell: cell)
+            return HeldSelf(register: .object(cell), holder: .cell(cell))
         }
     }
 
-    /// The value an initializer makes: held in a cell whether or not the body names `self`, because
-    /// the value is read back from it as the initializer returns.
+    /// The value an initializer makes: held in its register or a cell, whether or not the body names
+    /// `self`, because the value is read back as the initializer returns.
     static func made(_ start: Value, as storage: Code.SelfStorage) -> HeldSelf {
+        if case .inPlace = storage { return HeldSelf(register: start, holder: .register) }
         let cell = Binding.Cell(start)
-        return HeldSelf(register: storage.register == nil ? nil : .object(cell), cell: cell)
+        return HeldSelf(
+            register: storage.register == nil ? nil : .object(cell),
+            holder: .cell(cell)
+        )
     }
 }
 
@@ -191,12 +197,17 @@ extension Interpreter {
         // A method that changes a struct is one the loop calls where the receiver is a local or a global
         // that it can move into the cell of `self`, and not `self`.
         let changes = target.function.isMutating && !target.isClass
-        let holdsCell = if case .cell = target.code.selfStorage { true } else { false }
+        // The receiver is moved into the cell of `self` or into its register.
+        let holdsReceiver =
+            switch target.code.selfStorage {
+            case .cell, .inPlace(_, initializes: false): true
+            default: false
+            }
         guard !site.isSuper, !site.isGetter, target.mapping == nil,
             !ownScope, site.sharesScopes, !extended,
             !target.code.usesSuper,
             changes
-                ? !site.receiverIsSelf && holdsCell
+                ? !site.receiverIsSelf && holdsReceiver
                 : !target.function.isMutating && !target.code.selfStorage.holdsCell,
             target.isClass ? site.classType != nil : site.type != nil
         else { return }
@@ -285,10 +296,10 @@ extension Interpreter {
                 setScopes(of: target.function, from: cursor.function, task)
             }
         }
-        let ending = MethodExit.Ending.method(held.cell == nil ? .none : back)
+        let ending = MethodExit.Ending.method(held.holder.holdsReceiver ? back : .none)
         // The cell of `self` holds the struct alone while the method changes it, so that it is changed
         // where it is; it goes back where it came from as the method returns or fails.
-        if held.cell != nil, back.changesReceiver {
+        if held.holder.holdsReceiver, back.changesReceiver {
             stack.base[cursor.base + Int(operands.receiver)] = .nothing
             back.store(.nothing, on: stack)
         }
@@ -333,11 +344,11 @@ extension Interpreter {
         if exit.popsOwner { task.owners.removeLast() }
         switch exit.ending {
         case .method(let back):
-            if let cell = exit.selfCell { back.store(cell.value, on: stack) }
+            if let value = exit.holder.value(on: stack) { back.store(value, on: stack) }
             return nil
         case .initializer(.structValue(let type)):
-            guard let cell = exit.selfCell else { return nil }
-            return try madeStruct(of: type, from: cell)
+            guard let made = exit.holder.value(on: stack) else { return nil }
+            return try madeStruct(of: type, from: made)
         case .initializer(.classInstance(let instance, let initializer, let saved)):
             defer { task.calledSuperInit = saved }
             try completeInitialization(of: instance, by: initializer)
@@ -348,8 +359,8 @@ extension Interpreter {
 
     /// The struct an initializer of `type` left in the cell of `self`: the fields set in the order the
     /// type declares them are the value as they are, and the rest are put in that order.
-    private func madeStruct(of type: StructType, from cell: Binding.Cell) throws -> Value {
-        guard let made = cell.value.record else {
+    private func madeStruct(of type: StructType, from value: Value) throws -> Value {
+        guard let made = value.record else {
             throw RuntimeError("\(type.name).init must leave self a \(type.name)")
         }
         if made.hasKeys(type.storedNames) { return Value(record: made) }
@@ -370,11 +381,11 @@ extension Interpreter {
         if exit.popsOwner { task.owners.removeLast() }
         switch exit.ending {
         case .method(let back):
-            if let cell = exit.selfCell { back.store(cell.value, on: stack) }
+            if let value = exit.holder.value(on: stack) { back.store(value, on: stack) }
         case .initializer(.classInstance(_, _, let saved)):
             task.calledSuperInit = saved
         case .initializer(.structValue):
-            break
+            _ = exit.holder.value(on: stack)
         }
     }
 
@@ -402,7 +413,15 @@ extension Interpreter {
         else { return }
         let held = stack.base[base + Int(register)]
         var binding: Binding
-        if !code.selfStorage.holdsCell {
+        if case .inPlace(_, let initializes) = code.selfStorage {
+            // The struct stays in its register; `withSelfInScope` puts it in this cell while what looks
+            // it up runs.
+            binding = Binding(
+                value: .nothing,
+                mutable: true,
+                special: initializes ? .initializing : nil
+            )
+        } else if !code.selfStorage.holdsCell {
             // The value of `self` was put in the register; a cell of its own is made for the scope.
             var mutable = false
             if case .object(is ClassInstance) = held.storage { mutable = true }
@@ -422,6 +441,34 @@ extension Interpreter {
         task.scopes = function.captured + [Scope(table: table)]
     }
 
+    /// Runs `body`, which looks names up, with the scope that binds `self` made. For a struct held in
+    /// its register (`Code.SelfStorage.inPlace`), the value is in that scope's cell while `body` runs
+    /// and back in the register after, however `body` ends, so that what it changes by name is kept.
+    @inline(__always)
+    func withSelfInScope<Result>(
+        _ function: Function,
+        _ code: Code,
+        base: Int,
+        on stack: VMStack,
+        _ body: () throws -> Result
+    ) rethrows -> Result {
+        guard case .inPlace(let register, _) = code.selfStorage else {
+            ensureSelfScope(function, code, base: base, on: stack)
+            return try body()
+        }
+        makeSelfScope(function, code, base: base, on: stack)
+        guard let cell = task.scopes.last?.bindings["self"]?.cell else { return try body() }
+
+        let slot = base + Int(register)
+        cell.value = stack.base[slot]
+        stack.base[slot] = .nothing
+        defer {
+            // The stack may have moved while `body` ran, so the register is found again by index.
+            stack.base[slot] = cell.value
+            cell.value = .nothing
+        }
+        return try body()
+    }
 }
 
 extension Interpreter {
@@ -452,7 +499,7 @@ extension Interpreter {
             scopes: frame.savedScopes
         )
         stack.methodExits.append(
-            MethodExit(selfCell: frame.held.cell, popsOwner: owner != nil, ending: frame.ending)
+            MethodExit(holder: frame.held.holder, popsOwner: owner != nil, ending: frame.ending)
         )
 
         stack.ensure(frame.argumentBase + frame.code.frameSize)
@@ -489,6 +536,6 @@ extension Interpreter {
         var inside = function.captured
         inside.append(Scope(table: table))
         task.scopes = inside
-        return HeldSelf(register: nil, cell: binding.cell)
+        return HeldSelf(register: nil, holder: .cell(binding.cell))
     }
 }

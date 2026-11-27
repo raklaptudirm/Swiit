@@ -295,7 +295,6 @@ extension Interpreter {
                             statement = -1
                             regs = stack.base + base
                         } else {
-                            ensureSelfScope(function, code, base: base, on: stack)
                             var cursor = VMCursor(
                                 function: function,
                                 code: code,
@@ -308,7 +307,7 @@ extension Interpreter {
                                 dst: dst,
                                 argumentBase: argumentBase
                             )
-                            if let value = try constructOrCall(made, &cursor, stack) {
+                            if let value = try constructOrCallLookingUp(made, &cursor, stack) {
                                 regs = stack.base + base
                                 regs[Int(dst)] = value
                             } else {
@@ -491,11 +490,10 @@ extension Interpreter {
                                 )
                                 var selfValue = receiverValue
                                 if methodSite.fastChangesReceiver {
-                                    selfValue = .object(
-                                        stack.moveReceiverIntoCell(
-                                            at: base + Int(receiver),
-                                            of: methodSite.global?.cell
-                                        )
+                                    selfValue = stack.moveReceiver(
+                                        at: base + Int(receiver),
+                                        of: methodSite.global?.cell,
+                                        inPlace: facts.inPlaceSelf >= 0
                                     )
                                     record.isMethod = true
                                 }
@@ -584,6 +582,9 @@ extension Interpreter {
                         // does, without building a cursor.
                         if callers.count > entryDepth, task.children.isEmpty {
                             let finished = codeRef._withUnsafeGuaranteedRef { $0.facts }
+                            if finished.inPlaceSelf >= 0 {
+                                stack.leftSelf = regs[finished.inPlaceSelf]
+                            }
                             VMStack.clear(regs, count: finished.frameSize)
                             task.callDepth -= 1
                             let caller = callers.removeLast()

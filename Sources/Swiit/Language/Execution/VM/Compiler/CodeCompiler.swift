@@ -57,6 +57,10 @@ struct CodeCompiler {
     var isMethod = false
     /// The function is an initializer, whose `self` is being made.
     var isInitializer = false
+    /// The body holds the struct `self` is in its register (`Code.SelfStorage.inPlace`).
+    var isInPlace: Bool {
+        if case .inPlace = code.selfStorage { true } else { false }
+    }
     /// The Swift members a script's calls and reads can name, which tell what a `bridged` node is.
     var bridged: [String: ImplementedType] = [:]
     /// How many slots the function's locals have: what a frame for the tree evaluator needs.
@@ -127,9 +131,18 @@ struct CodeCompiler {
             let readsSelfOnly =
                 function.name != nil && !function.isMutating
                 && (selfIsReference ? !code.usesSuper : !assignsToSelf(body))
-            code.selfStorage =
-                function.isInitializer
-                ? .initializing(register) : readsSelfOnly ? .value(register) : .cell(register)
+            // A struct's method that changes it, or its initializer, changes the struct where it is in
+            // the register, unless a closure could keep the scope that binds `self` by name.
+            let inPlace =
+                function.owner == nil && function.name != nil
+                && (function.isMutating || function.isInitializer) && !makesClosures(body)
+            if inPlace {
+                code.selfStorage = .inPlace(register, initializes: function.isInitializer)
+            } else if function.isInitializer {
+                code.selfStorage = .initializing(register)
+            } else {
+                code.selfStorage = readsSelfOnly ? .value(register) : .cell(register)
+            }
         }
         code.isFailable = function.isFailable
         code.hasOwner = function.owner != nil

@@ -15,6 +15,9 @@ struct CodeFacts {
     let capturedCount: Int
     /// The register of `self`, or -1 for a body that does not name it.
     let selfRegister: Int
+    /// The register of `self` when it holds the struct itself (`SelfStorage.inPlace`), which the end of
+    /// the frame takes the value from; -1 otherwise.
+    let inPlaceSelf: Int
 }
 
 /// What a function body compiled to.
@@ -70,7 +73,10 @@ final class Code {
             returnKind: returnKind,
             methods: methodTable,
             capturedCount: capturedCount,
-            selfRegister: selfRegister.map(Int.init) ?? -1
+            selfRegister: selfRegister.map(Int.init) ?? -1,
+            inPlaceSelf: {
+                if case .inPlace(let register, _) = selfStorage { Int(register) } else { -1 }
+            }()
         )
     }
 
@@ -130,7 +136,8 @@ final class Code {
             returnKind: .any,
             methods: methodTable,
             capturedCount: 0,
-            selfRegister: -1
+            selfRegister: -1,
+            inPlaceSelf: -1
         )
     }
     @exclusivity(unchecked) var parameterCount = 0
@@ -187,12 +194,20 @@ extension Code {
         case cell(Register)
         /// The cell of the value an initializer makes, whose `self` is `.initializing`.
         case initializing(Register)
+        /// The struct itself, changed where it is in the register: a struct's mutating method, or its
+        /// initializer (`initializes`), with no closure or nested function that could keep the scope
+        /// of `self` past the instruction that made it. What looks `self` up by name has the value in
+        /// that scope's cell while it runs, and back in the register after
+        /// (`Interpreter.withSelfInScope`).
+        case inPlace(Register, initializes: Bool)
 
         /// The register of `self`, if the body names it.
         var register: Register? {
             switch self {
             case .none: nil
-            case .value(let register), .cell(let register), .initializing(let register): register
+            case .value(let register), .cell(let register), .initializing(let register),
+                .inPlace(let register, _):
+                register
             }
         }
 
@@ -200,7 +215,7 @@ extension Code {
         var holdsCell: Bool {
             switch self {
             case .cell, .initializing: true
-            case .none, .value: false
+            case .none, .value, .inPlace: false
             }
         }
     }

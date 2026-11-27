@@ -248,6 +248,18 @@ extension CodeCompiler {
     /// `x = v` and `x += v` of a local, or of a variable that is not (a global, or one a closure
     /// captured) which the tree evaluator assigns by name.
     private mutating func assignInPlace(_ assignment: Assignment, _ statement: Statement) throws {
+        // `self = v` and `self += v` where the struct is held in its register: the register is
+        // assigned, as a local is.
+        if isInPlace, assignment.root == "self", assignment.path.isEmpty, lookup("self") == nil,
+            let register = code.selfRegister
+        {
+            let mark = nextTemporary
+            let value = try allocate()
+            try expression(assignment.value, into: value)
+            emit(.assign(local: register, op: assignment.op, value: value))
+            nextTemporary = mark
+            return
+        }
         // Through a path (`p.x = 1`, `xs[i] += 1`), or to a constant, which fails as it does there: the
         // tree evaluator's, which finds the root in a frame of the locals the statement mentions.
         let known = lookup(assignment.root)
@@ -255,7 +267,8 @@ extension CodeCompiler {
         let isWeak = known.map { weakSlots.contains(Int($0.slot)) } ?? false
         guard assignment.path.isEmpty, known?.mutable ?? true, !isWeak else {
             if known == nil, assignment.root == "self", let register = code.selfRegister,
-                code.selfStorage.holdsCell || selfIsReference, assignment.path.count == 1,
+                code.selfStorage.holdsCell || selfIsReference || isInPlace,
+                assignment.path.count == 1,
                 isPure(assignment.value),
                 case .member(let name) = assignment.path[0]
             {
@@ -488,15 +501,25 @@ extension CodeCompiler {
         code.members.append(
             MemberSite(name: name, mutatesStruct: changesSelf, initializing: isInitializer)
         )
+        let site = UInt32(code.members.count - 1)
+        // A struct held in its register is set there, as a local's field is.
         let fast = emit(
             .members(
-                .assignSelfMember(
-                    cell: cell,
-                    site: UInt32(code.members.count - 1),
-                    op: assignment.op,
-                    value: value,
-                    offset: 0
-                )
+                isInPlace
+                    ? .assignMember(
+                        local: cell,
+                        site: site,
+                        op: assignment.op,
+                        value: value,
+                        offset: 0
+                    )
+                    : .assignSelfMember(
+                        cell: cell,
+                        site: site,
+                        op: assignment.op,
+                        value: value,
+                        offset: 0
+                    )
             )
         )
         nextTemporary = mark

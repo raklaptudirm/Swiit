@@ -56,11 +56,25 @@ extension Interpreter {
         if let owner { task.owners.append(owner) }
         if !code.isProgram { task.callDepth += 1 }
         task.frame = nil
+        // A struct held in its register is moved there, so that the register holds it alone, and the
+        // frame's end leaves it to be put back.
+        var heldInPlace: Binding.Cell?
         if let register = code.selfRegister, let binding = lookup("self") {
-            stack.base[base + Int(register)] =
-                code.selfStorage.holdsCell ? .object(binding.cell) : binding.value
+            switch code.selfStorage {
+            case .inPlace:
+                stack.base[base + Int(register)] = binding.cell.value
+                binding.cell.value = .nothing
+                heldInPlace = binding.cell
+            default:
+                stack.base[base + Int(register)] =
+                    code.selfStorage.holdsCell ? .object(binding.cell) : binding.value
+            }
         }
         defer {
+            if let heldInPlace {
+                heldInPlace.value = stack.leftSelf
+                stack.leftSelf = .nothing
+            }
             if let receiver, let changed = own?.bindings["self"]?.value { receiver.value = changed }
             if let savedScopes { task.scopes = savedScopes }
             task.frame = saved.frame
@@ -165,6 +179,10 @@ extension Interpreter {
     /// What a frame does as it ends, however it ends: its registers are let go, its call is over, and
     /// the tasks it started are closed.
     func leaveFrame(_ function: Function, _ code: Code, base: Int, _ stack: VMStack) {
+        // A struct held in its register is left for the frame's exit, which runs next.
+        if case .inPlace(let register, _) = code.selfStorage {
+            stack.leftSelf = stack.base[base + Int(register)]
+        }
         VMStack.clear(stack.base + base, count: code.frameSize)
         let task = self.task
         if !code.isProgram { task.callDepth -= 1 }

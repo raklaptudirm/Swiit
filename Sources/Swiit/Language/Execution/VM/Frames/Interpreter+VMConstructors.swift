@@ -415,6 +415,20 @@ extension Interpreter {
 }
 
 extension Interpreter {
+    /// `constructOrCall` from the loop, which may look names up (`self`, for one): a function of its
+    /// own, so that what that needs is not in the loop.
+    @inline(never)
+    func constructOrCallLookingUp(
+        _ call: ConstructCall,
+        _ cursor: inout VMCursor,
+        _ stack: VMStack
+    ) throws -> Value? {
+        let (function, code, base) = (cursor.function, cursor.code, cursor.base)
+        return try withSelfInScope(function, code, base: base, on: stack) {
+            try constructOrCall(call, &cursor, stack)
+        }
+    }
+
     /// A call of a name that is not a function the loop enters: the value of a struct or a class made
     /// from the registers, or by the tree evaluator's call; nil where an initializer's frame was entered,
     /// which makes it when it returns.

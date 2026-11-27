@@ -63,6 +63,17 @@ extension CodeCompiler {
         return walk(body)
     }
 
+    /// Whether a body makes a closure or declares a function, either of which could keep the scope that
+    /// binds `self` after the instruction that made it.
+    func makesClosures(_ body: Program) -> Bool {
+        func walk(_ subject: Any) -> Bool {
+            if subject is Value || subject is String { return false }
+            if subject is ClosureLiteral || subject is FunctionDecl { return true }
+            return Mirror(reflecting: subject).children.contains { walk($0.value) }
+        }
+        return walk(body)
+    }
+
     /// The locals a piece of code mentions, as the frame it is run in gets them.
     private func mentioned(by subject: Any, plus roots: [String] = []) -> [TreeLocal] {
         var mentions = Mentions()
