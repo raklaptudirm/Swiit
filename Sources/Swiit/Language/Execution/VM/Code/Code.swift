@@ -41,7 +41,7 @@ final class Code {
             }
         looksUpNames = instructions.contains {
             switch $0 {
-            case .evaluateTree, .runTree, .evaluate, .loadVariable, .assignByName, .makeClosure:
+            case .fallback, .captures(.makeClosure):
                 true
             default: false
             }

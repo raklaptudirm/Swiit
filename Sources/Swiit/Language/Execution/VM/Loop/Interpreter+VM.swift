@@ -404,27 +404,6 @@ extension Interpreter {
                         defer { held.value = slot }
                         try applyInPlace(op, &slot, regs[Int(value)])
                         regs = stack.base + base
-                    case .fastMember, .fastGlobalMember, .assignMember, .assignGlobalMember,
-                        .assignSelfMember, .callBridged, .interpolate, .assignElement,
-                        .assignGlobalElement, .makeList, .appendValues, .makeDictionary, .makeTuple,
-                        .requireValue, .describe, .cast, .index, .dictionaryValue, .assignPath,
-                        .match, .destructure, .iterate, .iteratePairs, .iterateNextPair,
-                        .jumpIfWhereFalse, .noMatch, .throwValue,
-                        .fatalize,
-                        .reportDeferred,
-                        .guardCarriedOn, .deferMark, .loadVariable, .evaluate, .evaluateTree,
-                        .runTree, .conform, .assignByName, .iterationMismatch, .derefWeak,
-                        .makeClosure, .inoutOutputs, .takeInout, .finishInout, .failInit:
-                        var cursor = VMCursor(
-                            function: function,
-                            code: code,
-                            base: base,
-                            pc: pc,
-                            statement: statement
-                        )
-                        try executeMemberInstruction(instruction, &cursor, stack)
-                        pc = cursor.pc
-                        regs = stack.base + base
                     case .loadMember(let dst, let baseRegister, let name, let siteIndex):
                         if let field = storedField(
                             code.names[Int(name)],
@@ -673,6 +652,18 @@ extension Interpreter {
                         (base, pc, statement) = (cursor.base, cursor.pc, cursor.statement)
                         instructions = code.program
                         (functionRef, codeRef) = cursor.refs
+                        regs = stack.base + base
+                    case .members, .collections, .conversions, .patterns, .iteration, .errors,
+                        .fallback, .captures, .calls:
+                        var cursor = VMCursor(
+                            function: function,
+                            code: code,
+                            base: base,
+                            pc: pc,
+                            statement: statement
+                        )
+                        try executeHandedOff(instruction, &cursor, stack)
+                        pc = cursor.pc
                         regs = stack.base + base
                     }
                 }

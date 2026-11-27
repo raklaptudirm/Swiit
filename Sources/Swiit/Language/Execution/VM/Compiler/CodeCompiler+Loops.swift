@@ -20,28 +20,43 @@ extension CodeCompiler {
         return places
     }
 
-    /// `for x in xs`: of a collection, a string, a dictionary, or what has an iterator. A pattern that
-    /// is not a name (`(i, x)`) is matched to each element as the runtime matches one.
-    mutating func elementsLoop(_ loop: ForLoop, _ statement: Statement) throws {
+    /// The names a `for` binds for each element: the one variable of a name, or the slots of a pattern
+    /// and the site it is matched by.
+    struct LoopVariables {
         var entering: [String: (slot: Register, mutable: Bool)] = [:]
         var variable: Register?
         var matched: (site: UInt32, names: [String])?
+    }
+
+    /// What the pattern of `loop` binds, and where.
+    private mutating func loopVariables(of loop: ForLoop) throws -> LoopVariables {
+        var found = LoopVariables()
         switch loop.pattern {
-        case .wildcard: break
+        case .wildcard:
+            break
         case .binding(let name, let mutable):
             guard let local = loop.body.locals?.first(where: { $0.name == name }) else {
                 throw Unsupported("a for variable without a slot")
             }
-            variable = Register(local.slot)
-            entering[name] = (Register(local.slot), mutable)
+            found.variable = Register(local.slot)
+            found.entering[name] = (Register(local.slot), mutable)
         default:
             let names = FrameResolver.names(in: loop.pattern)
-            matched = (try site(loop.pattern, names: names, in: loop.body.locals), names)
+            found.matched = (try site(loop.pattern, names: names, in: loop.body.locals), names)
             for bound in try slots(of: names, in: loop.body.locals) {
-                entering[bound.name] = (bound.register, false)
+                found.entering[bound.name] = (bound.register, false)
             }
         }
+        return found
+    }
+
+    /// `for x in xs`: of a collection, a string, a dictionary, or what has an iterator. A pattern that
+    /// is not a name (`(i, x)`) is matched to each element as the runtime matches one.
+    mutating func elementsLoop(_ loop: ForLoop, _ statement: Statement) throws {
+        let bound = try loopVariables(of: loop)
+        let (entering, variable, matched) = (bound.entering, bound.variable, bound.matched)
         finished(statement)
+
         let mark = nextTemporary
         // The state of the iteration, the element, and the position in a list (`iterate`).
         let iterator = try allocate()
@@ -60,21 +75,23 @@ extension CodeCompiler {
         if pairs { _ = try allocate() }
         let sequence = try operand(loop.sequence)
         if pairs {
-            emit(.iteratePairs(dst: iterator, sequence: sequence))
+            emit(.iteration(.iteratePairs(dst: iterator, sequence: sequence)))
         } else {
-            emit(.iterate(dst: iterator, sequence: sequence, awaiting: loop.isAwait))
+            emit(.iteration(.iterate(dst: iterator, sequence: sequence, awaiting: loop.isAwait)))
         }
         let head = here
         let next: Int
         if let pieces, pairs {
             code.destructures.append(pieces)
             next = emit(
-                .iterateNextPair(
-                    iterator: iterator,
-                    variable: element,
-                    site: UInt32(code.destructures.count - 1),
-                    exit: 0,
-                    skip: 2
+                .iteration(
+                    .iterateNextPair(
+                        iterator: iterator,
+                        variable: element,
+                        site: UInt32(code.destructures.count - 1),
+                        exit: 0,
+                        skip: 2
+                    )
                 )
             )
         } else {
@@ -92,14 +109,16 @@ extension CodeCompiler {
             if let pieces {
                 if !pairs { code.destructures.append(pieces) }
                 destructure = emit(
-                    .destructure(
-                        site: UInt32(code.destructures.count - 1),
-                        value: element,
-                        offset: 0
+                    .patterns(
+                        .destructure(
+                            site: UInt32(code.destructures.count - 1),
+                            value: element,
+                            offset: 0
+                        )
                     )
                 )
             }
-            mismatch = emit(.match(pattern: matched.site, value: element, fail: 0))
+            mismatch = emit(.patterns(.match(pattern: matched.site, value: element, fail: 0)))
             if let destructure { patch(destructure, to: here) }
             for name in matched.names {
                 if let bound = entering[name] { bindBox(bound.slot) }
@@ -121,7 +140,7 @@ extension CodeCompiler {
         let context = breakables.removeLast()
         if let mismatch {
             patch(mismatch, to: here)
-            emit(.iterationMismatch(element: element))
+            emit(.iteration(.iterationMismatch(element: element)))
         }
         patch(next, to: here)
         for index in context.breaks { patch(index, to: here) }

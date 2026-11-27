@@ -240,7 +240,7 @@ struct CodeCompiler {
                     emit(.move(dst: held, src: slot))
                 }
             }
-            emit(.inoutOutputs(first: first, count: UInt16(inoutParameters.count)))
+            emit(.calls(.inoutOutputs(first: first, count: UInt16(inoutParameters.count))))
             nextTemporary = mark
         }
         emit(result.map(Instruction.returnValue) ?? .returnNothing)
@@ -283,38 +283,48 @@ extension CodeCompiler {
     /// `patch` for the jumps that are not the commonest.
     mutating func patchMember(_ index: Int, to offset: Int32) {
         switch code.instructions[index] {
-        case .assignPath(let local, let site, let keys, let value, _):
-            code.instructions[index] = .assignPath(
-                local: local,
-                site: site,
-                keys: keys,
-                value: value,
-                offset: offset
+        case .collections(.assignPath(let local, let site, let keys, let value, _)):
+            code.instructions[index] = .collections(
+                .assignPath(
+                    local: local,
+                    site: site,
+                    keys: keys,
+                    value: value,
+                    offset: offset
+                )
             )
-        case .destructure(let site, let value, _):
-            code.instructions[index] = .destructure(site: site, value: value, offset: offset)
-        case .dictionaryValue(let dst, let base, let key, _):
-            code.instructions[index] = .dictionaryValue(
-                dst: dst,
-                base: base,
-                key: key,
-                offset: offset
+        case .patterns(.destructure(let site, let value, _)):
+            code.instructions[index] = .patterns(
+                .destructure(site: site, value: value, offset: offset)
             )
-        case .fastMember(let kind, let dst, let receiver, let argument, _):
-            code.instructions[index] = .fastMember(
-                kind: kind,
-                dst: dst,
-                receiver: receiver,
-                argument: argument,
-                offset: offset
+        case .collections(.dictionaryValue(let dst, let base, let key, _)):
+            code.instructions[index] = .collections(
+                .dictionaryValue(
+                    dst: dst,
+                    base: base,
+                    key: key,
+                    offset: offset
+                )
             )
-        case .assignMember(let local, let site, let op, let value, _):
-            code.instructions[index] = .assignMember(
-                local: local,
-                site: site,
-                op: op,
-                value: value,
-                offset: offset
+        case .members(.fastMember(let kind, let dst, let receiver, let argument, _)):
+            code.instructions[index] = .members(
+                .fastMember(
+                    kind: kind,
+                    dst: dst,
+                    receiver: receiver,
+                    argument: argument,
+                    offset: offset
+                )
+            )
+        case .members(.assignMember(let local, let site, let op, let value, _)):
+            code.instructions[index] = .members(
+                .assignMember(
+                    local: local,
+                    site: site,
+                    op: op,
+                    value: value,
+                    offset: offset
+                )
             )
         case .callMethod(let dst, let site, let receiver, let arguments, _):
             code.instructions[index] = .callMethod(
@@ -324,13 +334,15 @@ extension CodeCompiler {
                 arguments: arguments,
                 offset: offset
             )
-        case .assignSelfMember(let cell, let site, let op, let value, _):
-            code.instructions[index] = .assignSelfMember(
-                cell: cell,
-                site: site,
-                op: op,
-                value: value,
-                offset: offset
+        case .members(.assignSelfMember(let cell, let site, let op, let value, _)):
+            code.instructions[index] = .members(
+                .assignSelfMember(
+                    cell: cell,
+                    site: site,
+                    op: op,
+                    value: value,
+                    offset: offset
+                )
             )
         default: patchRest(index, to: offset)
         }
@@ -339,44 +351,56 @@ extension CodeCompiler {
     /// `patchMember` for the rest.
     mutating func patchRest(_ index: Int, to offset: Int32) {
         switch code.instructions[index] {
-        case .fastGlobalMember(let kind, let dst, let global, let argument, _):
-            code.instructions[index] = .fastGlobalMember(
-                kind: kind,
-                dst: dst,
-                global: global,
-                argument: argument,
-                offset: offset
+        case .members(.fastGlobalMember(let kind, let dst, let global, let argument, _)):
+            code.instructions[index] = .members(
+                .fastGlobalMember(
+                    kind: kind,
+                    dst: dst,
+                    global: global,
+                    argument: argument,
+                    offset: offset
+                )
             )
-        case .assignGlobalMember(let global, let site, let op, let value, _):
-            code.instructions[index] = .assignGlobalMember(
-                global: global,
-                site: site,
-                op: op,
-                value: value,
-                offset: offset
+        case .members(.assignGlobalMember(let global, let site, let op, let value, _)):
+            code.instructions[index] = .members(
+                .assignGlobalMember(
+                    global: global,
+                    site: site,
+                    op: op,
+                    value: value,
+                    offset: offset
+                )
             )
-        case .assignElement(let local, let keys, let hasDefault, let op, let value, _):
-            code.instructions[index] = .assignElement(
-                local: local,
-                keys: keys,
-                hasDefault: hasDefault,
-                op: op,
-                value: value,
-                offset: offset
+        case .collections(.assignElement(let local, let keys, let hasDefault, let op, let value, _)):
+            code.instructions[index] = .collections(
+                .assignElement(
+                    local: local,
+                    keys: keys,
+                    hasDefault: hasDefault,
+                    op: op,
+                    value: value,
+                    offset: offset
+                )
             )
-        case .assignGlobalElement(let global, let keys, let hasDefault, let op, let value, _):
-            code.instructions[index] = .assignGlobalElement(
-                global: global,
-                keys: keys,
-                hasDefault: hasDefault,
-                op: op,
-                value: value,
-                offset: offset
+        case .collections(
+            .assignGlobalElement(let global, let keys, let hasDefault, let op, let value, _)
+        ):
+            code.instructions[index] = .collections(
+                .assignGlobalElement(
+                    global: global,
+                    keys: keys,
+                    hasDefault: hasDefault,
+                    op: op,
+                    value: value,
+                    offset: offset
+                )
             )
         case .jumpIfTrue(let condition, _):
             code.instructions[index] = .jumpIfTrue(condition: condition, offset: offset)
-        case .jumpIfWhereFalse(let condition, _):
-            code.instructions[index] = .jumpIfWhereFalse(condition: condition, offset: offset)
+        case .patterns(.jumpIfWhereFalse(let condition, _)):
+            code.instructions[index] = .patterns(
+                .jumpIfWhereFalse(condition: condition, offset: offset)
+            )
         case .shortCircuit(let op, let register, _):
             code.instructions[index] = .shortCircuit(op: op, register: register, offset: offset)
         case .jumpIfNotNil(let register, _):
@@ -389,21 +413,25 @@ extension CodeCompiler {
                 bit: bit,
                 offset: offset
             )
-        case .match(let pattern, let value, _):
-            code.instructions[index] = .match(pattern: pattern, value: value, fail: offset)
+        case .patterns(.match(let pattern, let value, _)):
+            code.instructions[index] = .patterns(
+                .match(pattern: pattern, value: value, fail: offset)
+            )
         case .rangeNext(let counter, let variable, _):
             code.instructions[index] = .rangeNext(
                 counter: counter,
                 variable: variable,
                 exit: offset
             )
-        case .iterateNextPair(let iterator, let variable, let site, _, let skip):
-            code.instructions[index] = .iterateNextPair(
-                iterator: iterator,
-                variable: variable,
-                site: site,
-                exit: offset,
-                skip: skip
+        case .iteration(.iterateNextPair(let iterator, let variable, let site, _, let skip)):
+            code.instructions[index] = .iteration(
+                .iterateNextPair(
+                    iterator: iterator,
+                    variable: variable,
+                    site: site,
+                    exit: offset,
+                    skip: skip
+                )
             )
         case .iterateNext(let iterator, let variable, _):
             code.instructions[index] = .iterateNext(

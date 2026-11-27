@@ -1,17 +1,15 @@
 import Foundation
 
-// The instructions that make values from registers: literals of collections, casts, descriptions, and
-// changes through paths.
+// Executing the instructions that make and change lists, dictionaries and tuples.
 
 extension Interpreter {
-    /// `executeMemberInstruction` for the instructions that make a value of others, or ask what a value
-    /// is.
-    func executeValueInstruction(
-        _ instruction: Instruction,
+    func executeCollections(
+        _ instruction: Instruction.Collections,
         _ cursor: inout VMCursor,
         _ stack: VMStack
     ) throws {
         let regs = stack.base + cursor.base
+        let base = cursor.base
         switch instruction {
         case .makeList(let dst, let first, let count):
             regs[Int(dst)] = .list(takeValues(regs + Int(first), count: Int(count)))
@@ -46,16 +44,6 @@ extension Interpreter {
                 record[label ?? String(index)] = values[index]
             }
             regs[Int(dst)] = Value(record: record)
-        case .assignPath(let local, let site, let keys, let value, let offset):
-            if try assignPath(
-                cursor.code.paths[Int(site)],
-                local: cursor.base + Int(local),
-                keys: cursor.base + Int(keys),
-                value: cursor.base + Int(value),
-                on: stack
-            ) {
-                cursor.pc += Int(offset)
-            }
         case .index(let dst, let base, let key):
             let value = try readIndex(regs[Int(base)], key: regs[Int(key)])
             stack.base[cursor.base + Int(dst)] = value
@@ -67,29 +55,47 @@ extension Interpreter {
                 regs[Int(dst)] = found
                 cursor.pc += Int(offset)
             }
-        case .requireValue(let src, let message):
-            if regs[Int(src)] == .nothing { throw RuntimeError(cursor.code.names[Int(message)]) }
-        case .describe(let dst, let src, let type):
-            let text = try describing(regs[Int(src)], type: cursor.code.types[Int(type)])
-            stack.base[cursor.base + Int(dst)] = .string(text)
-        case .cast(let dst, let src, let type, let kind):
-            let value = regs[Int(src)]
-            let expected = cursor.code.types[Int(type)]
-            let converted = conform(value, to: expected)
-            let result: Value
-            switch kind {
-            case .conditional: result = converted ?? .nothing
-            case .check: result = .bool(converted != nil)
-            case .upcast: result = converted ?? value
-            case .forced:
-                guard let converted else {
-                    throw RuntimeError("'as!' failed: a \(value.typeName) isn't a \(expected)")
-                }
-                result = converted
+        case .assignElement(let local, let keys, let hasDefault, let op, let value, let offset):
+            let fallback = hasDefault ? regs[Int(keys) + 1] : nil
+            if regs[Int(local)].setElement(regs[Int(keys)], fallback, op, regs[Int(value)]) {
+                cursor.pc += Int(offset)
             }
-            stack.base[cursor.base + Int(dst)] = result
-        default:
-            try executeControlInstruction(instruction, &cursor, stack)
+        case .assignGlobalElement(
+            let global,
+            let keys,
+            let hasDefault,
+            let op,
+            let value,
+            let offset
+        ):
+            let site = cursor.code.globalTable[Int(global)].takeUnretainedValue()
+            if !(site.version == scopeVersion && site.function == ObjectIdentifier(cursor.function))
+            {
+                findGlobal(site, cursor.function, cursor.code)
+            }
+            if site.isMutable, let cell = site.cell {
+                // Taken out of the cell, so that it is changed where it is and not copied.
+                var held = cell.value
+                cell.value = .nothing
+                let done = held.setElement(
+                    regs[Int(keys)],
+                    hasDefault ? regs[Int(keys) + 1] : nil,
+                    op,
+                    regs[Int(value)]
+                )
+                cell.value = held
+                if done { cursor.pc += Int(offset) }
+            }
+        case .assignPath(let local, let site, let keys, let value, let offset):
+            if try assignPath(
+                cursor.code.paths[Int(site)],
+                local: cursor.base + Int(local),
+                keys: cursor.base + Int(keys),
+                value: cursor.base + Int(value),
+                on: stack
+            ) {
+                cursor.pc += Int(offset)
+            }
         }
     }
 

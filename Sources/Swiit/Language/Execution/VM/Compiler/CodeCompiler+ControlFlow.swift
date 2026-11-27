@@ -80,10 +80,12 @@ extension CodeCompiler {
             try expression(value, into: held)
             let names = FrameResolver.names(in: pattern)
             skip = emit(
-                .match(
-                    pattern: try site(pattern, names: names, in: node.then.locals),
-                    value: held,
-                    fail: 0
+                .patterns(
+                    .match(
+                        pattern: try site(pattern, names: names, in: node.then.locals),
+                        value: held,
+                        fail: 0
+                    )
                 )
             )
             for bound in try slots(of: names, in: node.then.locals) {
@@ -130,10 +132,12 @@ extension CodeCompiler {
             try expression(value, into: held)
             let names = FrameResolver.names(in: pattern)
             fail = emit(
-                .match(
-                    pattern: try site(pattern, names: names, in: introduced),
-                    value: held,
-                    fail: 0
+                .patterns(
+                    .match(
+                        pattern: try site(pattern, names: names, in: introduced),
+                        value: held,
+                        fail: 0
+                    )
                 )
             )
             for slot in try slots(of: names, in: introduced) {
@@ -146,7 +150,7 @@ extension CodeCompiler {
         patch(fail, to: here)
         try block(otherwise)
         emit(.at(range: range))
-        emit(.guardCarriedOn)
+        emit(.errors(.guardCarriedOn))
         patch(over, to: here)
         for (name, local) in bound { scopes[scopes.count - 1].locals[name] = local }
     }
@@ -188,10 +192,12 @@ extension CodeCompiler {
             var jumps: [Int] = []
             for (position, pattern) in switchCase.patterns.enumerated() {
                 let fail = emit(
-                    .match(
-                        pattern: try site(pattern, names: names, in: switchCase.body.locals),
-                        value: subject,
-                        fail: 0
+                    .patterns(
+                        .match(
+                            pattern: try site(pattern, names: names, in: switchCase.body.locals),
+                            value: subject,
+                            fail: 0
+                        )
                     )
                 )
                 var wrong: Int?
@@ -203,7 +209,9 @@ extension CodeCompiler {
                     }
                     scopes.append(visible)
                     let mark = nextTemporary
-                    wrong = emit(.jumpIfWhereFalse(condition: try operand(condition), offset: 0))
+                    wrong = emit(
+                        .patterns(.jumpIfWhereFalse(condition: try operand(condition), offset: 0))
+                    )
                     nextTemporary = mark
                     scopes.removeLast()
                 }
@@ -258,7 +266,11 @@ extension CodeCompiler {
         breakables.append(Breakable(label: nil, isSwitch: true, scopeDepth: scopes.count))
         try cases(
             node.cases,
-            CaseDispatch(subject: subject, isSwitch: true, noMatch: .noMatch(value: subject))
+            CaseDispatch(
+                subject: subject,
+                isSwitch: true,
+                noMatch: .patterns(.noMatch(value: subject))
+            )
         )
         let context = breakables.removeLast()
         for index in context.breaks { patch(index, to: here) }
@@ -319,7 +331,7 @@ extension CodeCompiler {
             closeHandler(guarded)
             let over = emit(.jump(offset: 0))
             aimHandler(guarded)
-            emit(.fatalize)
+            emit(.errors(.fatalize))
             patch(over, to: here)
         }
     }

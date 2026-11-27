@@ -74,7 +74,7 @@ extension CodeCompiler {
             closeHandler(guarded)
             let done = emit(.jump(offset: 0))
             aimHandler(guarded)
-            emit(.reportDeferred)
+            emit(.errors(.reportDeferred))
             patch(done, to: here)
             patch(skip, to: here)
         }
@@ -103,7 +103,7 @@ extension CodeCompiler {
             // Not a step: the tree evaluator only collects it. It is registered where it is reached.
             let scope = scopes.count - 1
             guard let mask = scopes[scope].deferMask else { throw Unsupported("a defer") }
-            emit(.deferMark(register: mask, bit: UInt8(scopes[scope].deferred)))
+            emit(.errors(.deferMark(register: mask, bit: UInt8(scopes[scope].deferred))))
             scopes[scope].deferred += 1
             return
         default:
@@ -148,12 +148,12 @@ extension CodeCompiler {
                 return copy
             }
             try emitExit(downTo: 0, clearing: false)
-            if code.isFailable { emit(.failInit(result ?? Register.max)) }
+            if code.isFailable { emit(.calls(.failInit(result ?? Register.max))) }
             try emitReturn(result)
             nextTemporary = mark
         case .throwStatement(let value):
             let mark = nextTemporary
-            emit(.throwValue(try operand(value)))
+            emit(.errors(.throwValue(try operand(value))))
             nextTemporary = mark
         case .ifStatement(let node):
             try ifStatement(node, statement)
@@ -274,7 +274,11 @@ extension CodeCompiler {
         {
             let first = Register(nextTemporary)
             for item in items { try expression(item, into: try allocate()) }
-            emit(.appendValues(local: local.slot, first: first, count: Register(items.count)))
+            emit(
+                .collections(
+                    .appendValues(local: local.slot, first: first, count: Register(items.count))
+                )
+            )
             nextTemporary = mark
             return
         }
@@ -299,7 +303,7 @@ extension CodeCompiler {
                     .assignGlobal(global: UInt32(code.globals.count - 1), site: site, value: value)
                 )
             } else {
-                emit(.assignByName(site: site, value: value))
+                emit(.fallback(.assignByName(site: site, value: value)))
             }
         }
         nextTemporary = mark
@@ -332,12 +336,14 @@ extension CodeCompiler {
         let value = try operand(assignment.value)
         code.paths.append(PathSite(steps: assignment.path, op: assignment.op))
         let fast = emit(
-            .assignPath(
-                local: known.slot,
-                site: UInt32(code.paths.count - 1),
-                keys: keys,
-                value: value,
-                offset: 0
+            .collections(
+                .assignPath(
+                    local: known.slot,
+                    site: UInt32(code.paths.count - 1),
+                    keys: keys,
+                    value: value,
+                    offset: 0
+                )
             )
         )
         nextTemporary = mark
@@ -380,25 +386,29 @@ extension CodeCompiler {
         let fast: Int
         if let known {
             fast = emit(
-                .assignElement(
-                    local: known.slot,
-                    keys: keys,
-                    hasDefault: fallback != nil,
-                    op: assignment.op,
-                    value: value,
-                    offset: 0
+                .collections(
+                    .assignElement(
+                        local: known.slot,
+                        keys: keys,
+                        hasDefault: fallback != nil,
+                        op: assignment.op,
+                        value: value,
+                        offset: 0
+                    )
                 )
             )
         } else {
             code.globals.append(GlobalSite(name: assignment.root))
             fast = emit(
-                .assignGlobalElement(
-                    global: UInt32(code.globals.count - 1),
-                    keys: keys,
-                    hasDefault: fallback != nil,
-                    op: assignment.op,
-                    value: value,
-                    offset: 0
+                .collections(
+                    .assignGlobalElement(
+                        global: UInt32(code.globals.count - 1),
+                        keys: keys,
+                        hasDefault: fallback != nil,
+                        op: assignment.op,
+                        value: value,
+                        offset: 0
+                    )
                 )
             )
         }
@@ -424,12 +434,14 @@ extension CodeCompiler {
             code.globals.append(GlobalSite(name: assignment.root))
             code.members.append(MemberSite(name: name, mutatesStruct: true))
             let fast = emit(
-                .assignGlobalMember(
-                    global: UInt32(code.globals.count - 1),
-                    site: UInt32(code.members.count - 1),
-                    op: assignment.op,
-                    value: value,
-                    offset: 0
+                .members(
+                    .assignGlobalMember(
+                        global: UInt32(code.globals.count - 1),
+                        site: UInt32(code.members.count - 1),
+                        op: assignment.op,
+                        value: value,
+                        offset: 0
+                    )
                 )
             )
             nextTemporary = mark
@@ -448,12 +460,14 @@ extension CodeCompiler {
         let value = try operand(assignment.value)
         code.members.append(MemberSite(name: name, mutatesStruct: true))
         let fast = emit(
-            .assignMember(
-                local: known.slot,
-                site: UInt32(code.members.count - 1),
-                op: assignment.op,
-                value: value,
-                offset: 0
+            .members(
+                .assignMember(
+                    local: known.slot,
+                    site: UInt32(code.members.count - 1),
+                    op: assignment.op,
+                    value: value,
+                    offset: 0
+                )
             )
         )
         nextTemporary = mark
@@ -475,12 +489,14 @@ extension CodeCompiler {
             MemberSite(name: name, mutatesStruct: changesSelf, initializing: isInitializer)
         )
         let fast = emit(
-            .assignSelfMember(
-                cell: cell,
-                site: UInt32(code.members.count - 1),
-                op: assignment.op,
-                value: value,
-                offset: 0
+            .members(
+                .assignSelfMember(
+                    cell: cell,
+                    site: UInt32(code.members.count - 1),
+                    op: assignment.op,
+                    value: value,
+                    offset: 0
+                )
             )
         )
         nextTemporary = mark

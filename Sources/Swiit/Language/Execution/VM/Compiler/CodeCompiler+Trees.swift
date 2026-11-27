@@ -102,7 +102,7 @@ extension CodeCompiler {
         code.trees.append(
             TreeNode(source: .expression(expression), locals: locals, frameSize: frame(of: locals))
         )
-        emit(.evaluateTree(dst: destination, node: UInt32(code.trees.count - 1)))
+        emit(.fallback(.evaluateTree(dst: destination, node: UInt32(code.trees.count - 1))))
     }
 
     /// A statement the tree evaluator runs the same way (an assignment through a path).
@@ -111,6 +111,6 @@ extension CodeCompiler {
         code.trees.append(
             TreeNode(source: .statement(statement), locals: locals, frameSize: frame(of: locals))
         )
-        emit(.runTree(node: UInt32(code.trees.count - 1)))
+        emit(.fallback(.runTree(node: UInt32(code.trees.count - 1))))
     }
 }
