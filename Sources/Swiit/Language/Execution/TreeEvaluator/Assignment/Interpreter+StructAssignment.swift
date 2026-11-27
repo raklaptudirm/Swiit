@@ -159,7 +159,6 @@ extension Interpreter {
         )
     }
 
-    // swiftlint:disable cyclomatic_complexity function_body_length - one branch for each case; a long walk over every case; splitting it is item 25 of Docs/agenda.md
     /// `initializing`: this is `self` in an `init`, whose own `let`
     /// properties can be set.
     func updated(
@@ -171,88 +170,219 @@ extension Interpreter {
     ) throws -> Value {
         guard let step = path.first else { return try change(base, type) }
         let rest = path.dropFirst()
-        switch (step, base.storage) {
-        case (.optionalChain, _):
+        switch step {
+        case .optionalChain:
             // Nothing is nil's to change, and what would have been assigned isn't worked out.
             guard base != .nothing else { return base }
             return try updated(base, rest, type: type, initializing: initializing, change)
-        case (.unwrap, _):
+        case .unwrap:
             guard base != .nothing else { throw RuntimeError("nil was unwrapped with '!'") }
             return try updated(base, rest, type: type, initializing: initializing, change)
-        case (.member(let name), _) where base.record != nil:
-            var record = base.record!
-            if let structType = structType(of: record) {
-                // A computed property with a setter: the new value goes through it.
-                if let setter = structType.members.setters[name]
-                    ?? extensionChain(of: base).lazy.compactMap({ $0.setters[name] }).first
-                {
-                    // `x.0 = 1` through a computed `x`: its value is read, changed inside, and set
-                    // back.
-                    let current =
-                        task.assigningPlainly && rest.isEmpty
-                        ? Value.nothing : try structMember(name, of: record, structType) ?? .nothing
-                    let receiver = Receiver(Value(record: record), mutable: true)
-                    let returnType = structType.members.computed[name]?.returnType
-                    let newValue =
-                        try rest.isEmpty
-                        ? change(current, returnType)
-                        : updated(current, rest, type: returnType, change)
-                    let parameter = setter.parameters[0]
-                    _ = try invoke(
-                        setter,
-                        with: [parameter.name: try checked(newValue, for: parameter, of: name)],
-                        receiver: receiver
-                    )
-                    return receiver.value
-                }
-                guard let property = structType.property(name) else {
-                    let what =
-                        structType.members.computed[name] != nil
-                        ? "it's a computed property"
-                        : "\(structType.name) has no property '\(name)'"
-                    throw RuntimeError("cannot assign to '\(name)': \(what)")
-                }
-                guard property.mutable || (initializing && path.count == 1) else {
-                    throw RuntimeError(
-                        "cannot assign to '\(name)': it's a 'let' property of \(structType.name)"
-                    )
-                }
-                let value = try updated(record[name] ?? .nothing, rest, type: property.type, change)
-                let stored = try checked(value, as: property, of: structType)
-                // `willSet` and `didSet` run for a change from outside, not while the value is
-                // made.
-                if let observers = structType.observers[name], !initializing {
-                    var working = record
-                    if let willSet = observers.willSet {
-                        let receiver = Receiver(Value(record: working), mutable: true)
-                        _ = try invoke(
-                            willSet,
-                            with: [willSet.parameters[0].name: stored],
-                            receiver: receiver
-                        )
-                        if let changed = receiver.value.record { working = changed }
-                    }
-                    let old = working[name] ?? .nothing
-                    working[name] = stored
-                    if let didSet = observers.didSet {
-                        let receiver = Receiver(Value(record: working), mutable: true)
-                        _ = try invoke(
-                            didSet,
-                            with: [didSet.parameters[0].name: old],
-                            receiver: receiver
-                        )
-                        if let changed = receiver.value.record { working = changed }
-                    }
-                    return Value(record: working)
-                }
-                record[name] = stored
-            } else {
-                guard record[name] != nil || rest.isEmpty else {
-                    throw RuntimeError("\(record.typeName ?? "Record") has no field '\(name)'")
-                }
-                record[name] = try updated(record[name] ?? .nothing, rest, type: nil, change)
+        case .member(let name):
+            if base.record != nil {
+                return try updatedField(name, of: base, rest, initializing: initializing, change)
             }
-            return Value(record: record)
+            return try updatedMember(name, of: base, rest, initializing: initializing, change)
+        case .index, .indexDefault, .subscripted:
+            return try updatedElement(base, path, type: type, initializing: initializing, change)
+        }
+    }
+
+    /// `updated` through a field of a struct's value or a tuple: a stored property, which may be
+    /// observed, or a computed one with a setter.
+    private func updatedField(
+        _ name: String,
+        of base: Value,
+        _ rest: ArraySlice<Assignment.Step>,
+        initializing: Bool,
+        _ change: (Value, TypeExpression?) throws -> Value
+    ) throws -> Value {
+        var record = base.record!
+        if let structType = structType(of: record) {
+            // A computed property with a setter: the new value goes through it.
+            if let setter = structType.members.setters[name]
+                ?? extensionChain(of: base).lazy.compactMap({ $0.setters[name] }).first
+            {
+                // `x.0 = 1` through a computed `x`: its value is read, changed inside, and set
+                // back.
+                let current =
+                    task.assigningPlainly && rest.isEmpty
+                    ? Value.nothing : try structMember(name, of: record, structType) ?? .nothing
+                let receiver = Receiver(Value(record: record), mutable: true)
+                let returnType = structType.members.computed[name]?.returnType
+                let newValue =
+                    try rest.isEmpty
+                    ? change(current, returnType)
+                    : updated(current, rest, type: returnType, change)
+                let parameter = setter.parameters[0]
+                _ = try invoke(
+                    setter,
+                    with: [parameter.name: try checked(newValue, for: parameter, of: name)],
+                    receiver: receiver
+                )
+                return receiver.value
+            }
+            guard let property = structType.property(name) else {
+                let what =
+                    structType.members.computed[name] != nil
+                    ? "it's a computed property"
+                    : "\(structType.name) has no property '\(name)'"
+                throw RuntimeError("cannot assign to '\(name)': \(what)")
+            }
+            guard property.mutable || (initializing && rest.isEmpty) else {
+                throw RuntimeError(
+                    "cannot assign to '\(name)': it's a 'let' property of \(structType.name)"
+                )
+            }
+            let value = try updated(record[name] ?? .nothing, rest, type: property.type, change)
+            let stored = try checked(value, as: property, of: structType)
+            // `willSet` and `didSet` run for a change from outside, not while the value is made.
+            if let observers = structType.observers[name], !initializing {
+                return try observed(record, name, stored, observers)
+            }
+            record[name] = stored
+        } else {
+            guard record[name] != nil || rest.isEmpty else {
+                throw RuntimeError("\(record.typeName ?? "Record") has no field '\(name)'")
+            }
+            record[name] = try updated(record[name] ?? .nothing, rest, type: nil, change)
+        }
+        return Value(record: record)
+    }
+
+    /// `name` of `record` set to `stored`, with the observers of the property run around the change:
+    /// what `willSet` changes is the value `didSet` sees.
+    private func observed(
+        _ record: Value.Record,
+        _ name: String,
+        _ stored: Value,
+        _ observers: (willSet: Function?, didSet: Function?)
+    ) throws -> Value {
+        var working = record
+        if let willSet = observers.willSet {
+            let receiver = Receiver(Value(record: working), mutable: true)
+            _ = try invoke(
+                willSet,
+                with: [willSet.parameters[0].name: stored],
+                receiver: receiver
+            )
+            if let changed = receiver.value.record { working = changed }
+        }
+        let old = working[name] ?? .nothing
+        working[name] = stored
+        if let didSet = observers.didSet {
+            let receiver = Receiver(Value(record: working), mutable: true)
+            _ = try invoke(
+                didSet,
+                with: [didSet.parameters[0].name: old],
+                receiver: receiver
+            )
+            if let changed = receiver.value.record { working = changed }
+        }
+        return Value(record: working)
+    }
+
+    /// `updated` through a member of what is not a record: an instance's property, a static property
+    /// of a class or a struct, or a Swift value's property with a setter.
+    private func updatedMember(
+        _ name: String,
+        of base: Value,
+        _ rest: ArraySlice<Assignment.Step>,
+        initializing: Bool,
+        _ change: (Value, TypeExpression?) throws -> Value
+    ) throws -> Value {
+        switch base.storage {
+        case .object(let instance as ClassInstance):
+            try updatedInstance(instance, name, rest: rest, initializing: initializing, change)
+            return base
+        case .object(let type as ClassType):
+            // `Counter.total += 1`: a static var of the class.
+            guard let slot = type.chain.lazy.compactMap({ $0.members.statics[name] }).first else {
+                throw RuntimeError(
+                    "cannot assign to '\(name)': \(type.name) has no static property '\(name)'"
+                )
+            }
+            guard slot.mutable else {
+                throw RuntimeError("cannot assign to '\(type.name).\(name)': it's a 'let' constant")
+            }
+            slot.value = try updated(slot.value, rest, type: nil, change)
+            return base
+        case .object(let type as StructType)
+        where type.members.staticSetters[name] != nil && rest.isEmpty:
+            // A computed `static var` with a setter: the new value goes through it.
+            // What it holds now is read only to change it (`+=`); `= v` only sets.
+            let current =
+                task.assigningPlainly
+                ? Value.nothing
+                : try type.members.staticComputed[name].map { try invoke($0, with: [:]) }
+                    ?? .nothing
+            let newValue = try change(current, type.staticProperty(name)?.type)
+            let setter = type.members.staticSetters[name]!
+            _ = try invoke(setter, with: [setter.parameters[0].name: newValue])
+            return base
+        case .object(let type as StructType):
+            guard let slot = type.members.statics[name] else {
+                let what =
+                    type.members.staticComputed[name] != nil
+                    ? "it's a computed property" : "\(type.name) has no static property '\(name)'"
+                throw RuntimeError("cannot assign to '\(name)': \(what)")
+            }
+            guard slot.mutable else {
+                throw RuntimeError("cannot assign to '\(type.name).\(name)': it's a 'let' constant")
+            }
+            let value = try updated(slot.value, rest, type: type.staticProperty(name)?.type, change)
+            if let expected = type.staticProperty(name)?.type, rest.isEmpty,
+                conform(value, to: expected) == nil
+            {
+                throw RuntimeError(
+                    "\(type.name).\(name) must be \(expected), not \(value.typeName)"
+                )
+            }
+            slot.value = value
+            return base
+        case .object(let box as SwiftValue):
+            // A Swift property with a setter: get it, change it, set it on a copy.
+            guard
+                let setter = bridged[box.typeName]?.lowered
+                    .first(where: { $0.kind == .setter && $0.name == name }),
+                let current = try bridgedProperty(name, of: base)
+            else {
+                throw RuntimeError("cannot assign to '\(name)' of \(base.typeName)")
+            }
+            let value = try updated(current, rest, type: setter.parameters[0].type, change)
+            let function = Function(
+                name: name,
+                parameters: setter.parameters,
+                returnType: nil,
+                body: setter.body
+            )
+            guard
+                case .list(let parts) = try invoke(
+                    function,
+                    with: ["self": base, "newValue": value]
+                )
+                .storage,
+                parts.count == 2
+            else {
+                throw RuntimeError("\(box.typeName).\(name) gave back no receiver")
+            }
+            return parts[1]
+        default:
+            throw RuntimeError("cannot assign to '\(name)' of \(base.typeName)")
+        }
+    }
+
+    /// `updated` through an index or a subscript: of a list, a dictionary, a struct's or a class's
+    /// subscript, or a record's field by name.
+    private func updatedElement(
+        _ base: Value,
+        _ path: ArraySlice<Assignment.Step>,
+        type: TypeExpression?,
+        initializing: Bool,
+        _ change: (Value, TypeExpression?) throws -> Value
+    ) throws -> Value {
+        let (step, rest) = (path.first!, path.dropFirst())
+        switch (step, base.storage) {
         case (.index(let indexExpr), .list(var items)):
             let index = try evaluate(indexExpr)
             guard case .int(let position) = index.storage else {
@@ -312,91 +442,8 @@ extension Interpreter {
             }
             record[name] = try updated(record[name] ?? .nothing, rest, type: nil, change)
             return Value(record: record)
-        case (.member(let name), .object(let instance as ClassInstance)):
-            try updatedInstance(instance, name, rest: rest, initializing: initializing, change) {
-                current,
-                remaining,
-                type in
-                try self.updated(current, remaining, type: type, change)
-            }
-            return base
-        case (.member(let name), .object(let type as ClassType)):
-            // `Counter.total += 1`: a static var of the class.
-            guard let slot = type.chain.lazy.compactMap({ $0.members.statics[name] }).first else {
-                throw RuntimeError(
-                    "cannot assign to '\(name)': \(type.name) has no static property '\(name)'"
-                )
-            }
-            guard slot.mutable else {
-                throw RuntimeError("cannot assign to '\(type.name).\(name)': it's a 'let' constant")
-            }
-            slot.value = try updated(slot.value, rest, type: nil, change)
-            return base
-        case (.member(let name), .object(let type as StructType))
-        where type.members.staticSetters[name] != nil && rest.isEmpty:
-            // A computed `static var` with a setter: the new value goes through it.
-            // What it holds now is read only to change it (`+=`); `= v` only sets.
-            let current =
-                task.assigningPlainly
-                ? Value.nothing
-                : try type.members.staticComputed[name].map { try invoke($0, with: [:]) }
-                    ?? .nothing
-            let newValue = try change(current, type.staticProperty(name)?.type)
-            let setter = type.members.staticSetters[name]!
-            _ = try invoke(setter, with: [setter.parameters[0].name: newValue])
-            return base
-        case (.member(let name), .object(let type as StructType)):
-            guard let slot = type.members.statics[name] else {
-                let what =
-                    type.members.staticComputed[name] != nil
-                    ? "it's a computed property" : "\(type.name) has no static property '\(name)'"
-                throw RuntimeError("cannot assign to '\(name)': \(what)")
-            }
-            guard slot.mutable else {
-                throw RuntimeError("cannot assign to '\(type.name).\(name)': it's a 'let' constant")
-            }
-            let value = try updated(slot.value, rest, type: type.staticProperty(name)?.type, change)
-            if let expected = type.staticProperty(name)?.type, rest.isEmpty,
-                conform(value, to: expected) == nil
-            {
-                throw RuntimeError(
-                    "\(type.name).\(name) must be \(expected), not \(value.typeName)"
-                )
-            }
-            slot.value = value
-            return base
-        case (.member(let name), .object(let box as SwiftValue)):
-            // A Swift property with a setter: get it, change it, set it on a copy.
-            guard
-                let setter = bridged[box.typeName]?.lowered
-                    .first(where: { $0.kind == .setter && $0.name == name }),
-                let current = try bridgedProperty(name, of: base)
-            else {
-                throw RuntimeError("cannot assign to '\(name)' of \(base.typeName)")
-            }
-            let value = try updated(current, rest, type: setter.parameters[0].type, change)
-            let function = Function(
-                name: name,
-                parameters: setter.parameters,
-                returnType: nil,
-                body: setter.body
-            )
-            guard
-                case .list(let parts) = try invoke(
-                    function,
-                    with: ["self": base, "newValue": value]
-                )
-                .storage,
-                parts.count == 2
-            else {
-                throw RuntimeError("\(box.typeName).\(name) gave back no receiver")
-            }
-            return parts[1]
-        case (.member(let name), _):
-            throw RuntimeError("cannot assign to '\(name)' of \(base.typeName)")
-        case (.index, _), (.indexDefault, _), (.subscripted, _):
+        default:
             throw RuntimeError("cannot assign into \(base.typeName) by index")
         }
     }
-    // swiftlint:enable cyclomatic_complexity function_body_length
 }

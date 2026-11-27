@@ -423,15 +423,14 @@ extension Interpreter {
 
     // MARK: Assigning
 
-    // swiftlint:disable function_parameter_count - it threads one state through; splitting it is item 25 of Docs/agenda.md
-    /// `obj.name = value` (or a change deeper in it): in place, since every holder sees it.
+    /// `obj.name = value` (or a change deeper in it, which `updated` makes): in place, since every
+    /// holder sees it.
     func updatedInstance(
         _ instance: ClassInstance,
         _ name: String,
         rest: ArraySlice<Assignment.Step>,
         initializing: Bool,
-        _ change: (Value, TypeExpression?) throws -> Value,
-        deeper: (Value, ArraySlice<Assignment.Step>, TypeExpression?) throws -> Value
+        _ change: (Value, TypeExpression?) throws -> Value
     ) throws {
         if let setter = instance.type.setter(name), rest.isEmpty {
             let current = try classMember(name, of: instance) ?? .nothing
@@ -458,7 +457,8 @@ extension Interpreter {
         let current = read(instance.storage[name] ?? .nothing)
         let value =
             rest.isEmpty
-            ? try change(current, property.type) : try deeper(current, rest, property.type)
+            ? try change(current, property.type)
+            : try updated(current, rest, type: property.type, change)
         var stored = value
         if let expected = property.type {
             guard let conforming = conform(value, to: expected) else {
@@ -490,5 +490,4 @@ extension Interpreter {
         }
         instance.storage[name] = wrapped(stored, property)
     }
-    // swiftlint:enable function_parameter_count
 }

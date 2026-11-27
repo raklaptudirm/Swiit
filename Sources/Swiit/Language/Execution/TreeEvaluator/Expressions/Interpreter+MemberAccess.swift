@@ -3,9 +3,23 @@ import Foundation
 // Evaluating member access and subscripts on values.
 
 extension Interpreter {
-    // swiftlint:disable cyclomatic_complexity - one branch for each case; splitting it is item 25 of Docs/agenda.md
     /// Record fields first, then the few members values have.
     func member(_ name: String, of value: Value) throws -> Value {
+        if let found = try typeMember(name, of: value) { return found }
+        if case .object(let object) = value.storage,
+            name != "description" && name != "debugDescription"
+        {
+            return try objectMember(name, of: object, value)
+        }
+        if let found = try textMember(name, of: value) { return found }
+        if let record = value.record { return try recordMember(name, of: record, value) }
+        return try swiftMember(name, of: value)
+    }
+
+    /// What the type of `value` declares, or an extension of it adds: an enum's raw value and members,
+    /// an instance's and a class's members, the static members of a type, and a case of an enum. A
+    /// struct's own members come before what extensions add, so a record's are looked for later.
+    private func typeMember(_ name: String, of value: Value) throws -> Value? {
         if case .enumValue(let enumValue) = value.storage, name == "rawValue" {
             guard let raw = enumValue.rawValue else {
                 throw RuntimeError("\(enumValue.type.name) has no raw values")
@@ -27,51 +41,50 @@ extension Interpreter {
         {
             return found
         }
-        // A struct's own members come before what extensions add.
-        if value.record != nil {
-        } else if let found = try extensionMember(name, of: value) {
-            return found
-        }
+        if value.record == nil, let found = try extensionMember(name, of: value) { return found }
         if let typeName = declaredTypeName(of: value),
             let found = try extensionStaticMember(name, ofTypeNamed: typeName)
         {
             return found
         }
-        if case .object(let type as Value.EnumCase.Enumeration) = value.storage,
-            let found = try enumStaticMember(name, of: type)
-        {
-            return found
-        }
-        if case .object(let type as Value.EnumCase.Enumeration) = value.storage,
-            type.case(named: name) != nil,
-            type.member(name) == nil
-        {
-            return try makeCase(type, name, nil)  // Says what values it needs.
+        if case .object(let type as Value.EnumCase.Enumeration) = value.storage {
+            if let found = try enumStaticMember(name, of: type) { return found }
+            if type.case(named: name) != nil, type.member(name) == nil {
+                return try makeCase(type, name, nil)  // Says what values it needs.
+            }
         }
         if case .object(let type as StructType) = value.storage,
             let found = try staticMember(name, of: type)
         {
             return found
         }
-        if case .object(let object) = value.storage,
-            name != "description" && name != "debugDescription"
-        {
-            if let property = try bridgedProperty(name, of: value) { return property }
-            if let method = bridgedMethods(name, of: value) { return method }
-            guard let member = object.member(name) else {
-                throw RuntimeError("\(object.typeName) has no member '\(name)'")
-            }
-            return member
+        return nil
+    }
+
+    /// A member of a live value with members of its own (a Swift value, a background job): Swift's
+    /// property or method of that name, or the object's own.
+    private func objectMember(
+        _ name: String,
+        of object: any LanguageObject,
+        _ value: Value
+    ) throws -> Value {
+        if let property = try bridgedProperty(name, of: value) { return property }
+        if let method = bridgedMethods(name, of: value) { return method }
+        guard let member = object.member(name) else {
+            throw RuntimeError("\(object.typeName) has no member '\(name)'")
         }
-        // Every value has its textual form, as a CustomStringConvertible
-        // does in Swift: what interpolation shows. A record's own field of
-        // that name comes first.
+        return member
+    }
+
+    /// The text every value has. `description` and `debugDescription` are its textual form, as a
+    /// CustomStringConvertible's is in Swift: what interpolation shows. `localizedDescription` is what
+    /// an Error says of itself, unless its type says otherwise: its value, as Swift's describes an
+    /// error it has no message for. A record's own field of the name comes first.
+    private func textMember(_ name: String, of value: Value) throws -> Value? {
         if name == "description" || name == "debugDescription" {
             if let record = value.record, let field = record[name] { return field }
             return .string(name == "description" ? value.description : value.debugDescription)
         }
-        // What every Error says of itself, unless its type says otherwise: its
-        // value, as Swift's describes an error it has no message for.
         if name == "localizedDescription", isError(value) {
             if let record = value.record, let field = record[name] { return field }
             if let record = value.record, let type = structType(of: record),
@@ -81,36 +94,46 @@ extension Interpreter {
             }
             return .string(value.description)
         }
-        // `pair.1`: a tuple's element by position, labeled or not.
-        if let record = value.record, record.typeName == nil, record[name] == nil,
-            let position = Int(name), position >= 0, position < record.count
+        return nil
+    }
+
+    /// A member of a struct's value or a tuple: `pair.1` by position, labeled or not; a field; what the
+    /// struct or an extension declares; and what every record has (`count`, `isEmpty`, `keys`,
+    /// `values`).
+    private func recordMember(
+        _ name: String,
+        of record: Value.Record,
+        _ value: Value
+    ) throws -> Value {
+        if record.typeName == nil, record[name] == nil, let position = Int(name), position >= 0,
+            position < record.count
         {
             return Array(record)[position].value
         }
-        if let record = value.record, record[name] == nil, let type = structType(of: record),
+        if record[name] == nil, let type = structType(of: record),
             let found = try structMember(name, of: record, type)
         {
             return found
         }
-        if value.record != nil, let found = try extensionMember(name, of: value) { return found }
-        // A record's fields, then (below) Swift's own members of the other kinds.
-        switch (value.storage, name) {
-        case _ where value.record?[name] != nil: return value.record![name]!
-        case (_, "count") where value.record != nil: return .int(value.record!.count)
-        case (_, "isEmpty") where value.record != nil: return .bool(value.record!.isEmpty)
-        case (_, "keys") where value.record != nil:
-            return .list(value.record!.keys.map(Value.string))
-        case (_, "values") where value.record != nil: return .list(value.record!.map(\.value))
-        case _ where value.record != nil:
-            throw RuntimeError("\(value.record!.typeName ?? "Tuple") has no field '\(name)'")
-        default:
-            // Swift's own properties, as a key path like `\.count` reads them.
-            if let property = try bridgedProperty(name, of: value) { return property }
-            if let method = bridgedMethods(name, of: value) { return method }
-            throw RuntimeError("\(value.typeName) has no member '\(name)'")
+        if let found = try extensionMember(name, of: value) { return found }
+
+        if let field = record[name] { return field }
+        switch name {
+        case "count": return .int(record.count)
+        case "isEmpty": return .bool(record.isEmpty)
+        case "keys": return .list(record.keys.map(Value.string))
+        case "values": return .list(record.map(\.value))
+        default: throw RuntimeError("\(record.typeName ?? "Tuple") has no field '\(name)'")
         }
     }
-    // swiftlint:enable cyclomatic_complexity
+
+    /// Swift's own properties and methods of a value of a built-in kind, as a key path like `\.count`
+    /// reads them.
+    private func swiftMember(_ name: String, of value: Value) throws -> Value {
+        if let property = try bridgedProperty(name, of: value) { return property }
+        if let method = bridgedMethods(name, of: value) { return method }
+        throw RuntimeError("\(value.typeName) has no member '\(name)'")
+    }
 
     /// `value[key]`: what a subscript of a struct or a class gives, or the element of a list, a
     /// dictionary or a string.
