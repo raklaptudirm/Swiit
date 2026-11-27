@@ -440,7 +440,11 @@ extension Interpreter {
         switch try construct(call, &cursor, stack) {
         case .made(let value): return value
         case .entered: return nil
-        case .none: return try evaluateCall(call.site, call.site.callee, call.argumentBase)
+        case .none:
+            if let value = try callNativeFunction(call, from: cursor.function, on: stack) {
+                return value
+            }
+            return try evaluateCall(call.site, call.site.callee, call.argumentBase)
         }
     }
 }

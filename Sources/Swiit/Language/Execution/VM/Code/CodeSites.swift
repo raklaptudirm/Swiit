@@ -50,6 +50,11 @@ final class CallSite {
     @exclusivity(unchecked) var sharesInitializer: ObjectIdentifier?
     @exclusivity(unchecked) var sharesScopes = false
     @exclusivity(unchecked) var constructedCode: Code?
+    /// The plan of the native function the name was found to be, when the names had this version and
+    /// it was called from this function; nil where it is not one a plan calls.
+    @exclusivity(unchecked) var nativePlan: NativeFunctionPlan?
+    @exclusivity(unchecked) var nativeVersion = -1
+    @exclusivity(unchecked) var nativeCaller: ObjectIdentifier?
 
     struct Cached {
         let caller: Function
@@ -452,4 +457,37 @@ struct Handler {
     /// Whether it guards an expression (`try?`, `try!`) and not statements: the error has not left a
     /// statement yet, so it has not been told which one.
     var isExpression = false
+}
+
+/// How the loop calls a function written in Swift by name (`max(a, b)`): its body, and what each
+/// parameter is given from the registers, as `bind` would give it.
+final class NativeFunctionPlan {
+    /// What a parameter is given: the argument at a position, its default, or, for a variadic one,
+    /// the arguments from a position on, as a list.
+    enum Fill {
+        case argument(Int)
+        case value(Value)
+        case rest(Int)
+    }
+
+    let function: Function
+    let body: @Sendable (Interpreter, Arguments) throws -> Value
+    let fills: [Fill]
+    let kinds: [ParameterKind]
+    let checks: [BridgedPlan.HostCheck]
+    /// For each parameter, the kind of an element of its list, which a variadic one's arguments are.
+    let elementKinds: [ParameterKind]
+
+    init(
+        function: Function,
+        body: @escaping @Sendable (Interpreter, Arguments) throws -> Value,
+        fills: [Fill]
+    ) {
+        self.function = function
+        self.body = body
+        self.fills = fills
+        kinds = function.parameters.map { ParameterKind($0.type) }
+        checks = function.parameters.map { BridgedPlan.HostCheck($0.type) }
+        elementKinds = function.parameters.map { ParameterKind($0.type.arrayElement ?? .unknown) }
+    }
 }

@@ -26,10 +26,16 @@ extension Interpreter {
     /// function the name is bound to, compiled, taking these arguments as written.
     @inline(never)
     func vmTarget(of site: CallSite, from caller: Function) -> VMTarget? {
-        // A name found to be a struct's is not looked up again for a function.
+        // A name found to be a struct's, or a native function's, is not looked up again for a
+        // function the loop enters.
         if site.constructedType != nil || site.constructedClass != nil,
             site.constructedVersion == scopeVersion,
             site.constructedCaller == ObjectIdentifier(caller)
+        {
+            return nil
+        }
+        if site.nativePlan != nil, site.nativeVersion == scopeVersion,
+            site.nativeCaller == ObjectIdentifier(caller)
         {
             return nil
         }
