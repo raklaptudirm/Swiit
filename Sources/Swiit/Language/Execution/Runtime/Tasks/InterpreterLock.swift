@@ -18,7 +18,8 @@ final class InterpreterLock: @unchecked Sendable {  // safe: every access holds 
 
     init() {}
 
-    private static var currentBits: UInt { UInt(bitPattern: pthread_self()) }
+    /// The calling thread, as a word: `pthread_t` is a pointer on Darwin and a `UInt` on Linux.
+    private static var currentBits: UInt { unsafeBitCast(pthread_self(), to: UInt.self) }
 
     private var isHolder: Bool { holderBits.load(ordering: .relaxed) == Self.currentBits }
 
