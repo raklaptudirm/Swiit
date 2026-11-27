@@ -297,7 +297,17 @@ final class PathSite {
 /// member that changes its receiver, takes a variadic or a defaulted parameter, or is called with other
 /// labels than its parameters', has no plan, and is called as a call is.
 final class BridgedPlan {
+    /// What a parameter of the member is given: the argument at a position of the call, or, for one the
+    /// call leaves out, its default as a literal, or `.nothing`, which the member's Swift function fills
+    /// in itself.
+    enum Fill {
+        case argument(Int)
+        case value(Value)
+    }
+
     let positional: @Sendable (Value, [Value]) throws -> Value
+    /// For each parameter of the member, in order, what it is given.
+    let fills: [Fill]
     /// `Type.member`, which an error the member throws is said to come from.
     let place: String
     let function: Function
@@ -310,9 +320,11 @@ final class BridgedPlan {
     init(
         positional: @escaping @Sendable (Value, [Value]) throws -> Value,
         function: Function,
-        typeName: String
+        typeName: String,
+        fills: [Fill]
     ) {
         self.positional = positional
+        self.fills = fills
         place = "\(typeName).\(function.name ?? "member")"
         self.function = function
         parameters = function.parameters

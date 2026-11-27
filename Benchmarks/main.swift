@@ -16,6 +16,132 @@ struct Case {
 
 let cases = [
     Case(
+        name: "native: String.count, 100k",
+        source: """
+            func run() -> Int { let s = "hello, world"; var n = 0; for _ in 0..<100_000 { n += s.count }; return n }
+            run()
+            """
+    ),
+    Case(
+        name: "native: String.isEmpty, 100k",
+        source: """
+            func run() -> Int { let s = "hello"; var n = 0; for _ in 0..<100_000 { if !s.isEmpty { n += 1 } }; return n }
+            run()
+            """
+    ),
+    Case(
+        name: "native: Array.first, 100k",
+        source: """
+            func run() -> Int { let xs = [3, 1, 2]; var n = 0; for _ in 0..<100_000 { n += xs.first ?? 0 }; return n }
+            run()
+            """
+    ),
+    Case(
+        name: "native: Array.max(), 100k",
+        source: """
+            func run() -> Int { let xs = [3, 1, 2]; var n = 0; for _ in 0..<100_000 { n += xs.max() ?? 0 }; return n }
+            run()
+            """
+    ),
+    Case(
+        name: "native: String.hasPrefix, 100k",
+        source: """
+            func run() -> Int { let s = "hello"; var n = 0; for _ in 0..<100_000 { if s.hasPrefix("he") { n += 1 } }; return n }
+            run()
+            """
+    ),
+    Case(
+        name: "native: Array.contains(x), 100k",
+        source: """
+            func run() -> Int { let xs = [3, 1, 2]; var n = 0; for i in 0..<100_000 { if xs.contains(i % 4) { n += 1 } }; return n }
+            run()
+            """
+    ),
+    Case(
+        name: "native: max(a, b), 100k",
+        source: """
+            func run() -> Int { var n = 0; for i in 0..<100_000 { n += max(i % 7, 3) }; return n }
+            run()
+            """
+    ),
+    Case(
+        name: "native: Int(String), 100k",
+        source: """
+            func run() -> Int { var n = 0; for _ in 0..<100_000 { n += Int("42") ?? 0 }; return n }
+            run()
+            """
+    ),
+    Case(
+        name: "native: String(Int), 100k",
+        source: """
+            func run() -> Int { var n = 0; for i in 0..<100_000 { n += String(i).count }; return n }
+            run()
+            """
+    ),
+    Case(
+        name: "native: Int.max, 100k",
+        source: """
+            func run() -> Int { var n = 0; for _ in 0..<100_000 { if Int.max > 0 { n += 1 } }; return n }
+            run()
+            """
+    ),
+    Case(
+        name: "native: String.uppercased(), 100k",
+        source: """
+            func run() -> Int { let s = "hello"; var n = 0; for _ in 0..<100_000 { n += s.uppercased().count }; return n }
+            run()
+            """
+    ),
+    Case(
+        name: "native: String.split, 100k",
+        source: """
+            func run() -> Int { let s = "a,b,c"; var n = 0; for _ in 0..<100_000 { n += s.split(separator: ",").count }; return n }
+            run()
+            """
+    ),
+    Case(
+        name: "native: map { $0 * 2 }, 100k",
+        source: """
+            func run() -> Int { let xs = Array(0..<100_000); return xs.map { $0 * 2 }.count }
+            run()
+            """
+    ),
+    Case(
+        name: "native: map { String($0) }, 100k",
+        source: """
+            func run() -> Int { let xs = Array(0..<100_000); return xs.map { String($0) }.count }
+            run()
+            """
+    ),
+    Case(
+        name: "native: filter, 100k",
+        source: """
+            func run() -> Int { let xs = Array(0..<100_000); return xs.filter { $0 % 3 == 0 }.count }
+            run()
+            """
+    ),
+    Case(
+        name: "native: reduce, 100k",
+        source: """
+            func run() -> Int { let xs = Array(0..<100_000); return xs.reduce(0) { $0 + $1 } }
+            run()
+            """
+    ),
+    Case(
+        name: "native: sorted(by:), 20k",
+        source: """
+            func run() -> Int { let xs = (0..<20_000).map { ($0 * 7919) % 20_011 }; return xs.sorted { $0 > $1 }.count }
+            run()
+            """
+    ),
+    Case(
+        name: "native: contains(where:), 100k",
+        source: """
+            func run() -> Int { let xs = Array(0..<100_000); return xs.contains { $0 == -1 } ? 1 : 0 }
+            run()
+            """
+    ),
+    Case(
         name: "col: build dict 100k",
         source: """
             func run() -> Int { var d: [Int: Int] = [:]; for i in 0..<100_000 { d[i] = i }; return d.count }

@@ -50,7 +50,9 @@ extension Interpreter {
         guard let name = type.plainName else {
             preconditionFailure("this was sent to the wrong group")
         }
-        if name.contains(" & ") {
+        // A byte scan first: the search for the separator is Foundation's, and this runs for every
+        // argument of a named type.
+        if name.utf8.contains(UInt8(ascii: "&")), name.contains(" & ") {
             // `A & B`: a value that is each.
             var held = value
             for part in name.components(separatedBy: " & ") {

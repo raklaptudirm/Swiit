@@ -17,13 +17,37 @@ extension Interpreter {
         )
         site.found = (member, function)
         guard !member.isMutating, let positional = member.positional,
-            member.parameters.count == site.labels.count,
-            zip(member.parameters, site.labels)
-                .allSatisfy({
-                    $0.label == $1 && !$0.variadic && $0.externalDefault == nil
-                })
+            let fills = Interpreter.fills(of: member.parameters, labels: site.labels)
         else { return }
-        site.plan = BridgedPlan(positional: positional, function: function, typeName: site.type)
+        site.plan = BridgedPlan(
+            positional: positional,
+            function: function,
+            typeName: site.type,
+            fills: fills
+        )
+    }
+
+    /// What each parameter is given by a call with these labels, as Swift matches them: in order, a
+    /// parameter takes the next argument if the labels agree, and one the call leaves out takes its
+    /// default. Nil for a call that needs more (a variadic parameter, a default that is worked out, an
+    /// argument no parameter takes).
+    static func fills(of parameters: [Parameter], labels: [String?]) -> [BridgedPlan.Fill]? {
+        var fills: [BridgedPlan.Fill] = []
+        var next = 0
+        for parameter in parameters {
+            if parameter.variadic { return nil }
+            if next < labels.count, labels[next] == parameter.label {
+                fills.append(.argument(next))
+                next += 1
+            } else if case .literal(let value)? = parameter.defaultValue {
+                fills.append(.value(value))
+            } else if parameter.externalDefault != nil {
+                fills.append(.value(.nothing))
+            } else {
+                return nil
+            }
+        }
+        return next == labels.count ? fills : nil
     }
 
     /// The call of a planned member: what `bind` and `invoke` do for the call, without the table of
@@ -34,8 +58,9 @@ extension Interpreter {
         arguments: Int,
         on stack: VMStack
     ) throws -> Value {
-        // The arguments are moved out of their registers into an array of their number.
-        let arity = plan.kinds.count
+        // The arguments are moved out of their registers into an array of the member's parameters,
+        // with the defaults of those the call leaves out.
+        let arity = plan.fills.count
         let pooled = arity < stack.argumentArrays.count
         var values =
             arity == 0
@@ -45,13 +70,19 @@ extension Interpreter {
         if arity > 0 {
             values.withUnsafeMutableBufferPointer { buffer in
                 for index in 0..<arity {
-                    let register = stack.base + arguments + index
-                    buffer[index] = register.move()
-                    register.initialize(to: .nothing)
+                    switch plan.fills[index] {
+                    case .argument(let position):
+                        let register = stack.base + arguments + position
+                        buffer[index] = register.move()
+                        register.initialize(to: .nothing)
+                    case .value(let value):
+                        buffer[index] = value
+                    }
                 }
             }
         }
         for index in plan.kinds.indices where !plan.kinds[index].accepts(values[index]) {
+            guard case .argument = plan.fills[index] else { continue }
             if plan.kinds[index] == .typeParameter, !hasBoundTypeArguments { continue }
             values[index] = try checked(values[index], for: plan.parameters[index], of: plan.name)
         }
