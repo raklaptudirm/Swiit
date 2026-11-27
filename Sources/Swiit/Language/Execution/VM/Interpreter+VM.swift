@@ -481,6 +481,7 @@ extension Interpreter {
                                     ObjectIdentifier($0)
                                 }),
                             methodSite.receiverFits(at: regs + Int(receiver)),
+                            methodSite.globalFits(version: scopeVersion),
                             task.scopes.count == own.capturedCount,
                             task.callDepth < maxCallDepth
                         {
@@ -511,7 +512,10 @@ extension Interpreter {
                                 var selfValue = receiverValue
                                 if methodSite.fastChangesReceiver {
                                     selfValue = .object(
-                                        stack.moveReceiverIntoCell(at: base + Int(receiver))
+                                        stack.moveReceiverIntoCell(
+                                            at: base + Int(receiver),
+                                            of: methodSite.global?.cell
+                                        )
                                     )
                                     record.isMethod = true
                                 }

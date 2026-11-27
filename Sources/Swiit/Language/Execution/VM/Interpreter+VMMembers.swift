@@ -345,10 +345,10 @@ extension Interpreter {
         extended: Bool
     ) {
         site.fastVersion = -1
-        // A method that changes a struct is one the loop calls where the receiver is a local that it
-        // can move into the cell of `self`, and not one of `self` or a global.
+        // A method that changes a struct is one the loop calls where the receiver is a local or a global
+        // that it can move into the cell of `self`, and not `self`.
         let changes = target.function.isMutating && !target.isClass
-        guard site.global == nil, !site.isSuper, !site.isGetter, target.mapping == nil,
+        guard !site.isSuper, !site.isGetter, target.mapping == nil,
             !ownScope, site.sharesScopes, !extended,
             !target.code.isInitializerBody, !target.code.usesSuper,
             changes

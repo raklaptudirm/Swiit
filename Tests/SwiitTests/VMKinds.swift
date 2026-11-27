@@ -243,6 +243,33 @@ let vmKinds: [VMSample] = [
         entirely: true
     ),
     VMSample(
+        name:
+            "methods of a global struct: a change kept when the method fails, reads, and a constant",
+        source: """
+            struct Tally {
+                var n = 0
+                var log: [Int] = []
+                mutating func add(_ by: Int) throws {
+                    n += by
+                    log.append(n)
+                    if by == 3 { throw Stop.now }
+                }
+                func total() -> Int { n * 2 }
+            }
+            enum Stop: Error { case now }
+            var t = Tally()
+            let fixed = Tally()
+            var failed = 0
+            for i in 0..<6 {
+                do { try t.add(i) } catch { failed += 1 }
+            }
+            func readAll() -> Int { t.total() + fixed.total() + t.log.count }
+            print(t.n, t.log, failed, readAll(), fixed.total())
+            """,
+        compiles: ["readAll"],
+        loops: 1
+    ),
+    VMSample(
         name: "a method calling a plain function and being called from one",
         source: """
             func double(_ x: Int) -> Int { x * 2 }

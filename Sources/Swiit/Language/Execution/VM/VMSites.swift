@@ -173,6 +173,15 @@ final class MethodSite {
     /// while it runs and put back as it returns.
     @exclusivity(unchecked) var fastChangesReceiver = false
 
+    /// Whether the global the receiver was loaded from, if it was, is still found in the cell the call
+    /// puts a changed struct back in.
+    @inline(__always)
+    func globalFits(version: Int) -> Bool {
+        guard let global else { return true }
+        return global.version == version && global.function == fastCaller
+            && (!fastChangesReceiver || (global.isMutable && global.cell != nil))
+    }
+
     /// Whether the register holds a receiver of the kind the fast path found its method for.
     @inline(__always)
     func receiverFits(at register: UnsafeMutablePointer<Value>) -> Bool {

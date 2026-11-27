@@ -222,17 +222,19 @@ final class VMStack {
         callers.append(record)
     }
 
-    /// The struct in a register moved into a cell, which holds it alone while a method changes it, and
-    /// the exit that puts it back in the register as the method returns or fails.
-    func moveReceiverIntoCell(at register: Int) -> Binding.Cell {
+    /// The struct in a register, and in the cell of the global it was loaded from, if it was, moved into
+    /// a cell that holds it alone while a method changes it. The exit puts it back where it came from
+    /// as the method returns or fails.
+    func moveReceiverIntoCell(at register: Int, of global: Binding.Cell?) -> Binding.Cell {
         let cell = Binding.Cell(base[register])
         base[register] = .nothing
+        global?.value = .nothing
         methodExits.append(
             MethodExit(
                 selfCell: cell,
                 popsOwner: false,
-                storeReceiverAt: register,
-                storeReceiverIn: nil
+                storeReceiverAt: global == nil ? register : -1,
+                storeReceiverIn: global
             )
         )
         return cell
