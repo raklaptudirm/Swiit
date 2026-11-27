@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 
 /// A type a host offers scripts: its symbol and its members. Write it with ``BridgedType`` for a
 /// Swift type, or by hand for a type a generator describes, and register it with
@@ -165,9 +166,23 @@ extension Interpreter {
 /// saying so: `extension URL: BridgedValue {}`. It is held as it is, under its Swift name.
 extension BridgedValue where Self: Sendable {
     public init(_ swiitValue: Value) throws { self = try SwiftValue.unbox(Self.self, swiitValue) }
-    public var value: Value { SwiftValue.make(self, as: Value.hostName(of: Self.self)) }
-    public static var typeExpression: TypeExpression { .named(.native(implementation.name)) }
+    public var value: Value { SwiftValue.make(self, as: Self.registeredName) }
+    public static var typeExpression: TypeExpression { .named(.native(registeredName)) }
+
+    /// The name `implementation` gives the type, which a value of it is held under. It is worked
+    /// out once for each type: a value is boxed on every call that gives one back, and the name
+    /// takes reflection to make.
+    static var registeredName: String {
+        let key = ObjectIdentifier(Self.self)
+        if let known = registeredNames.withLock({ $0[key] }) { return known }
+        let name = implementation.name
+        registeredNames.withLock { $0[key] = name }
+        return name
+    }
 }
+
+/// The names of the host types held as they are, by the Swift type (`BridgedValue.registeredName`).
+private let registeredNames = Mutex<[ObjectIdentifier: String]>([:])
 
 /// The Swift collections a script holds as they are, which the bridge gives members to.
 extension Set: BridgedValue where Element: Hashable {

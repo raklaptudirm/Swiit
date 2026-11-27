@@ -12,9 +12,72 @@ struct Case {
     var limits = Interpreter.Limits()
     /// The host is told each statement as it finishes, as a shell's is.
     var observed = false
+    /// The host registers `Meter` and `meters`, which the `host:` cases call.
+    var registers = false
+}
+
+/// A host's own value type, registered through `BridgedType`, whose members the `host:` cases call.
+struct Meter: Hashable, Sendable, BridgedValue {
+    var value: Int
+
+    func scaled(by factor: Int) -> Meter { Meter(value: value * factor) }
+
+    static func of(_ value: Int) -> Meter { Meter(value: value) }
+}
+
+/// Registers `Meter`, and `meters(_:)`, a host function of two arguments.
+func register(on swiit: Interpreter) {
+    swiit.register(
+        BridgedType<Meter>()
+            .property("value", \.value)
+            .method("scaled", labels: ["by"], Meter.scaled(by:))
+            .static("of", labels: [nil], Meter.of)
+            .initializer(labels: ["value"]) { (value: Int) in Meter(value: value) }
+    )
+    swiit.register("meters", labels: [nil, nil]) { (a: Int, b: Int) in a * 100 + b }
 }
 
 let cases = [
+    Case(
+        name: "host: property, 100k",
+        source: """
+            func run() -> Int { let m = Meter.of(3); var n = 0; for _ in 0..<100_000 { n += m.value }; return n }
+            run()
+            """,
+        registers: true
+    ),
+    Case(
+        name: "host: method, 100k",
+        source: """
+            func run() -> Int { let m = Meter.of(3); var n = 0; for i in 0..<100_000 { n += m.scaled(by: i).value }; return n }
+            run()
+            """,
+        registers: true
+    ),
+    Case(
+        name: "host: static, 100k",
+        source: """
+            func run() -> Int { var n = 0; for i in 0..<100_000 { n += Meter.of(i).value }; return n }
+            run()
+            """,
+        registers: true
+    ),
+    Case(
+        name: "host: initializer, 100k",
+        source: """
+            func run() -> Int { var n = 0; for i in 0..<100_000 { n += Meter(value: i).value }; return n }
+            run()
+            """,
+        registers: true
+    ),
+    Case(
+        name: "host: function, 100k",
+        source: """
+            func run() -> Int { var n = 0; for i in 0..<100_000 { n += meters(i, 1) }; return n }
+            run()
+            """,
+        registers: true
+    ),
     Case(
         name: "native: String.count, 100k",
         source: """
@@ -486,7 +549,11 @@ let filter = CommandLine.arguments.dropFirst(2).first
 // safe: touched by the one thread that runs the benchmark
 final class StatusBox: @unchecked Sendable { var count = 0 }
 
-func interpreter(_ limits: Interpreter.Limits, observed: Bool = false) -> Interpreter {
+func interpreter(
+    _ limits: Interpreter.Limits,
+    observed: Bool = false,
+    registers: Bool = false
+) -> Interpreter {
     let discard = OutputSink({ _ in true })
     var host = Interpreter.Host(output: discard, error: discard)
     if observed {
@@ -495,7 +562,9 @@ func interpreter(_ limits: Interpreter.Limits, observed: Bool = false) -> Interp
             box.count += (value == nil ? 0 : 1) + (caught ? 1 : 0)
         }
     }
-    return Interpreter(host: host, limits: limits)
+    let swiit = Interpreter(host: host, limits: limits)
+    if registers { register(on: swiit) }
+    return swiit
 }
 
 func milliseconds(_ duration: Duration) -> Double {
@@ -510,7 +579,11 @@ for benchmark in cases where filter.map({ benchmark.name.contains($0) }) ?? true
     var best = Duration.seconds(Int64.max)
     var result = ""
     for _ in 0..<runs {
-        let swiit = interpreter(benchmark.limits, observed: benchmark.observed)
+        let swiit = interpreter(
+            benchmark.limits,
+            observed: benchmark.observed,
+            registers: benchmark.registers
+        )
         let time = clock.measure {
             do { result = "\(try swiit.evaluate(benchmark.source))" } catch { result = "\(error)" }
         }
