@@ -3,6 +3,56 @@ import Foundation
 // Making a struct or an instance from the registers, or by entering the frame of its initializer
 // (`Docs/vm.md`).
 
+/// A call of a name that may make a value: the site, the register its result goes to, and where its
+/// arguments are, counted from the stack's start.
+struct ConstructCall {
+    let site: CallSite
+    let dst: Register
+    let argumentBase: Int
+}
+
+/// What a call that may make a value did: nothing, made it from the registers, or entered the frame of
+/// an initializer that will.
+enum Construction {
+    case none
+    case made(Value)
+    case entered
+}
+
+/// The initializer a constructor enters, the value it runs on, and what it makes when it returns.
+struct ConstructorFrame {
+    let initializer: Function
+    let code: Code
+    let receiver: Value
+    let completion: VMStack.Completion
+}
+
+/// What a struct's memberwise initializer does with each argument: which stored property takes it, and
+/// how it is checked.
+final class MemberwisePlan {
+    /// The labels of the parameters, in the order a call gives its arguments.
+    let labels: [String?]
+    /// For each stored property, in declaration order, the argument it takes.
+    let slots: [Int]
+    let kinds: [ParameterKind]
+    let types: [TypeExpression]
+    let keys: [String]
+
+    init(
+        labels: [String?],
+        slots: [Int],
+        kinds: [ParameterKind],
+        types: [TypeExpression],
+        keys: [String]
+    ) {
+        self.labels = labels
+        self.slots = slots
+        self.kinds = kinds
+        self.types = types
+        self.keys = keys
+    }
+}
+
 extension Interpreter {
     /// `Point(x: 1, y: 2)` of a struct or `Dog(name: "Rex")` of a class, made from the registers from `arguments` on, when the type is
     /// plain: the memberwise initializer taking every field, or one initializer of its own that takes
@@ -387,21 +437,6 @@ extension Interpreter {
     }
 }
 
-/// A call of a name that may make a value: the site, the register its result goes to, and where its
-/// arguments are, counted from the stack's start.
-struct ConstructCall {
-    let site: CallSite
-    let dst: Register
-    let argumentBase: Int
-}
-
-/// What a call that may make a value did: nothing, made it from the registers, or entered the frame of
-/// an initializer that will.
-enum Construction {
-    case none
-    case made(Value)
-    case entered
-}
 extension Interpreter {
     /// A member name `member(_:of:)` answers before it looks at the type's own computed properties.
     static func namesSpecialMember(_ name: String) -> Bool {
@@ -409,36 +444,19 @@ extension Interpreter {
     }
 }
 
-/// The initializer a constructor enters, the value it runs on, and what it makes when it returns.
-struct ConstructorFrame {
-    let initializer: Function
-    let code: Code
-    let receiver: Value
-    let completion: VMStack.Completion
-}
-
-/// What a struct's memberwise initializer does with each argument: which stored property takes it, and
-/// how it is checked.
-final class MemberwisePlan {
-    /// The labels of the parameters, in the order a call gives its arguments.
-    let labels: [String?]
-    /// For each stored property, in declaration order, the argument it takes.
-    let slots: [Int]
-    let kinds: [ParameterKind]
-    let types: [TypeExpression]
-    let keys: [String]
-
-    init(
-        labels: [String?],
-        slots: [Int],
-        kinds: [ParameterKind],
-        types: [TypeExpression],
-        keys: [String]
-    ) {
-        self.labels = labels
-        self.slots = slots
-        self.kinds = kinds
-        self.types = types
-        self.keys = keys
+extension Interpreter {
+    /// A call of a name that is not a function the loop enters: the value of a struct or a class made
+    /// from the registers, or by the tree evaluator's call; nil where an initializer's frame was entered,
+    /// which makes it when it returns.
+    func constructOrCall(
+        _ call: ConstructCall,
+        _ cursor: inout VMCursor,
+        _ stack: VMStack
+    ) throws -> Value? {
+        switch try construct(call, &cursor, stack) {
+        case .made(let value): return value
+        case .entered: return nil
+        case .none: return try evaluateCall(call.site, call.site.callee, call.argumentBase)
+        }
     }
 }

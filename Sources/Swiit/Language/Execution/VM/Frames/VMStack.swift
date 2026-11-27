@@ -255,15 +255,6 @@ final class VMStack {
     }
 }
 
-/// A method the loop is to call: what the site found, and whether its receiver is a class's instance.
-struct MethodTarget {
-    let function: Function
-    let code: Code
-    let isClass: Bool
-    /// The arguments to place, when the call leaves out parameters that have defaults.
-    let mapping: [Int]?
-}
-
 /// The records of the callers of the frames that are running, in memory the loop pushes and pops
 /// without the checks an array makes (that its buffer is its own, and has room).
 final class CallerStack {

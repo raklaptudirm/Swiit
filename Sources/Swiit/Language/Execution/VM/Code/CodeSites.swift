@@ -1,7 +1,8 @@
 import Foundation
 
 // What the instructions of a function's code name by an index and keep between runs: its call sites,
-// the members, globals and patterns it reaches, and the places it changes.
+// the members, globals and patterns it reaches, the places it changes, and its closures, handlers and
+// pieces left to the tree evaluator.
 
 /// A call as written: what it calls, and the labels of its arguments.
 final class CallSite {
@@ -316,4 +317,92 @@ final class BridgedPlan {
         name = function.name ?? "member"
         keepsNilReceiver = typeName == "Optional"
     }
+}
+
+/// A local a piece of code the tree evaluator runs mentions, which it is given in its frame.
+struct TreeLocal {
+    let slot: Register
+    let name: String
+    let mutable: Bool
+    /// Kept in a cell a closure shares: the frame shares the cell too.
+    let boxed: Bool
+}
+
+/// An expression or a statement the compiler leaves to the tree evaluator, with the locals it
+/// mentions.
+final class TreeNode {
+    enum Source {
+        case expression(Expr)
+        case statement(Statement)
+    }
+
+    let source: Source
+    let locals: [TreeLocal]
+    /// How many slots the frame has: as many as the function's locals.
+    let frameSize: Int
+
+    init(source: Source, locals: [TreeLocal], frameSize: Int) {
+        self.source = source
+        self.locals = locals
+        self.frameSize = frameSize
+    }
+}
+
+/// A local a closure names, kept in a cell the closure shares.
+struct CapturedCell {
+    let name: String
+    let register: Register
+    let mutable: Bool
+}
+
+/// A value a capture list takes when the closure is made: `[weak self, count]`.
+struct TakenValue {
+    let name: String
+    let register: Register
+    let isWeak: Bool
+    let isUnowned: Bool
+}
+
+/// A closure as written: what it captures from the code that makes it.
+final class ClosureSite {
+    let literal: ClosureLiteral
+    /// The locals it names, each kept in a cell the closure shares.
+    let cells: [CapturedCell]
+    /// The other names it uses, which are the enclosing closure's own captures, if anything.
+    let others: [String]
+    let captures: [TakenValue]
+
+    init(
+        literal: ClosureLiteral,
+        cells: [CapturedCell],
+        others: [String],
+        captures: [TakenValue]
+    ) {
+        self.literal = literal
+        self.cells = cells
+        self.others = others
+        self.captures = captures
+    }
+}
+
+/// A stretch of code whose errors go somewhere else.
+struct Handler {
+    enum Catches {
+        /// What `catch` catches: errors a script's `catch` sees.
+        case runtimeErrors
+        /// Any error: a `defer` runs however its block ends.
+        case everything
+    }
+
+    var start: Int
+    var end: Int
+    var target: Int
+    var catches: Catches
+    /// Where the error's value (what `catch` binds) goes, if anywhere.
+    var register: Register?
+    /// Whether the error is kept for the code at `target` to throw again or hand on.
+    var keepsError: Bool
+    /// Whether it guards an expression (`try?`, `try!`) and not statements: the error has not left a
+    /// statement yet, so it has not been told which one.
+    var isExpression = false
 }
