@@ -74,6 +74,12 @@ extension Interpreter {
         }
     }
 
+    /// The keys of a dictionary and, at the same positions, its values, in the order the entries are
+    /// shown in.
+    func dictionaryColumns(_ dictionary: [Value: Value]) -> (keys: [Value], values: [Value]) {
+        dictionary.columnsForDisplay
+    }
+
     /// What `for x in value` reads: the elements of a collection, the characters of a string, the
     /// entries of a dictionary, a task group's results, or what the value's own iterator gives.
     func makeIteration(_ value: Value, awaiting: Bool) throws -> IterationBox {

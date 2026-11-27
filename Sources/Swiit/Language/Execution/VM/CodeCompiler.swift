@@ -396,6 +396,14 @@ extension CodeCompiler {
                 variable: variable,
                 exit: offset
             )
+        case .iterateNextPair(let iterator, let variable, let site, _, let skip):
+            code.instructions[index] = .iterateNextPair(
+                iterator: iterator,
+                variable: variable,
+                site: site,
+                exit: offset,
+                skip: skip
+            )
         case .iterateNext(let iterator, let variable, _):
             code.instructions[index] = .iterateNext(
                 iterator: iterator,

@@ -295,6 +295,32 @@ let vmKinds: [VMSample] = [
         entirely: true
     ),
     VMSample(
+        name:
+            "pairs of names over dictionaries of each key kind, lists of tuples and enumerated lists",
+        source: """
+            func f() -> String {
+                var out = ""
+                let ints = [3: "c", 1: "a", 2: "b"]
+                let words = ["pear": 2, "apple": 1]
+                for (k, v) in ints { out += "\\(k)\\(v)" }
+                for (k, _) in words { out += k }
+                for (_, v) in words { out += "\\(v)" }
+                for (k, v) in ints where k > 1 { if v == "b" { continue }; out += "!\\(v)" }
+                for (k, v) in ints { if k == 2 { break }; out += "<\\(k)\\(v)>" }
+                for (a, b) in [(1, "x"), (2, "y")] { out += "\\(a)\\(b)" }
+                for (i, x) in ["p", "q"].enumerated() { out += "\\(i)\\(x)" }
+                var total = 0
+                var dict: [Int: Int] = [:]
+                for i in 0..<5 { dict[i * 7 % 5] = i }
+                for (k, v) in dict { total += k * v }
+                return out + "\\(total)"
+            }
+            f()
+            """,
+        compiles: ["f"],
+        entirely: true
+    ),
+    VMSample(
         name: "a method calling a plain function and being called from one",
         source: """
             func double(_ x: Int) -> Int { x * 2 }

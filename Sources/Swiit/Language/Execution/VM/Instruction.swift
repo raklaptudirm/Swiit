@@ -251,6 +251,21 @@ enum Instruction {
     case iterate(dst: Register, sequence: Register, awaiting: Bool)
     /// The next element into `variable`, or a jump out of the loop.
     case iterateNext(iterator: Register, variable: Register, exit: Int32)
+    /// `for (k, v) in d` with names for the pieces: `iterate` for a source that may be a dictionary,
+    /// which then keeps its keys in `dst` and its values in the register `dst + 3`, and no tuple is
+    /// made for any entry.
+    case iteratePairs(dst: Register, sequence: Register)
+    /// `iterateNext` for `iteratePairs`: where the iteration holds a dictionary, its next key and value go
+    /// to the registers `Code.destructures[site]` names and the pc moves on by `skip`, over the
+    /// destructuring and the match that follow; otherwise the element goes into `variable`, as
+    /// `iterateNext` does.
+    case iterateNextPair(
+        iterator: Register,
+        variable: Register,
+        site: UInt32,
+        exit: Int32,
+        skip: Int32
+    )
     /// An element that did not fit the pattern of a `for`.
     case iterationMismatch(element: Register)
 

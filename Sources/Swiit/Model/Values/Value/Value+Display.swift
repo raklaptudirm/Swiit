@@ -27,6 +27,29 @@ extension Dictionary where Key == Swiit.Value {
     }
 }
 
+extension Dictionary where Key == Swiit.Value {
+    /// The keys in the order `sortedForDisplay` has them, and, at the same positions, the values: for
+    /// a loop that reads each, which then makes no entry of the two.
+    var columnsForDisplay: (keys: [Key], values: [Value]) {
+        var keys: [Key] = []
+        var values: [Value] = []
+        keys.reserveCapacity(count)
+        values.reserveCapacity(count)
+        var integers: [(number: Int, position: Int)] = []
+        for (position, entry) in enumerated() {
+            guard case .int(let number) = entry.key.storage else {
+                let entries = sortedForDisplay
+                return (entries.map(\.key), entries.map(\.value))
+            }
+            integers.append((number, position))
+            keys.append(entry.key)
+            values.append(entry.value)
+        }
+        integers.sort { $0.number < $1.number }
+        return (integers.map { keys[$0.position] }, integers.map { values[$0.position] })
+    }
+}
+
 extension Value {
     /// The order a dictionary's keys are shown in: only for showing, so it
     /// needn't mean anything beyond being the same every time.

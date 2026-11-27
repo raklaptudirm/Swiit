@@ -47,25 +47,50 @@ extension CodeCompiler {
         let iterator = try allocate()
         let element = try allocate()
         _ = try allocate()
+        // `(k, v)`: the fields of a tuple go where the names are, and the general match is for what is
+        // not one.
+        var pieces: DestructureSite?
+        if matched != nil, case .tuple(let patterns) = loop.pattern,
+            let places = try places(of: patterns, in: loop.body.locals)
+        {
+            pieces = DestructureSite(arity: patterns.count, targets: places)
+        }
+        // A pair of names over a dictionary reads its keys and values from two lists.
+        let pairs = pieces?.arity == 2 && !loop.isAwait
+        if pairs { _ = try allocate() }
         let sequence = try operand(loop.sequence)
-        emit(.iterate(dst: iterator, sequence: sequence, awaiting: loop.isAwait))
+        if pairs {
+            emit(.iteratePairs(dst: iterator, sequence: sequence))
+        } else {
+            emit(.iterate(dst: iterator, sequence: sequence, awaiting: loop.isAwait))
+        }
         let head = here
-        let next = emit(
-            .iterateNext(
-                iterator: iterator,
-                variable: matched != nil ? element : (variable ?? element),
-                exit: 0
+        let next: Int
+        if let pieces, pairs {
+            code.destructures.append(pieces)
+            next = emit(
+                .iterateNextPair(
+                    iterator: iterator,
+                    variable: element,
+                    site: UInt32(code.destructures.count - 1),
+                    exit: 0,
+                    skip: 2
+                )
             )
-        )
+        } else {
+            next = emit(
+                .iterateNext(
+                    iterator: iterator,
+                    variable: matched != nil ? element : (variable ?? element),
+                    exit: 0
+                )
+            )
+        }
         var mismatch: Int?
         if let matched {
-            // `(k, v)`: the fields of a tuple go where the names are, and the general match is for what is
-            // not one.
             var destructure: Int?
-            if case .tuple(let patterns) = loop.pattern,
-                let places = try places(of: patterns, in: loop.body.locals)
-            {
-                code.destructures.append(DestructureSite(arity: patterns.count, targets: places))
+            if let pieces {
+                if !pairs { code.destructures.append(pieces) }
                 destructure = emit(
                     .destructure(
                         site: UInt32(code.destructures.count - 1),

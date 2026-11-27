@@ -3,6 +3,15 @@ import Foundation
 // The instructions for the members of structs, instances, lists and strings that are not the common
 // path of the loop, so that they are not in it: they change registers and `pc`, never the frame.
 
+/// The registers and offsets an `iterateNextPair` names.
+private struct PairOperands {
+    let iterator: Register
+    let variable: Register
+    let site: UInt32
+    let exit: Int32
+    let skip: Int32
+}
+
 extension Interpreter {
     func executeMemberInstruction(
         _ instruction: Instruction,
@@ -246,6 +255,31 @@ extension Interpreter {
                 let iteration = try makeIteration(source, awaiting: awaiting)
                 stack.base[cursor.base + Int(dst)] = .object(iteration)
             }
+        case .iteratePairs(let dst, let sequence):
+            // The keys and the values of a dictionary are kept as two lists, read by position.
+            let source = regs[Int(sequence)]
+            regs[Int(dst) + 3] = .nothing
+            if case .dictionary(let dictionary) = source.storage {
+                let (keys, values) = dictionaryColumns(dictionary)
+                regs[Int(dst)] = .list(keys)
+                regs[Int(dst) + 3] = .list(values)
+                regs[Int(dst) + 2] = .int(0)
+            } else if case .list = source.storage {
+                regs[Int(dst)] = source
+                regs[Int(dst) + 2] = .int(0)
+            } else {
+                let iteration = try makeIteration(source, awaiting: false)
+                stack.base[cursor.base + Int(dst)] = .object(iteration)
+            }
+        case .iterateNextPair(let iterator, let variable, let site, let exit, let skip):
+            let operands = PairOperands(
+                iterator: iterator,
+                variable: variable,
+                site: site,
+                exit: exit,
+                skip: skip
+            )
+            try nextPair(operands, &cursor, stack)
         case .jumpIfWhereFalse(let condition, let offset):
             guard case .bool(let truth) = regs[Int(condition)].storage else {
                 throw RuntimeError(
@@ -341,6 +375,48 @@ extension Interpreter {
         default:
             preconditionFailure("not an evaluation instruction")
         }
+    }
+
+    /// `iterateNextPair`: the next key and value of a dictionary kept as two lists go where the names
+    /// are; the next element of anything else goes into `variable`, for the destructuring after it.
+    private func nextPair(
+        _ operands: PairOperands,
+        _ cursor: inout VMCursor,
+        _ stack: VMStack
+    ) throws {
+        let (iterator, variable, site) = (operands.iterator, operands.variable, operands.site)
+        let (exit, skip) = (operands.exit, operands.skip)
+        var regs = stack.base + cursor.base
+        let held = regs[Int(iterator)].storage
+        if case .list(let items) = held {
+            guard case .int(let index) = regs[Int(iterator) + 2].storage, index < items.count
+            else {
+                regs[Int(iterator)] = .nothing
+                regs[Int(iterator) + 3] = .nothing
+                cursor.pc += Int(exit)
+                return
+            }
+            regs[Int(iterator) + 2] = .int(index + 1)
+            if case .list(let values) = regs[Int(iterator) + 3].storage {
+                for target in cursor.code.destructures[Int(site)].targets {
+                    regs[Int(target.register)] = target.position == 0 ? items[index] : values[index]
+                }
+                cursor.pc += Int(skip)
+            } else {
+                regs[Int(variable)] = items[index]
+            }
+            return
+        }
+        guard case .object(let object) = held, let iteration = object as? IterationBox else {
+            throw RuntimeError("a for lost its iterator")
+        }
+        let element = try iteration.next()
+        regs = stack.base + cursor.base
+        guard let element else {
+            cursor.pc += Int(exit)
+            return
+        }
+        regs[Int(variable)] = element
     }
 
     /// The values of the `count` registers at `first`, which are left holding nothing: they were made
