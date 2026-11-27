@@ -52,18 +52,20 @@ extension Interpreter {
         unowned(unsafe) var function = entry
         unowned(unsafe) var code = entryCode
         var base = entryBase
-        var pc = 0
         var statement: Int32 = -1
         var regs = stack.base + base
         var instructions = code.program
+        // The next instruction. The position in the code (`pc`, as a caller record and a cursor keep it)
+        // is `ip - instructions`, worked out only where one is made.
+        var ip = instructions
         var functionRef = Unmanaged.passUnretained(function)
         var codeRef = Unmanaged.passUnretained(code)
         let observer = host.didFinishStatement
         while true {
             do {
                 while true {
-                    let instruction = instructions[pc]
-                    pc += 1
+                    let instruction = ip.pointee
+                    ip += 1
                     switch instruction {
                     case .step(let range):
                         statement = range
@@ -118,7 +120,7 @@ extension Interpreter {
                                 "'\(op.rawValue)' needs Bool operands, not \(regs[Int(register)].typeName)"
                             )
                         }
-                        if truth == (op == .or) { pc += Int(offset) }
+                        if truth == (op == .or) { ip += Int(offset) }
                     case .needBool(let op, let register):
                         guard case .bool = regs[Int(register)].storage else {
                             throw RuntimeError(
@@ -126,7 +128,7 @@ extension Interpreter {
                             )
                         }
                     case .jumpIfNotNil(let register, let offset):
-                        if regs[Int(register)] != .nothing { pc += Int(offset) }
+                        if regs[Int(register)] != .nothing { ip += Int(offset) }
                     case .assign(let local, let op, let value):
                         guard let op else {
                             VMStack.put(regs[Int(value)], at: regs + Int(local))
@@ -155,14 +157,14 @@ extension Interpreter {
                         }
                         try applyInPlace(op, &slot, operand)
                     case .jump(let offset):
-                        pc += Int(offset)
+                        ip += Int(offset)
                     case .jumpIfFalse(let condition, let offset):
                         guard case .bool(let truth) = regs[Int(condition)].storage else {
                             throw RuntimeError(
                                 "condition must be a Bool, not \(regs[Int(condition)].typeName)"
                             )
                         }
-                        if !truth { pc += Int(offset) }
+                        if !truth { ip += Int(offset) }
                     case .jumpUnlessCompare(let op, let lhs, let value, let offset):
                         let truth: Bool
                         if let x = VMStack.integer(at: regs + Int(lhs)) {
@@ -185,25 +187,25 @@ extension Interpreter {
                             }
                             truth = held
                         }
-                        if !truth { pc += Int(offset) }
+                        if !truth { ip += Int(offset) }
                     case .jumpIfTrue(let condition, let offset):
                         guard case .bool(let truth) = regs[Int(condition)].storage else {
                             throw RuntimeError(
                                 "condition must be a Bool, not \(regs[Int(condition)].typeName)"
                             )
                         }
-                        if truth { pc += Int(offset) }
+                        if truth { ip += Int(offset) }
                     case .rangeNext(let counter, let variable, let exit):
                         guard case .int(let next) = regs[Int(counter)].storage,
                             case .int(let end) = regs[Int(counter) + 1].storage, next < end
                         else {
-                            pc += Int(exit)
+                            ip += Int(exit)
                             continue
                         }
                         VMStack.put(.int(next), at: regs + Int(variable))
                         VMStack.put(.int(next + 1), at: regs + Int(counter))
                     case .jumpIfNil(let register, let offset):
-                        if regs[Int(register)] == .nothing { pc += Int(offset) }
+                        if regs[Int(register)] == .nothing { ip += Int(offset) }
                     case .call(let dst, let siteIndex, let arguments):
                         unowned(unsafe) let site =
                             codeRef._withUnsafeGuaranteedRef {
@@ -265,7 +267,7 @@ extension Interpreter {
                                     codeRef: codeRef,
                                     functionRef: functionRef,
                                     calleeRef: calleeRef,
-                                    pc: pc,
+                                    pc: ip - instructions,
                                     base: base,
                                     statement: statement,
                                     destination: base + Int(dst),
@@ -285,7 +287,7 @@ extension Interpreter {
                             codeRef = calleeCodeRef
                             instructions = facts.program
                             base = argumentBase
-                            pc = 0
+                            ip = instructions
                             statement = -1
                             regs = stack.base + base
                         } else {
@@ -293,7 +295,7 @@ extension Interpreter {
                                 function: function,
                                 code: code,
                                 base: base,
-                                pc: pc,
+                                pc: ip - instructions,
                                 statement: statement
                             )
                             let made = ConstructCall(
@@ -306,8 +308,9 @@ extension Interpreter {
                                 regs[Int(dst)] = value
                             } else {
                                 (function, code) = (cursor.function, cursor.code)
-                                (base, pc, statement) = (cursor.base, cursor.pc, cursor.statement)
+                                (base, statement) = (cursor.base, cursor.statement)
                                 instructions = code.program
+                                ip = instructions + cursor.pc
                                 (functionRef, codeRef) = cursor.refs
                                 regs = stack.base + base
                             }
@@ -319,7 +322,7 @@ extension Interpreter {
                                 index < items.count
                             else {
                                 regs[Int(iterator)] = .nothing
-                                pc += Int(exit)
+                                ip += Int(exit)
                                 continue
                             }
                             VMStack.put(items[index], at: regs + Int(variable))
@@ -332,7 +335,7 @@ extension Interpreter {
                         let element = try iteration.next()
                         regs = stack.base + base
                         guard let element else {
-                            pc += Int(exit)
+                            ip += Int(exit)
                             continue
                         }
                         regs[Int(variable)] = element
@@ -353,7 +356,7 @@ extension Interpreter {
                                     code: code,
                                     function: function,
                                     callee: callee,
-                                    pc: pc,
+                                    pc: ip - instructions,
                                     base: base,
                                     statement: statement,
                                     destination: base + Int(dst)
@@ -371,7 +374,7 @@ extension Interpreter {
                             codeRef = .passUnretained(calleeCode)
                             instructions = calleeCode.program
                             base = argumentBase
-                            pc = 0
+                            ip = instructions
                             statement = -1
                             regs = stack.base + base
                             // A closure that names `self` has the cell of it, which it captured, in a register.
@@ -396,7 +399,7 @@ extension Interpreter {
                             function: function,
                             code: code,
                             base: base,
-                            pc: pc,
+                            pc: ip - instructions,
                             statement: statement
                         )
                         let operands = CallOperands(
@@ -418,8 +421,9 @@ extension Interpreter {
                         } else {
                             // A computed property's getter, which is a frame above this one's registers.
                             (function, code) = (cursor.function, cursor.code)
-                            (base, pc, statement) = (cursor.base, cursor.pc, cursor.statement)
+                            (base, statement) = (cursor.base, cursor.statement)
                             instructions = code.program
+                            ip = instructions + cursor.pc
                             (functionRef, codeRef) = cursor.refs
                             regs = stack.base + base
                         }
@@ -463,7 +467,7 @@ extension Interpreter {
                                     codeRef: codeRef,
                                     functionRef: functionRef,
                                     calleeRef: calleeRef,
-                                    pc: pc + Int(offset),
+                                    pc: ip - instructions + Int(offset),
                                     base: base,
                                     statement: statement,
                                     destination: base + Int(dst),
@@ -487,7 +491,7 @@ extension Interpreter {
                                 code = codeRef._withUnsafeGuaranteedRef { $0 }
                                 instructions = facts.program
                                 base = argumentBase
-                                pc = 0
+                                ip = instructions
                                 statement = -1
                                 regs = stack.base + base
                                 if facts.selfRegister >= 0 {
@@ -500,7 +504,7 @@ extension Interpreter {
                             function: function,
                             code: code,
                             base: base,
-                            pc: pc,
+                            pc: ip - instructions,
                             statement: statement
                         )
                         let operands = CallOperands(
@@ -511,8 +515,9 @@ extension Interpreter {
                         )
                         if try enterMethod(code.methods[Int(siteIndex)], operands, &cursor, stack) {
                             (function, code) = (cursor.function, cursor.code)
-                            (base, pc, statement) = (cursor.base, cursor.pc, cursor.statement)
+                            (base, statement) = (cursor.base, cursor.statement)
                             instructions = code.program
+                            ip = instructions + cursor.pc
                             (functionRef, codeRef) = cursor.refs
                             regs = stack.base + base
                         }
@@ -541,7 +546,7 @@ extension Interpreter {
                             let resumed = codeRef._withUnsafeGuaranteedRef { $0.facts }
                             instructions = resumed.program
                             base = caller.base
-                            pc = caller.pc
+                            ip = instructions + caller.pc
                             statement = caller.statement
                             if caller.hasScopes {
                                 task.scopes = stack.savedScopes.removeLast()
@@ -573,7 +578,7 @@ extension Interpreter {
                             function: function,
                             code: code,
                             base: base,
-                            pc: pc,
+                            pc: ip - instructions,
                             statement: statement
                         )
                         let left: Value?
@@ -587,16 +592,18 @@ extension Interpreter {
                         } catch {
                             // The frame is left before what finishes it fails: the error is the caller's.
                             (function, code) = (cursor.function, cursor.code)
-                            (base, pc, statement) = (cursor.base, cursor.pc, cursor.statement)
+                            (base, statement) = (cursor.base, cursor.statement)
                             instructions = code.program
+                            ip = instructions + cursor.pc
                             (functionRef, codeRef) = cursor.refs
                             regs = stack.base + base
                             throw error
                         }
                         if let left { return left }
                         (function, code) = (cursor.function, cursor.code)
-                        (base, pc, statement) = (cursor.base, cursor.pc, cursor.statement)
+                        (base, statement) = (cursor.base, cursor.statement)
                         instructions = code.program
+                        ip = instructions + cursor.pc
                         (functionRef, codeRef) = cursor.refs
                         regs = stack.base + base
                     case .members, .collections, .conversions, .patterns, .iteration, .errors,
@@ -605,11 +612,11 @@ extension Interpreter {
                             function: function,
                             code: code,
                             base: base,
-                            pc: pc,
+                            pc: ip - instructions,
                             statement: statement
                         )
                         try executeHandedOff(instruction, &cursor, stack)
-                        pc = cursor.pc
+                        ip = instructions + cursor.pc
                         regs = stack.base + base
                     }
                 }
@@ -618,13 +625,14 @@ extension Interpreter {
                     function: function,
                     code: code,
                     base: base,
-                    pc: pc,
+                    pc: ip - instructions,
                     statement: statement
                 )
                 try unwind(error, &cursor, entryDepth: entryDepth, on: stack)
                 (function, code) = (cursor.function, cursor.code)
-                (base, pc, statement) = (cursor.base, cursor.pc, cursor.statement)
+                (base, statement) = (cursor.base, cursor.statement)
                 instructions = code.program
+                ip = instructions + cursor.pc
                 (functionRef, codeRef) = cursor.refs
                 regs = stack.base + base
             }
