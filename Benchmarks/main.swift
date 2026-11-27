@@ -210,6 +210,30 @@ let cases = [
             """
     ),
     Case(
+        name: "fn: initializer only, 100k",
+        source: """
+            struct V { var x: Int; var y: Int; init(x: Int, y: Int) { self.x = x; self.y = y * 2 } }
+            func run() -> Int { var s = 0; for i in 0..<100_000 { let v = V(x: i, y: 1); s += i }; return s }
+            run()
+            """
+    ),
+    Case(
+        name: "fn: empty initializer, 100k",
+        source: """
+            struct V { var x = 1; init() { } }
+            func run() -> Int { var s = 0; for i in 0..<100_000 { let v = V(); s += i }; return s }
+            run()
+            """
+    ),
+    Case(
+        name: "fn: class empty initializer, 100k",
+        source: """
+            class D { var x = 1; init() { } }
+            func run() -> Int { var s = 0; for i in 0..<100_000 { let v = D(); s += i }; return s }
+            run()
+            """
+    ),
+    Case(
         name: "fn: class method, 100k",
         source: """
             class C { var n = 0; func bump(_ by: Int) -> Int { n += by; return n } }

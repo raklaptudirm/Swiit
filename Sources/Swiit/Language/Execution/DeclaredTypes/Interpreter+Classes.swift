@@ -7,6 +7,17 @@ final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {
     let typeRef: TypeRef
     let superclass: ClassType?
     let isActor: Bool
+
+    // safe: `ClassType.deinit` clears it, and it is read holding the interpreter lock, so it is alive
+    /// How the methods of the class refer to it without keeping it alive: the link holds the class
+    /// without counting it, and is cleared as the class goes.
+    final class Link: @unchecked Sendable {
+        unowned(unsafe) var type: ClassType?
+    }
+    let link = Link()
+
+    deinit { link.type = nil }
+
     /// Stored properties this class declares, in order, and their defaults.
     let stored: [PropertyDecl]
     /// What the class declares itself, not what it inherits: computed properties and their setters,
@@ -41,6 +52,7 @@ final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {
         self.conformances = conformances
         members.staticProperties = staticProperties
         symbol = Symbol.Nominal(name: name, kind: isActor ? .actor : .class, typeRef: self.typeRef)
+        link.type = self
     }
 
     @exclusivity(unchecked) private var chainCache: [ClassType]?

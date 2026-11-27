@@ -289,7 +289,7 @@ extension Interpreter {
     ) -> Value? {
         guard op == nil else { return nil }
         guard let type = site.propertyType else { return value }
-        return conform(value, to: type)
+        return site.propertyKind.accepts(value) ? value : conform(value, to: type)
     }
 }
 

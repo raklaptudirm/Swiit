@@ -39,8 +39,14 @@ final class Function: Callable, @unchecked Sendable {
     let isFailable: Bool
     /// `convenience init`: made through another of the class's initializers.
     let isConvenience: Bool
-    /// The class whose body it is in, which `super` in it looks above.
-    weak var owner: ClassType?
+    /// The class whose body it is in, which `super` in it looks above; nil once the class is gone.
+    /// Held through the class's link and not weakly: a weak reference gives its object a side table,
+    /// which makes every retain and release of the class slow.
+    var owner: ClassType? {
+        get { ownerLink?.type }
+        set { ownerLink = newValue?.link }
+    }
+    private var ownerLink: ClassType.Link?
     /// What the VM made of the body, the first time it was wanted.
     @exclusivity(unchecked) var vmCode = VMCode.untried
 

@@ -87,6 +87,26 @@ extension Value {
             storage = Storage.make(capacity: capacity, typeRef: typeRef)
         }
 
+        /// A record of the fields `keys` name, in order, whose values are taken from the registers at
+        /// `slots` from `registers`: those are left holding nothing. The keys are distinct.
+        init(
+            typeRef: TypeRef?,
+            keys: [String],
+            taking registers: UnsafeMutablePointer<Value>,
+            at slots: [Int]
+        ) {
+            storage = Storage.make(capacity: keys.count, typeRef: typeRef)
+            storage.withUnsafeMutablePointers { header, fields in
+                for index in keys.indices {
+                    let register = registers + slots[index]
+                    (fields + index).initialize(to: Field(key: keys[index], value: register.move()))
+                    register.initialize(to: .nothing)
+                }
+                header.pointee.count = keys.count
+            }
+            if keys.count > Record.indexedFrom { rebuildTable() }
+        }
+
         init(typeName: String?) {
             self.init(typeRef: typeName.map(TypeRef.native))
         }
@@ -138,6 +158,13 @@ extension Value {
             }
             made.header.count = count
             storage = made
+        }
+
+        /// This record's fields in storage of its own, with room for `capacity` of them.
+        func cloned(capacity: Int) -> Record {
+            var made = self
+            made.copyStorage(capacity: Swift.max(capacity, storage.header.count))
+            return made
         }
 
         /// Adds a field whose name the record does not have, which the caller knows: no search.

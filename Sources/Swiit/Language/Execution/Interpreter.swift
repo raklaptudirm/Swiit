@@ -49,7 +49,10 @@ public final class Interpreter: @unchecked Sendable {
     var hasBoundTypeArguments = false
 
     /// What extensions add to a type, by the type's name (`Int`, `Array`, a struct's).
-    var typeExtensions: [String: TypeMembers] = [:]
+    var typeExtensions: [String: TypeMembers] = [:] {
+        // What a call site worked out of a type (whether an extension adds initializers) is not kept.
+        didSet { scopeVersion &+= 1 }
+    }
     /// Methods every sequence has, like `sorted` and `filter`.
     var sequenceMethods: [String: OverloadSet] = [:]
     /// What the checker remembers from entries already checked.

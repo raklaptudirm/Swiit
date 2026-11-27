@@ -31,6 +31,10 @@ final class StructType: LanguageObject, DeclaredType, @unchecked Sendable {
     /// constructs a value through it (`Interpreter.memberwisePlan(of:)`).
     @exclusivity(unchecked) var memberwisePlan: MemberwisePlan?
     @exclusivity(unchecked) var hasMemberwisePlan = false
+    /// The fields a new value starts with, when every default is a literal, so that they need not be
+    /// worked out again (`Interpreter.startingRecord(of:)`).
+    @exclusivity(unchecked) var startingFields: Value.Record?
+    @exclusivity(unchecked) var hasStartingFields = false
     /// What runs before and after a stored property changes.
     var observers: [String: (willSet: Function?, didSet: Function?)] = [:]
 

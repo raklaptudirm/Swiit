@@ -270,6 +270,31 @@ let vmKinds: [VMSample] = [
         loops: 1
     ),
     VMSample(
+        name:
+            "initializers over literal defaults and computed ones, and memberwise values of each kind",
+        source: """
+            var counter = 0
+            func next() -> Int { counter += 1; return counter }
+            struct A { var a = 1; var b: Int; var c = "c"; init(b: Int) { self.b = b } }
+            struct B { var id = next(); var tag: String; init(tag: String) { self.tag = tag } }
+            struct C { var xs: [Int]; var o: Int?; var d: Double }
+            class K { var n = 1; var m: Int; init(m: Int) { self.m = m } }
+            func f(_ n: Int) -> String {
+                var out = ""
+                for i in 0..<n {
+                    let a = A(b: i), b = B(tag: "t\\(i)")
+                    let c = C(xs: [i], o: i % 2 == 0 ? i : nil, d: Double(i))
+                    let k = K(m: i)
+                    out += "\\(a.a + a.b)\\(a.c)\\(b.id)\\(b.tag)\\(c.xs.count)\\(c.o ?? -1)\\(c.d)\\(k.n + k.m);"
+                }
+                return out
+            }
+            f(4)
+            """,
+        compiles: ["f"],
+        entirely: true
+    ),
+    VMSample(
         name: "a method calling a plain function and being called from one",
         source: """
             func double(_ x: Int) -> Int { x * 2 }

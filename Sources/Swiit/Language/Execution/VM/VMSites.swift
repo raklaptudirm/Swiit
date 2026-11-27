@@ -41,6 +41,9 @@ final class CallSite {
     /// The initializer of a struct found to take this call's labels, so that they are not compared
     /// again.
     @exclusivity(unchecked) var fittedInitializer: Function?
+    /// The memberwise initializer of `constructedType` when it takes the labels of this site, and no
+    /// extension adds initializers to the type.
+    @exclusivity(unchecked) var memberwisePlan: MemberwisePlan?
     /// The function and initializer whose scopes the site compared, and whether they are the same.
     @exclusivity(unchecked) var sharesCaller: ObjectIdentifier?
     @exclusivity(unchecked) var sharesInitializer: ObjectIdentifier?
@@ -218,7 +221,11 @@ final class MemberSite {
     /// It is set in an initializer: a field is made, and a `let` one may be, and no observer runs.
     let initializing: Bool
     /// The type its field is declared to have, when it was found to be set directly as it is made.
-    @exclusivity(unchecked) var propertyType: TypeExpression?
+    @exclusivity(unchecked) var propertyType: TypeExpression? {
+        didSet { propertyKind = propertyType.map(ParameterKind.init) ?? .any }
+    }
+    /// Which values `propertyType` plainly takes, without being conformed.
+    @exclusivity(unchecked) var propertyKind = ParameterKind.any
     @exclusivity(unchecked) var type: TypeRef?
     @exclusivity(unchecked) var classType: ObjectIdentifier?
     @exclusivity(unchecked) var version = -1

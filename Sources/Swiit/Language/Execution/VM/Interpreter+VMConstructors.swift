@@ -25,14 +25,26 @@ extension Interpreter {
             site.constructedClass = nil
             site.constructedInitializer = nil
             site.constructedCode = nil
+            site.memberwisePlan = nil
             switch lookup(name)?.value.storage {
-            case .object(let type as StructType)?: site.constructedType = type
+            case .object(let type as StructType)?:
+                site.constructedType = type
+                if type.members.initializers == nil, typeExtensions[type.name]?.initializers == nil,
+                    let plan = memberwisePlan(of: type), plan.labels == site.labels
+                {
+                    site.memberwisePlan = plan
+                }
             case .object(let type as ClassType)?: findClassInitializer(of: type, site)
             default: break
             }
         }
         if let type = site.constructedClass {
             return try constructClass(type, call, &cursor, stack)
+        }
+        if let plan = site.memberwisePlan, let type = site.constructedType,
+            let value = constructMemberwise(type, plan, call.argumentBase)
+        {
+            return .made(value)
         }
         guard let type = site.constructedType, typeExtensions[type.name]?.initializers == nil
         else { return .none }
@@ -60,6 +72,29 @@ extension Interpreter {
     }
 
     /// The memberwise initializer, when the call gives every field, each as its type has it.
+    /// The value of a memberwise initializer whose arguments are all of the kinds the fields hold: the
+    /// arguments, which are left holding nothing, are the fields. Nil, with nothing changed, where one
+    /// is not.
+    private func constructMemberwise(
+        _ type: StructType,
+        _ plan: MemberwisePlan,
+        _ arguments: Int
+    ) -> Value? {
+        let registers = task.vm.base + arguments
+        for index in plan.keys.indices
+        where !plan.kinds[index].accepts(at: registers + plan.slots[index]) {
+            return nil
+        }
+        return Value(
+            record: Value.Record(
+                typeRef: type.typeRef,
+                keys: plan.keys,
+                taking: registers,
+                at: plan.slots
+            )
+        )
+    }
+
     private func constructMemberwise(
         _ type: StructType,
         _ site: CallSite,
@@ -105,6 +140,38 @@ extension Interpreter {
         return type.memberwisePlan
     }
 
+    /// The record a new value of `type` starts as, before an initializer sets the rest: the defaults, which
+    /// are the same each time when they are all literals.
+    private func startingRecord(of type: StructType) throws -> Value.Record {
+        if !type.hasStartingFields {
+            type.hasStartingFields = true
+            let literals = type.stored.allSatisfy { property in
+                guard let defaultValue = property.defaultValue else { return true }
+                if case .literal(let literal) = defaultValue {
+                    return property.type.map({ ParameterKind($0).accepts(literal) }) ?? true
+                }
+                return false
+            }
+            if literals {
+                var fields = Value.Record(typeRef: type.typeRef, capacity: type.stored.count)
+                for property in type.stored {
+                    if case .literal(let literal)? = property.defaultValue {
+                        fields.appendDistinct(property.name, literal)
+                    }
+                }
+                type.startingFields = fields
+            }
+        }
+        if let fields = type.startingFields { return fields.cloned(capacity: type.stored.count) }
+        var start = Value.Record(typeRef: type.typeRef, capacity: type.stored.count)
+        for property in type.stored {
+            if let defaultValue = property.defaultValue {
+                start[property.name] = try storedValue(defaultValue, for: property, of: type)
+            }
+        }
+        return start
+    }
+
     /// An initializer of the type's own, entered as a frame of the loop: the defaults are the start of the
     /// value, the initializer sets the rest, and the fields are put in declaration order when it
     /// returns (`finishMethod`).
@@ -133,12 +200,7 @@ extension Interpreter {
         guard task.callDepth < maxCallDepth else {
             throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
         }
-        var start = Value.Record(typeRef: type.typeRef, capacity: type.stored.count)
-        for property in type.stored {
-            if let defaultValue = property.defaultValue {
-                start[property.name] = try storedValue(defaultValue, for: property, of: type)
-            }
-        }
+        let start = try startingRecord(of: type)
         task.failedInit = false
         try checkInterrupt()
         pushConstructor(
