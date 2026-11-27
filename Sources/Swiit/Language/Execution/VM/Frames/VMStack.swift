@@ -193,9 +193,11 @@ final class VMStack {
     let callers = CallerStack()
     /// The scopes of the callers that had scopes of their own, innermost last.
     @exclusivity(unchecked) var savedScopes: [[Scope]] = []
-    /// Emptied argument arrays of bridged calls, with their storage, so that a call takes one
-    /// instead of allocating; one is out for each bridged call that has not returned.
-    @exclusivity(unchecked) var argumentArrays: [[Value]] = []
+    /// The argument arrays of bridged calls, by how many arguments they hold, each element `.nothing`
+    /// while it waits: a call of that many takes one, sets its elements where they are and gives it
+    /// back, so that a call neither allocates an array nor grows and empties one. One is out for
+    /// each bridged call that has not returned.
+    @exclusivity(unchecked) var argumentArrays: [[[Value]]] = Array(repeating: [], count: 8)
 
     /// The value of `self` a frame that held it in its register left as it ended, for its exit to read
     /// (`MethodExit.SelfHolder.register`). Frames end one at a time, and each exit runs right after its

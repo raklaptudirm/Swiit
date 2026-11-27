@@ -34,11 +34,22 @@ extension Interpreter {
         arguments: Int,
         on stack: VMStack
     ) throws -> Value {
-        var values = stack.argumentArrays.popLast() ?? []
-        values.reserveCapacity(plan.kinds.count)
-        for index in plan.kinds.indices {
-            values.append(stack.base[arguments + index])
-            stack.base[arguments + index] = .nothing
+        // The arguments are moved out of their registers into an array of their number.
+        let arity = plan.kinds.count
+        let pooled = arity < stack.argumentArrays.count
+        var values =
+            arity == 0
+            ? []
+            : (pooled ? stack.argumentArrays[arity].popLast() : nil)
+                ?? Array(repeating: .nothing, count: arity)
+        if arity > 0 {
+            values.withUnsafeMutableBufferPointer { buffer in
+                for index in 0..<arity {
+                    let register = stack.base + arguments + index
+                    buffer[index] = register.move()
+                    register.initialize(to: .nothing)
+                }
+            }
         }
         for index in plan.kinds.indices where !plan.kinds[index].accepts(values[index]) {
             if plan.kinds[index] == .typeParameter, !hasBoundTypeArguments { continue }
@@ -57,9 +68,13 @@ extension Interpreter {
         do { result = try plan.positional(receiver ?? .nothing, values) } catch {
             throw hostFailure(error, in: plan.place)
         }
-        // A body that kept the array has made the storage its own: it is not reused.
-        values.removeAll(keepingCapacity: true)
-        stack.argumentArrays.append(values)
+        // The array goes back with its elements let go; one a body kept is copied by the first change.
+        if arity > 0, pooled {
+            values.withUnsafeMutableBufferPointer { buffer in
+                for index in 0..<arity { buffer[index] = .nothing }
+            }
+            stack.argumentArrays[arity].append(values)
+        }
         return result
     }
 }
