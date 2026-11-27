@@ -84,6 +84,7 @@ extension Interpreter {
         for index in plan.kinds.indices where !plan.kinds[index].accepts(values[index]) {
             guard case .argument = plan.fills[index] else { continue }
             if plan.kinds[index] == .typeParameter, !hasBoundTypeArguments { continue }
+            if plan.checks[index].accepts(values[index]) { continue }
             values[index] = try checked(values[index], for: plan.parameters[index], of: plan.name)
         }
         // Through `?.`: nil stays nil.

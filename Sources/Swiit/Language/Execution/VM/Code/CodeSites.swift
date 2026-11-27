@@ -305,9 +305,40 @@ final class BridgedPlan {
         case value(Value)
     }
 
+    /// How an argument of a parameter whose type is not a plain kind is seen to be of it without
+    /// `conform`: the parameter's type is the host's, so it is never a class or a protocol the program
+    /// declares, which `conform` looks the name up for. An argument that is not plainly of it is
+    /// conformed as any is.
+    enum HostCheck {
+        /// A value of the Swift type of this name: boxed, or, for a Character, the one-letter String
+        /// it is held as (the rules `conform` comes to after the names of the program's types).
+        case named(String)
+        /// Nothing short of `conform`.
+        case general
+
+        init(_ type: TypeExpression) {
+            if type.genericParts == nil, let name = type.plainName {
+                self = .named(name)
+            } else {
+                self = .general
+            }
+        }
+
+        func accepts(_ value: Value) -> Bool {
+            guard case .named(let name) = self else { return false }
+            switch value.storage {
+            case .object(let box as SwiftValue): return box.typeName == name
+            case .string(let text): return name == "Character" && text.count == 1
+            default: return false
+            }
+        }
+    }
+
     let positional: @Sendable (Value, [Value]) throws -> Value
     /// For each parameter of the member, in order, what it is given.
     let fills: [Fill]
+    /// For each parameter, how an argument is seen to be of its type where its kind does not say.
+    let checks: [HostCheck]
     /// `Type.member`, which an error the member throws is said to come from.
     let place: String
     let function: Function
@@ -329,6 +360,7 @@ final class BridgedPlan {
         self.function = function
         parameters = function.parameters
         kinds = function.parameters.map { ParameterKind($0.type) }
+        checks = function.parameters.map { HostCheck($0.type) }
         name = function.name ?? "member"
         keepsNilReceiver = typeName == "Optional"
     }
