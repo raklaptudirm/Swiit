@@ -82,7 +82,14 @@ extension Interpreter {
         }
         try checkAssignable(root, what: "use mutating method '\(methods.name)' on")
         let receiver = Receiver(base, mutable: true)
-        let result = try invoke(method, with: bindings, receiver: receiver)
+        let result: Value
+        do {
+            result = try invoke(method, with: bindings, receiver: receiver)
+        } catch {
+            // What the method changed before it failed is kept, as Swift keeps it.
+            try? update(root, path) { _, _ in receiver.value }
+            throw error
+        }
         try update(root, path) { _, _ in receiver.value }
         return result
     }

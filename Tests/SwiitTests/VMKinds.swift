@@ -212,6 +212,37 @@ let vmKinds: [VMSample] = [
         entirely: true
     ),
     VMSample(
+        name:
+            "a mutating method keeps what it changed when it fails, and takes itself as an argument",
+        source: """
+            struct Counter {
+                var n = 0
+                var log: [Int] = []
+                mutating func bump(_ by: Int) throws {
+                    n += by
+                    log.append(n)
+                    if by > 2 { throw Boom.big }
+                }
+                mutating func absorb(_ other: Counter) { n += other.n; log += other.log }
+            }
+            enum Boom: Error { case big }
+            func f() -> String {
+                var c = Counter()
+                var failures = 0
+                for i in 0..<6 {
+                    do { try c.bump(i) } catch { failures += 1 }
+                }
+                c.absorb(c)
+                var d = c
+                d.absorb(c)
+                return "\\(c.n) \\(c.log.count) \\(d.n) \\(d.log.count) \\(failures)"
+            }
+            f()
+            """,
+        compiles: ["f"],
+        entirely: true
+    ),
+    VMSample(
         name: "a method calling a plain function and being called from one",
         source: """
             func double(_ x: Int) -> Int { x * 2 }

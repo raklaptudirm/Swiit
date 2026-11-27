@@ -169,6 +169,9 @@ final class MethodSite {
     @exclusivity(unchecked) var fastCaller: ObjectIdentifier?
     @exclusivity(unchecked) var fastType: TypeRef?
     @exclusivity(unchecked) var fastClass: ObjectIdentifier?
+    /// The method found changes its struct receiver, a local, which is moved into the cell of `self`
+    /// while it runs and put back as it returns.
+    @exclusivity(unchecked) var fastChangesReceiver = false
 
     /// Whether the register holds a receiver of the kind the fast path found its method for.
     @inline(__always)

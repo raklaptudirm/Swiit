@@ -413,7 +413,7 @@ extension Interpreter {
                         .reportDeferred,
                         .guardCarriedOn, .deferMark, .loadVariable, .evaluate, .evaluateTree,
                         .runTree, .conform, .assignByName, .iterationMismatch, .derefWeak,
-                        .makeClosure:
+                        .makeClosure, .inoutOutputs, .takeInout, .finishInout, .failInit:
                         var cursor = VMCursor(
                             function: function,
                             code: code,
@@ -498,18 +498,24 @@ extension Interpreter {
                             if fits {
                                 try tick(stop, run)
                                 let receiverValue = regs[Int(receiver)]
-                                stack.push(
-                                    VMCaller(
-                                        codeRef: codeRef,
-                                        functionRef: functionRef,
-                                        calleeRef: calleeRef,
-                                        pc: pc + Int(offset),
-                                        base: base,
-                                        statement: statement,
-                                        destination: base + Int(dst),
-                                        sameScopes: true
-                                    )
+                                var record = VMCaller(
+                                    codeRef: codeRef,
+                                    functionRef: functionRef,
+                                    calleeRef: calleeRef,
+                                    pc: pc + Int(offset),
+                                    base: base,
+                                    statement: statement,
+                                    destination: base + Int(dst),
+                                    sameScopes: true
                                 )
+                                var selfValue = receiverValue
+                                if methodSite.fastChangesReceiver {
+                                    selfValue = .object(
+                                        stack.moveReceiverIntoCell(at: base + Int(receiver))
+                                    )
+                                    record.isMethod = true
+                                }
+                                stack.push(record)
                                 stack.ensure(argumentBase + facts.frameSize)
                                 stack.top = argumentBase + facts.frameSize
                                 task.callDepth += 1
@@ -522,7 +528,7 @@ extension Interpreter {
                                 statement = -1
                                 regs = stack.base + base
                                 if facts.selfRegister >= 0 {
-                                    VMStack.put(receiverValue, at: regs + facts.selfRegister)
+                                    VMStack.put(selfValue, at: regs + facts.selfRegister)
                                 }
                                 continue
                             }
@@ -583,17 +589,6 @@ extension Interpreter {
                         let assignment = code.assignments[Int(assignmentIndex)]
                         try assignGlobal(site, assignment, regs[Int(value)], function, code)
                         regs = stack.base + base
-                    case .inoutOutputs(let first, let count):
-                        task.inoutOutputs = (0..<Int(count)).map { regs[Int(first) + $0] }
-                    case .takeInout(let dst, let index):
-                        let outputs = task.inoutOutputs
-                        regs[Int(dst)] = Int(index) < outputs.count ? outputs[Int(index)] : .nothing
-                    case .finishInout:
-                        task.inoutOutputs = []
-                    case .failInit(let register):
-                        if register == Register.max || regs[Int(register)] == .nothing {
-                            task.failedInit = true
-                        }
                     case .returnValue, .returnNothing:
                         let result: Value
                         if case .returnValue(let register) = instruction {

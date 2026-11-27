@@ -222,6 +222,22 @@ final class VMStack {
         callers.append(record)
     }
 
+    /// The struct in a register moved into a cell, which holds it alone while a method changes it, and
+    /// the exit that puts it back in the register as the method returns or fails.
+    func moveReceiverIntoCell(at register: Int) -> Binding.Cell {
+        let cell = Binding.Cell(base[register])
+        base[register] = .nothing
+        methodExits.append(
+            MethodExit(
+                selfCell: cell,
+                popsOwner: false,
+                storeReceiverAt: register,
+                storeReceiverIn: nil
+            )
+        )
+        return cell
+    }
+
     /// Room for `needed` registers. A stack that grows moves, so a pointer into it is taken again
     /// afterward.
     func ensure(_ needed: Int) {

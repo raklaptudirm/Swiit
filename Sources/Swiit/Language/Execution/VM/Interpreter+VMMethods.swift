@@ -39,6 +39,11 @@ extension Interpreter {
     /// An error left a method's frame: what it pushed is undone, and nothing is stored.
     func abandonMethod(_ exit: MethodExit, on stack: VMStack) {
         if exit.popsOwner { task.owners.removeLast() }
+        // What a mutating method changed before it failed is kept, as Swift keeps it.
+        if !exit.isConstructor, let cell = exit.selfCell {
+            if exit.storeReceiverAt >= 0 { stack.base[exit.storeReceiverAt] = cell.value }
+            exit.storeReceiverIn?.value = cell.value
+        }
         if exit.isConstructor, case .classInstance(_, _, let saved) = stack.completions.removeLast()
         {
             task.calledSuperInit = saved

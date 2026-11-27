@@ -326,6 +326,18 @@ extension Interpreter {
             ensureSelfScope(function, code, base: base, on: stack)
             let made = try makeClosure(code.closures[Int(site)], stack.base + base)
             stack.base[base + Int(dst)] = made
+        case .inoutOutputs(let first, let count):
+            task.inoutOutputs = (0..<Int(count)).map { stack.base[base + Int(first) + $0] }
+        case .takeInout(let dst, let index):
+            let outputs = task.inoutOutputs
+            stack.base[base + Int(dst)] =
+                Int(index) < outputs.count ? outputs[Int(index)] : .nothing
+        case .finishInout:
+            task.inoutOutputs = []
+        case .failInit(let register):
+            if register == Register.max || stack.base[base + Int(register)] == .nothing {
+                task.failedInit = true
+            }
         default:
             preconditionFailure("not an evaluation instruction")
         }

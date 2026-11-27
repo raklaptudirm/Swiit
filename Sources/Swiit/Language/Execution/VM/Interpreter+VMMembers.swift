@@ -345,12 +345,20 @@ extension Interpreter {
         extended: Bool
     ) {
         site.fastVersion = -1
+        // A method that changes a struct is one the loop calls where the receiver is a local that it
+        // can move into the cell of `self`, and not one of `self` or a global.
+        let changes = target.function.isMutating && !target.isClass
         guard site.global == nil, !site.isSuper, !site.isGetter, target.mapping == nil,
-            !target.function.isMutating, !ownScope, site.sharesScopes, !extended,
+            !ownScope, site.sharesScopes, !extended,
             !target.code.isInitializerBody, !target.code.usesSuper,
-            target.code.selfRegister == nil || target.code.selfByValue,
+            changes
+                ? !site.receiverIsSelf && target.code.selfRegister != nil
+                    && !target.code.selfByValue
+                : !target.function.isMutating
+                    && (target.code.selfRegister == nil || target.code.selfByValue),
             target.isClass ? site.classType != nil : site.type != nil
         else { return }
+        site.fastChangesReceiver = changes
         site.fastFunction = .passUnretained(target.function)
         site.fastCode = .passUnretained(target.code)
         site.fastType = target.isClass ? nil : site.type
@@ -431,6 +439,12 @@ extension Interpreter {
                 storeAt: cursor.base + Int(operands.receiver),
                 storeIn: storeIn
             )
+            // The cell of `self` holds the struct alone while the method changes it, so that it is
+            // changed where it is; it goes back where it came from as the method returns or fails.
+            if exit.selfCell != nil, exit.storeReceiverAt >= 0 || exit.storeReceiverIn != nil {
+                stack.base[cursor.base + Int(operands.receiver)] = .nothing
+                exit.storeReceiverIn?.value = .nothing
+            }
             if !site.sharesScopes || extended {
                 setScopes(of: target.function, from: cursor.function, task)
             }
