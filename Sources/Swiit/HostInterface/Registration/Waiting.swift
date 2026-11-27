@@ -45,9 +45,15 @@ enum Waiting {
     /// bridged members do on every call.
     private static let slot: pthread_key_t = {
         var key = pthread_key_t()
-        pthread_key_create(&key) { Unmanaged<Box>.fromOpaque($0).release() }
+        pthread_key_create(&key) { release($0) }
         return key
     }()
+
+    /// Lets go of a thread's box as the thread ends. The pointer is optional on Linux and not on
+    /// Darwin, so the destructor passes it on as either.
+    private static func release(_ pointer: UnsafeMutableRawPointer?) {
+        if let pointer { Unmanaged<Box>.fromOpaque(pointer).release() }
+    }
 
     private static var box: Box? {
         pthread_getspecific(slot).map { Unmanaged<Box>.fromOpaque($0).takeUnretainedValue() }
