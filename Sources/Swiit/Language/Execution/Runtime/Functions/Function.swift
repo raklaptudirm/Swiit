@@ -2,8 +2,12 @@ import Foundation
 
 enum FunctionBody: Sendable {
     case swiit(Program)
-    /// A builtin written in Swift, called with the bound arguments.
-    case native(@Sendable (Interpreter, Arguments) throws -> Value)
+    /// A builtin written in Swift: called with its receiver (`.nothing` for a function) and its
+    /// arguments in declared order, defaults filled in, `.nothing` for one the Swift function fills in
+    /// itself, and a variadic one's as a list.
+    case native(
+        @Sendable (Interpreter, _ receiver: Value, _ arguments: [Value]) throws -> Value
+    )
 }
 
 // safe: its state is touched only holding the interpreter lock
@@ -186,12 +190,22 @@ struct Arguments: Sequence, ExpressibleByDictionaryLiteral {
     var isEmpty: Bool { entries.isEmpty }
     var keys: [String] { entries.map(\.name) }
 
-    /// As a dictionary, for a host's body, which is promised one.
-    var dictionary: [String: Value] {
-        Dictionary(entries.map { ($0.name, $0.value) }, uniquingKeysWith: { $1 })
-    }
-
     func makeIterator() -> some IteratorProtocol<(key: String, value: Value)> {
         entries.lazy.map { (key: $0.name, value: $0.value) }.makeIterator()
+    }
+}
+
+extension Arguments {
+    /// What a call bound by name, from the arguments in the order of `parameters`: for a native
+    /// body that hands its arguments on to a Swiit function.
+    init(_ parameters: [Parameter], _ values: [Value]) {
+        self.init(capacity: parameters.count)
+        for (parameter, value) in zip(parameters, values) { self[parameter.name] = value }
+    }
+
+    /// The arguments in the order of `parameters`, as a native body takes them: `.nothing` for one
+    /// the call did not bind, which is one the Swift function fills in itself.
+    func inOrder(of parameters: [Parameter]) -> [Value] {
+        parameters.map { self[$0.name] ?? .nothing }
     }
 }

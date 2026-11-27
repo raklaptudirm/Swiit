@@ -31,12 +31,13 @@ extension Interpreter {
         try checkInterrupt()
         switch function.body {
         case .native(let body):
-            // A method in Swift gets its receiver as `self`, and runs where it
-            // is called from, as any builtin does.
-            guard let receiver else { return try body(self, arguments) }
-            var arguments = arguments
-            arguments["self"] = receiver.value
-            return try body(self, arguments)
+            // A method in Swift gets its receiver apart from its arguments, and runs where it is
+            // called from, as any builtin does.
+            return try body(
+                self,
+                receiver?.value ?? .nothing,
+                arguments.inOrder(of: function.parameters)
+            )
         case .swiit:
             break
         }
@@ -450,7 +451,7 @@ extension Interpreter {
             name: name,
             parameters: parameters,
             returnType: signature.returns == .void ? nil : signature.returns.byText,
-            body: .native { interpreter, arguments in
+            body: .native { interpreter, _, arguments in
                 do {
                     return try call(arguments)
                 } catch {

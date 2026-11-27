@@ -29,7 +29,7 @@ extension Interpreter {
     /// are returned, to be declared once the rest is.
     func declarePrelude(
         _ program: Program,
-        natives: [String: (body: FunctionBody, input: Parameter?)],
+        natives: [String: (body: PreludeBody, input: Parameter?)],
         capturing globals: Int = 1
     ) throws -> [ExtensionDecl] {
         var extensions: [ExtensionDecl] = []
@@ -63,7 +63,12 @@ extension Interpreter {
                 // Written with a body, it is Swiit's; without, Swift's by name.
                 let function: Function
                 if let native = natives[decl.name] {
-                    function = builtinFunction(decl, native.body, input: nil, capturing: globals)
+                    function = builtinFunction(
+                        decl,
+                        .byName(decl.parameters, native.body),
+                        input: nil,
+                        capturing: globals
+                    )
                 } else if !decl.body.statements.isEmpty {
                     written.append(decl)
                     continue
@@ -77,7 +82,10 @@ extension Interpreter {
                     if let native = natives["Sequence." + method.name] {
                         function = builtinFunction(
                             method,
-                            native.body,
+                            .byName(
+                                (native.input.map { [$0] } ?? []) + method.parameters,
+                                native.body
+                            ),
                             input: native.input,
                             capturing: globals
                         )
@@ -159,11 +167,11 @@ extension Interpreter {
                         (
                             name,
                             (
-                                body: FunctionBody.native { interpreter, arguments in
-                                    do { return try call(arguments.dictionary) } catch {
+                                body: { interpreter, arguments in
+                                    do { return try call(arguments) } catch {
                                         throw interpreter.hostFailure(error, in: name)
                                     }
-                                },
+                                } as PreludeBody,
                                 input: name.hasPrefix("Sequence.")
                                     ? Parameter(
                                         label: nil,
@@ -224,9 +232,10 @@ extension Interpreter {
         input: Parameter?,
         capturing globals: Int
     ) -> Function {
+        let parameters = (input.map { [$0] } ?? []) + decl.parameters
         let function = Function(
             name: decl.name,
-            parameters: (input.map { [$0] } ?? []) + decl.parameters,
+            parameters: parameters,
             returnType: decl.returnType,
             body: body,
             // What it is written in sees the globals, as a function a script declares does: the
@@ -279,6 +288,23 @@ extension Interpreter {
             } catch let error as TypeError {
                 throw RuntimeError("the extension of \(decl.typeName): \(error.message)")
             }
+        }
+    }
+}
+
+/// A Swift body of the prelude's, which a host writes taking its arguments by parameter name, and a
+/// method its receiver as `self`.
+typealias PreludeBody = @Sendable (Interpreter, [String: Value]) throws -> Value
+
+extension FunctionBody {
+    /// A native body that calls `call` with the arguments by the names of `parameters`.
+    static func byName(_ parameters: [Parameter], _ call: @escaping PreludeBody) -> FunctionBody {
+        let names = parameters.map(\.name)
+        return .native { interpreter, receiver, values in
+            var named: [String: Value] = [:]
+            for (name, value) in zip(names, values) { named[name] = value }
+            if receiver != .nothing { named["self"] = receiver }
+            return try call(interpreter, named)
         }
     }
 }

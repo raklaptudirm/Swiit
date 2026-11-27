@@ -471,7 +471,7 @@ final class NativeFunctionPlan {
     }
 
     let function: Function
-    let body: @Sendable (Interpreter, Arguments) throws -> Value
+    let body: @Sendable (Interpreter, _ receiver: Value, _ arguments: [Value]) throws -> Value
     let fills: [Fill]
     let kinds: [ParameterKind]
     let checks: [BridgedPlan.HostCheck]
@@ -480,7 +480,9 @@ final class NativeFunctionPlan {
 
     init(
         function: Function,
-        body: @escaping @Sendable (Interpreter, Arguments) throws -> Value,
+        body:
+            @escaping @Sendable (Interpreter, _ receiver: Value, _ arguments: [Value]) throws ->
+            Value,
         fills: [Fill]
     ) {
         self.function = function

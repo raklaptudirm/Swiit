@@ -27,7 +27,7 @@ private final class Log: @unchecked Sendable {
             name: "described",
             parameters: [Parameter(label: nil, name: "x", type: .int)],
             returnType: .int,
-            body: .native { _, arguments in arguments["x"] ?? .nothing },
+            body: .native { _, _, arguments in arguments[0] },
             isThrowing: true
         )
     )

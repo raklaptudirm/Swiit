@@ -25,11 +25,9 @@ extension Interpreter {
                     name: name,
                     summary: summary,
                     parameters: [condition, message],
-                    returnType: nil,
-                    isThrowing: false,
-                    call: { arguments in
-                        guard case .bool(true)? = arguments["condition"] else {
-                            let text = arguments["message"].map { "\($0)" } ?? ""
+                    body: { arguments in
+                        guard arguments[0] == .bool(true) else {
+                            let text = "\(arguments[1])"
                             throw RuntimeError(
                                 "\(name == "assert" ? "Assertion" : "Precondition") failed"
                                     + (text.isEmpty ? "" : ": \(text)")
@@ -46,10 +44,8 @@ extension Interpreter {
                     name: name,
                     summary: "Stops with the message.",
                     parameters: [message],
-                    returnType: nil,
-                    isThrowing: false,
-                    call: { arguments in
-                        let text = arguments["message"].map { "\($0)" } ?? ""
+                    body: { arguments in
+                        let text = "\(arguments[0])"
                         throw RuntimeError(
                             (name == "fatalError" ? "Fatal error" : "Precondition failed")
                                 + (text.isEmpty ? "" : ": \(text)")
@@ -65,8 +61,8 @@ extension Interpreter {
                     name: "type",
                     parameters: [Parameter(label: "of", name: "value", type: .parameter("T"))],
                     returnType: .metatype(.parameter("T")),
-                    body: .native { interpreter, arguments in
-                        interpreter.typeObject(of: arguments["value"] ?? .nothing)
+                    body: .native { interpreter, _, arguments in
+                        interpreter.typeObject(of: arguments[0])
                     },
                     documentation: Documentation(summary: "The type of a value.", parameters: [:]),
                     generics: [Symbol.GenericParameter(name: "T")]
@@ -89,7 +85,7 @@ extension Interpreter {
                             .init(label: "value", type: .any),
                         ])
                     ),
-                    body: .native { _, arguments in
+                    body: .native { _, _, arguments in
                         func child(_ label: String?, _ value: Value) -> Value {
                             Value(
                                 record:
@@ -99,7 +95,7 @@ extension Interpreter {
                                     ])
                             )
                         }
-                        switch (arguments["subject"] ?? .nothing).storage {
+                        switch arguments[0].storage {
                         case .tuple(let tuple):
                             return .list(tuple.map { child($0.key, $0.value) })
                         case .structure(let structure):
@@ -141,14 +137,12 @@ extension Interpreter {
                     name: InternalName.weak,
                     parameters: [Parameter(label: nil, name: "x", type: .parameter("T"))],
                     returnType: .parameter("T"),
-                    body: .native { _, arguments in
-                        if case .object(let instance as ClassInstance)? = arguments["x"]?.storage {
+                    body: .native { _, _, arguments in
+                        if case .object(let instance as ClassInstance) = arguments[0].storage {
                             return .object(WeakReference(instance))
                         }
-                        if arguments["x"] == nil || arguments["x"] == .nothing {
-                            return .object(WeakReference(nil))
-                        }
-                        return arguments["x"] ?? .nothing
+                        if arguments[0] == .nothing { return .object(WeakReference(nil)) }
+                        return arguments[0]
                     },
                     documentation: Documentation(
                         summary: "A weak variable's initial value.",
@@ -165,7 +159,7 @@ extension Interpreter {
                     name: InternalName.uninitialized,
                     parameters: [],
                     returnType: nil,
-                    body: .native { _, _ in .nothing },
+                    body: .native { _, _, _ in .nothing },
                     documentation: Documentation(
                         summary: "A variable declared without a value.",
                         parameters: [:]
@@ -191,11 +185,10 @@ extension Interpreter {
                         ),
                     ],
                     returnType: .optional(.parameter("R")),
-                    body: .native { interpreter, arguments in
-                        guard let base = arguments["base"], base != .nothing else {
-                            return .nothing
-                        }
-                        return try interpreter.call(arguments["rest"]!, with: [base])
+                    body: .native { interpreter, _, arguments in
+                        let base = arguments[0]
+                        guard base != .nothing else { return .nothing }
+                        return try interpreter.call(arguments[1], with: [base])
                     },
                     documentation: Documentation(
                         summary: "The rest of an optional chain.",
@@ -216,7 +209,7 @@ extension Interpreter {
                     name: InternalName.some,
                     parameters: [Parameter(label: nil, name: "x", type: .parameter("T"))],
                     returnType: .optional(.parameter("T")),
-                    body: .native { _, arguments in arguments["x"] ?? .nothing },
+                    body: .native { _, _, arguments in arguments[0] },
                     documentation: Documentation(summary: "Optional(x).", parameters: [:]),
                     generics: [Symbol.GenericParameter(name: "T")]
                 ),
@@ -232,9 +225,9 @@ extension Interpreter {
                         Parameter(label: nil, name: "b", type: .any),
                     ],
                     returnType: .bool,
-                    body: .native { _, arguments in
-                        guard case .object(let a)? = arguments["a"]?.storage,
-                            case .object(let b)? = arguments["b"]?.storage
+                    body: .native { _, _, arguments in
+                        guard case .object(let a) = arguments[0].storage,
+                            case .object(let b) = arguments[1].storage
                         else {
                             return .bool(false)
                         }
@@ -264,9 +257,8 @@ extension Interpreter {
                     name: name,
                     summary: "\(name) of a Double.",
                     parameters: [Symbol.Parameter(label: nil, name: "x", type: .double)],
-                    returnType: .double,
-                    isThrowing: false,
-                    call: { arguments in .double(function(arguments["x"]?.asDouble ?? 0)) }
+                    returns: .double,
+                    body: { arguments in .double(function(arguments[0].asDouble ?? 0)) }
                 )
             )
         }
@@ -282,11 +274,10 @@ extension Interpreter {
                         Symbol.Parameter(label: nil, name: "x", type: .double),
                         Symbol.Parameter(label: nil, name: "y", type: .double),
                     ],
-                    returnType: .double,
-                    isThrowing: false,
-                    call: { arguments in
+                    returns: .double,
+                    body: { arguments in
                         .double(
-                            function(arguments["x"]?.asDouble ?? 0, arguments["y"]?.asDouble ?? 0)
+                            function(arguments[0].asDouble ?? 0, arguments[1].asDouble ?? 0)
                         )
                     }
                 )
@@ -301,14 +292,13 @@ extension Interpreter {
                     name: "abs",
                     summary: "The magnitude of an \(name).",
                     parameters: [Symbol.Parameter(label: nil, name: "x", type: type)],
-                    returnType: type,
-                    isThrowing: false,
-                    call: { arguments in
-                        switch arguments["x"]?.storage {
-                        case .int(let n)?:
+                    returns: type,
+                    body: { arguments in
+                        switch arguments[0].storage {
+                        case .int(let n):
                             guard n != Int.min else { throw RuntimeError("arithmetic overflow") }
                             return .int(Swift.abs(n))
-                        case .double(let d)?: return .double(Swift.abs(d))
+                        case .double(let d): return .double(Swift.abs(d))
                         default: return .nothing
                         }
                     }
@@ -331,11 +321,10 @@ extension Interpreter {
                                 variadic: true
                             ),
                         ],
-                        returnType: type,
-                        isThrowing: false,
-                        call: { arguments in
-                            var values = [arguments["x"] ?? .nothing, arguments["y"] ?? .nothing]
-                            if case .list(let rest)? = arguments["rest"]?.storage { values += rest }
+                        returns: type,
+                        body: { arguments in
+                            var values = [arguments[0], arguments[1]]
+                            if case .list(let rest) = arguments[2].storage { values += rest }
                             func before(_ a: Value, _ b: Value) -> Bool {
                                 switch (a.storage, b.storage) {
                                 case (.int(let x), .int(let y)): return x < y

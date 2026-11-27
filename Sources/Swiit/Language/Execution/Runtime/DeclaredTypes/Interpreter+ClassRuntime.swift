@@ -323,10 +323,10 @@ extension Interpreter {
                 name: method.name,
                 parameters: method.parameters,
                 returnType: method.returnType,
-                body: .native { interpreter, arguments in
+                body: .native { interpreter, _, values in
                     try interpreter.invoke(
                         method,
-                        with: arguments,
+                        with: Arguments(method.parameters, values),
                         receiver: Receiver(.object(instance), mutable: true)
                     )
                 },

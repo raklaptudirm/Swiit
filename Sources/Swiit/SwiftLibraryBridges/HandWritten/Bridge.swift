@@ -112,6 +112,15 @@ struct BridgedMember: Sendable {
     /// A setter is a property's other half, for `p.extension = "md"`.
     enum Kind { case method, property, initializer, setter }
 
+    /// Whose member it is.
+    enum Origin {
+        /// A member of a type the core bridges, from its description.
+        case bridged
+        /// A member a host registered, which takes the place of a bridged one of the same shape:
+        /// how a host says how a type shows.
+        case host
+    }
+
     let kind: Kind
     let name: String
     let isStatic: Bool
@@ -128,22 +137,21 @@ struct BridgedMember: Sendable {
     let attributes: [Symbol.Attribute]
     /// Its documentation's first paragraph, from Swift's: what `help` shows.
     let summary: String
-    /// Converts the arguments (and `self`), calls Swift, and converts back.
+    /// Whose member it is, which says whether a host's member of the same shape takes its place.
+    let origin: Origin
+    /// Converts the receiver and the arguments, in declared order with defaults filled in, calls
+    /// Swift, and converts back. An error it throws is the host's as it is: `body` makes it the
+    /// member's (`Interpreter.hostFailure`). A member that changes its receiver gives the result and
+    /// the changed receiver, which the caller puts back.
+    let call: @Sendable (_ receiver: Value, _ arguments: [Value]) throws -> Value
+    /// The member as a function a call binds its arguments to: `call`, with the error it throws one
+    /// a script can catch, as a function's is.
     let body: FunctionBody
     /// What each parameter is, from `- Parameter name:` lines: `help`'s flags.
     var parameterDocs: [String: String] = [:]
     /// `async`: a call, or reading the property, needs `await`. Its glue
     /// waits in `suspend`, so other tasks run meanwhile.
     var effect: Effect = .sync
-    /// How a host-registered member is called without an interpreter: what a host object's own
-    /// `member(_:)` uses.
-    var plain: (@Sendable (Arguments) throws -> Value)?
-    /// The same call with the receiver and the arguments in order, as the glue takes them, for a call
-    /// that gives each parameter its argument and needs none of the binding a call does (`bind`): what
-    /// the loop calls a member by. Nil for a member that changes its receiver, and for a setter. An
-    /// error it throws is the host's as it is: the caller makes it the member's
-    /// (`Interpreter.hostFailure`).
-    var positional: (@Sendable (Value, [Value]) throws -> Value)?
     /// `throws(Failure)`, for a generic parameter of its type: it throws
     /// unless that is `Never` (`Task<Int, Never>.value` doesn't).
     var typedThrows: String?
@@ -160,7 +168,9 @@ struct BridgedMember: Sendable {
         isMutating: Bool,
         attributes: [Symbol.Attribute] = [],
         summary: String,
-        body: FunctionBody,
+        origin: Origin,
+        typeName: String,
+        call: @escaping @Sendable (_ receiver: Value, _ arguments: [Value]) throws -> Value,
         parameterDocs: [String: String] = [:],
         effect: Effect = .sync,
         typedThrows: String? = nil
@@ -178,7 +188,13 @@ struct BridgedMember: Sendable {
         self.isMutating = isMutating
         self.attributes = attributes
         self.summary = summary
-        self.body = body
+        self.origin = origin
+        self.call = call
+        self.body = .native { interpreter, receiver, arguments in
+            do { return try call(receiver, arguments) } catch {
+                throw interpreter.hostFailure(error, in: "\(typeName).\(name)")
+            }
+        }
         self.parameterDocs = parameterDocs
     }
 }

@@ -20,7 +20,7 @@ public struct ImplementedSymbol: Sendable {
     /// instance member's also with the receiver, which scripts do not see as a parameter.
     enum Body: Sendable {
         /// A function that takes what a call bound by parameter name.
-        case function(@Sendable (Arguments) throws -> Value)
+        case function(@Sendable (_ arguments: [Value]) throws -> Value)
         case method(@Sendable (_ receiver: Value, _ arguments: [Value]) throws -> Value)
         /// A method that changes its receiver, like `append`: it changes the receiver in place and
         /// gives its result.
@@ -55,7 +55,7 @@ public struct ImplementedSymbol: Sendable {
     var summary: String { symbol.summary ?? "" }
 
     /// What a function is, for one made as a function; nil for a member.
-    var function: (signature: Symbol.Signature, call: @Sendable (Arguments) throws -> Value)? {
+    var function: (signature: Symbol.Signature, call: @Sendable ([Value]) throws -> Value)? {
         guard case .function(let function) = symbol, case .function(let call) = body else {
             return nil
         }
@@ -101,18 +101,17 @@ extension ImplementedSymbol {
         signature: Symbol.Signature,
         body: @escaping @Sendable ([Value]) throws -> Value
     ) -> ImplementedSymbol {
-        let defaults = signature.parameters.map { parameter -> (String, Value?) in
-            if case .defaulted(.value(let value)) = parameter.arity {
-                return (parameter.name, value)
-            }
-            return (parameter.name, nil)
-        }
-        return function(
-            name: name,
-            summary: summary,
-            signature: signature,
-            attributes: attributes
-        ) { arguments in try body(defaults.map { arguments[$0.0] ?? $0.1 ?? .nothing }) }
+        ImplementedSymbol(
+            .function(
+                Symbol.Function(
+                    name: name,
+                    summary: Self.summary(summary),
+                    attributes: attributes,
+                    signature: signature
+                )
+            ),
+            body: .function(body)
+        )
     }
 
     /// A function that changes some of its arguments in place, as Swift's `inout` does: the
@@ -162,48 +161,6 @@ extension ImplementedSymbol {
             generics: generics,
             attributes: attributes,
             body: body
-        )
-    }
-
-    /// As the host's functions are described: a body taking the arguments by name.
-    static func function(
-        name: String,
-        summary: String = "",
-        signature: Symbol.Signature,
-        attributes: [Symbol.Attribute] = [],
-        call: @escaping @Sendable (Arguments) throws -> Value
-    ) -> ImplementedSymbol {
-        ImplementedSymbol(
-            .function(
-                Symbol.Function(
-                    name: name,
-                    summary: Self.summary(summary),
-                    attributes: attributes,
-                    signature: signature
-                )
-            ),
-            body: .function(call)
-        )
-    }
-
-    /// As the language's own builtins are described: a body taking the arguments by name.
-    static func function(
-        name: String,
-        summary: String = "",
-        parameters: [Symbol.Parameter],
-        returnType: TypeExpression?,
-        isThrowing: Bool = false,
-        call: @escaping @Sendable (Arguments) throws -> Value
-    ) -> ImplementedSymbol {
-        function(
-            name: name,
-            summary: summary,
-            signature: Symbol.Signature(
-                parameters: parameters,
-                returns: returnType ?? .void,
-                isThrowing: isThrowing
-            ),
-            call: call
         )
     }
 }

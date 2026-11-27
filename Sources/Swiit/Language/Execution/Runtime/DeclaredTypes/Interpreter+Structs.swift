@@ -5,12 +5,13 @@ extension Interpreter {
 
     /// `natives`: Swift bodies for the methods the prelude declares without
     /// one, by `Type.method`.
-    func declare(_ decl: StructDecl, natives: [String: FunctionBody] = [:]) throws {
+    func declare(_ decl: StructDecl, natives: [String: PreludeBody] = [:]) throws {
         let initializers = initializerFunctions(of: decl.initializers, in: decl.name)
         let stored = decl.properties.filter { $0.getter == nil }
         let statics = staticFunctions(of: decl.staticProperties)
         let methods = overloads(of: decl.methods, honorsMutating: true) { method in
-            natives["\(decl.name).\(method.name)"] ?? .swiit(method.body)
+            natives["\(decl.name).\(method.name)"].map { .byName(method.parameters, $0) }
+                ?? .swiit(method.body)
         }
 
         let type = StructType(
@@ -54,7 +55,7 @@ extension Interpreter {
                     )
                 },
             returnType: nil,
-            body: .native { _, _ in .nothing },
+            body: .native { _, _, _ in .nothing },
             captured: captureScopes(NamesUsed())
         )
     }

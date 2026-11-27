@@ -67,16 +67,15 @@ extension Interpreter {
                         defaultValue: .string("\n")
                     ),
                 ],
-                returnType: nil,
-                call: { arguments in
-                    guard case .list(let items)? = arguments["items"]?.storage else {
+                body: { arguments in
+                    guard case .list(let items) = arguments[0].storage else {
                         return .nothing
                     }
                     var separator = " ", terminator = "\n"
-                    if case .string(let text)? = arguments["separator"]?.storage {
+                    if case .string(let text) = arguments[1].storage {
                         separator = text
                     }
-                    if case .string(let text)? = arguments["terminator"]?.storage {
+                    if case .string(let text) = arguments[2].storage {
                         terminator = text
                     }
                     let line = try items.map { try interpreter.describing($0) }

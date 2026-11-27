@@ -16,11 +16,11 @@ extension Interpreter {
             body: member.body
         )
         site.found = (member, function)
-        guard !member.isMutating, let positional = member.positional,
+        guard !member.isMutating,
             let fills = Interpreter.fills(of: member.parameters, labels: site.labels)
         else { return }
         site.plan = BridgedPlan(
-            positional: positional,
+            positional: member.call,
             function: function,
             typeName: site.type,
             fills: fills

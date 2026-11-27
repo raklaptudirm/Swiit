@@ -16,12 +16,13 @@ extension LanguageObject {
     func member(_ name: String) -> Value? {
         guard
             let member = Bridge.current[typeName]?.lowered
-                .first(where: { $0.name == name && !$0.isStatic && !$0.isMutating }),
-            let plain = member.plain
+                .first(where: {
+                    $0.name == name && !$0.isStatic && !$0.isMutating && $0.origin == .host
+                })
         else { return nil }
         let receiver = Value.object(self)
         switch member.kind {
-        case .property: return try? plain(["self": receiver])
+        case .property: return try? member.call(receiver, [])
         case .method:
             return Value(
                 function: ImplementedSymbol.function(
@@ -38,11 +39,7 @@ extension LanguageObject {
                         returns: member.returns.byText,
                         isThrowing: member.isThrowing
                     ),
-                    call: { arguments in
-                        var arguments = arguments
-                        arguments["self"] = receiver
-                        return try plain(arguments)
-                    }
+                    body: { arguments in try member.call(receiver, arguments) }
                 )
             )
         default: return nil

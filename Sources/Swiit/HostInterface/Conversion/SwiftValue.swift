@@ -121,9 +121,9 @@ final class SwiftValue: LanguageObject, @unchecked Sendable {
             let member = Bridge.current[typeName]?.lowered
                 .first(where: {
                     $0.name == property && !$0.isStatic && $0.kind == .property
+                        && $0.origin == .host
                 }),
-            let read = member.plain,
-            case .string(let text)? = (try? read(["self": .object(self)]))?.storage
+            case .string(let text)? = (try? member.call(.object(self), []))?.storage
         else { return nil }
         return text
     }

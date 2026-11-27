@@ -38,13 +38,10 @@ extension ImplementedType {
     /// (a generated description is one); its representation is the one the interpreter stores itself, if it is one of those.
     func lowering(ofTheCore core: Bool = false) -> ImplementedType {
         var made = self
-        made.lowered = members.flatMap { BridgedMember.members(of: $0, in: name) }
-        if core {
-            made.lowered = made.lowered.map {
-                var member = $0; member.plain = nil; return member
-            }
-            made.representation = Representation(named: name) ?? .held
+        made.lowered = members.flatMap {
+            BridgedMember.members(of: $0, in: name, from: core ? .bridged : .host)
         }
+        if core { made.representation = Representation(named: name) ?? .held }
         return made
     }
 
@@ -58,7 +55,8 @@ extension ImplementedType {
                 && a.parameters.map(\.type) == b.parameters.map(\.type)
         }
         let kept = lowered.filter { old in
-            !extra.contains { new in new.plain != nil && old.plain == nil && same(old, new) }
+            !extra.contains { new in new.origin == .host && old.origin == .bridged && same(old, new)
+            }
         }
         let extra = extra.filter { new in !kept.contains { same($0, new) } }
         guard !extra.isEmpty || kept.count != lowered.count else { return self }
@@ -81,10 +79,7 @@ extension BridgedMember {
     /// a host's, so none is called without an interpreter and a host's member of the same shape
     /// takes its place.
     static func bridged(_ symbols: [ImplementedSymbol], in typeName: String) -> [BridgedMember] {
-        symbols.flatMap { members(of: $0, in: typeName) }
-            .map {
-                var member = $0; member.plain = nil; return member
-            }
+        symbols.flatMap { members(of: $0, in: typeName, from: .bridged) }
     }
 
     /// The parameters a script sees, from those a host declared.
@@ -92,25 +87,13 @@ extension BridgedMember {
         function.parameters.map { Parameter(described: $0) }
     }
 
-    /// The arguments in declared order, from what a call bound by name.
-    private static func ordered(_ function: Symbol.Signature) -> @Sendable (Arguments) -> [Value] {
-        let slots = function.parameters.map { parameter -> (String, Value) in
-            if case .defaulted(.value(let value)) = parameter.arity {
-                return (parameter.name, value)
-            }
-            return (parameter.name, .nothing)
-        }
-        return { arguments in slots.map { arguments[$0.0] ?? $0.1 } }
-    }
-
     /// A member that changes its receiver, as the glue for a Swift member does: a variable's value
     /// is moved into a box for the call, which takes the changed one back however the call
     /// ends, and a value that is not in one comes back with the result.
     @Sendable private static func mutating(
-        _ arguments: Arguments,
+        _ given: Value,
         _ body: (_ receiver: inout Value) throws -> Value
     ) throws -> Value {
-        let given = arguments["self"] ?? .nothing
         let mover = ReceiverBox.of(given)
         var receiver = mover?.take() ?? given
         let result: Value
@@ -126,6 +109,7 @@ extension BridgedMember {
     private struct Lowering {
         let member: ImplementedSymbol
         let typeName: String
+        let origin: BridgedMember.Origin
 
         func callAsFunction(
             _ kind: BridgedMember.Kind,
@@ -135,10 +119,9 @@ extension BridgedMember {
             returns: TypeExpression,
             function: Symbol.Signature? = nil,
             isMutating: Bool = false,
-            positional: (@Sendable (Value, [Value]) throws -> Value)? = nil,
-            call: @escaping @Sendable (Arguments) throws -> Value
+            call: @escaping @Sendable (_ receiver: Value, _ arguments: [Value]) throws -> Value
         ) -> BridgedMember {
-            var made = BridgedMember(
+            BridgedMember(
                 kind: kind,
                 name: name ?? member.name,
                 isStatic: isStatic,
@@ -151,12 +134,9 @@ extension BridgedMember {
                 isMutating: isMutating,
                 attributes: member.symbol.attributes,
                 summary: member.summary,
-                // An error it throws is one a script can catch, as a function's is.
-                body: .native { [typeName, name = member.name] interpreter, arguments in
-                    do { return try call(arguments) } catch {
-                        throw interpreter.hostFailure(error, in: "\(typeName).\(name)")
-                    }
-                },
+                origin: origin,
+                typeName: typeName,
+                call: call,
                 parameterDocs: Dictionary(
                     (function?.parameters ?? [])
                         .compactMap { parameter in
@@ -173,31 +153,32 @@ extension BridgedMember {
                     }
                 }
             )
-            made.plain = call
-            made.positional = positional
-            return made
         }
     }
 
     /// What a script can call, from what a host wrote: a settable property is a property and its
     /// setter.
-    static func members(of member: ImplementedSymbol, in typeName: String) -> [BridgedMember] {
+    static func members(
+        of member: ImplementedSymbol,
+        in typeName: String,
+        from origin: Origin
+    ) -> [BridgedMember] {
         let symbol = member.symbol
-        let make = Lowering(member: member, typeName: typeName)
+        let make = Lowering(member: member, typeName: typeName, origin: origin)
         switch (symbol, member.body) {
         case (.method(let method), .method(let body)):
-            let function = method.signature, order = ordered(function)
+            let function = method.signature
             return [
                 make(
                     .method,
                     parameters: parameters(function),
                     returns: function.returns.byText,
                     function: function,
-                    positional: body
-                ) { try body($0["self"] ?? .nothing, order($0)) }
+                    call: body
+                )
             ]
         case (.method(let method), .mutatingMethod(let body)):
-            let function = method.signature, order = ordered(function)
+            let function = method.signature
             return [
                 make(
                     .method,
@@ -205,21 +186,20 @@ extension BridgedMember {
                     returns: function.returns.byText,
                     function: function,
                     isMutating: true
-                ) { arguments in
-                    try mutating(arguments) { try body(&$0, order(arguments)) }
+                ) { receiver, arguments in
+                    try mutating(receiver) { try body(&$0, arguments) }
                 }
             ]
         case (.method(let method), .staticMethod(let body)):
-            let function = method.signature, order = ordered(function)
+            let function = method.signature
             return [
                 make(
                     .method,
                     isStatic: true,
                     parameters: parameters(function),
                     returns: function.returns.byText,
-                    function: function,
-                    positional: { _, arguments in try body(arguments) }
-                ) { try body(order($0)) }
+                    function: function
+                ) { _, arguments in try body(arguments) }
             ]
         case (.property(let property), .property(let get)):
             return [
@@ -230,14 +210,13 @@ extension BridgedMember {
                         returns: property.type,
                         throwing: property.throwing,
                         isAsync: property.isAsync
-                    ),
-                    positional: { receiver, _ in try get(receiver) }
-                ) { try get($0["self"] ?? .nothing) }
+                    )
+                ) { receiver, _ in try get(receiver) }
             ]
         case (.property(let property), .settableProperty(let get, let set)):
             let type = property.type
             return [
-                make(.property, returns: type.byText) { try get($0["self"] ?? .nothing) },
+                make(.property, returns: type.byText) { receiver, _ in try get(receiver) },
                 make(
                     .setter,
                     parameters: [
@@ -245,9 +224,9 @@ extension BridgedMember {
                     ],
                     returns: .void,
                     isMutating: true
-                ) { arguments in
-                    try mutating(arguments) {
-                        $0 = try set($0, arguments["newValue"] ?? .nothing)
+                ) { receiver, arguments in
+                    try mutating(receiver) {
+                        $0 = try set($0, arguments[0])
                         return .nothing
                     }
                 },
@@ -258,10 +237,10 @@ extension BridgedMember {
                     .property,
                     isStatic: true,
                     returns: property.type.byText
-                ) { _ in try get() }
+                ) { _, _ in try get() }
             ]
         case (.initializer(let initializer), .initializer(let body)):
-            let function = initializer.signature, order = ordered(function)
+            let function = initializer.signature
             return [
                 make(
                     .initializer,
@@ -269,9 +248,8 @@ extension BridgedMember {
                     name: "init",
                     parameters: parameters(function),
                     returns: function.returns.byText,
-                    function: function,
-                    positional: { _, arguments in try body(arguments) }
-                ) { try body(order($0)) }
+                    function: function
+                ) { _, arguments in try body(arguments) }
             ]
         case (.associatedType, .associatedType):
             // It names a type, and nothing in it runs.

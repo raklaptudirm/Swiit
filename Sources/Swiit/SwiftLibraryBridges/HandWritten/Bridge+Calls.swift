@@ -40,21 +40,25 @@ extension Interpreter {
         receiver: Expr?,
         _ arguments: [Argument]
     ) throws -> Value {
-        var bindings = try bind(arguments, to: function).bindings
+        let bindings = try bind(arguments, to: function).bindings
         if member.isMutating, let receiver,
             let result = try runMutatingInPlace(member, function, bindings, receiver)
         {
             return result
         }
+        var held: Receiver?
         if let receiver {
             let value = try evaluate(receiver)
             // Through `?.`: nil stays nil. (Optional's own members take nil.)
             if value == .nothing && typeName != "Optional" { return .nothing }
-            bindings["self"] = value
+            held = Receiver(value, mutable: member.isMutating)
         }
-        guard member.isMutating, let receiver else { return try invoke(function, with: bindings) }
+        guard member.isMutating, let receiver else {
+            return try invoke(function, with: bindings, receiver: held)
+        }
         // `xs.append(1)`: Swift changes a copy, which goes back into `xs`.
-        guard case .list(let parts) = try invoke(function, with: bindings).storage, parts.count == 2
+        guard case .list(let parts) = try invoke(function, with: bindings, receiver: held).storage,
+            parts.count == 2
         else {
             throw RuntimeError("\(typeName).\(member.name) gave back no receiver")
         }
@@ -91,10 +95,10 @@ extension Interpreter {
         return try withPlace(root, place) { slot in
             let box = ReceiverBox(slot)
             slot = .nothing
-            var arguments = bindings
-            arguments["self"] = .object(box)
             defer { slot = box.value }
-            guard case .list(let parts) = try invoke(function, with: arguments).storage,
+            let held = Receiver(.object(box), mutable: true)
+            guard
+                case .list(let parts) = try invoke(function, with: bindings, receiver: held).storage,
                 parts.count == 2
             else {
                 throw RuntimeError("\(member.name) gave back no receiver")
@@ -126,7 +130,7 @@ extension Interpreter {
             returnType: nil,
             body: member.body
         )
-        return try invoke(function, with: ["self": value])
+        return try invoke(function, with: [:], receiver: Receiver(value, mutable: false))
     }
 
     /// The initializers of a Swift type, as one function to call with the arguments of a script's
@@ -144,7 +148,7 @@ extension Interpreter {
                     name: typeName,
                     parameters: member.parameters,
                     returnType: nil,
-                    body: .native { interpreter, arguments in try call(interpreter, arguments) }
+                    body: .native(call)
                 )
             }
         return candidates.isEmpty
@@ -170,10 +174,8 @@ extension Interpreter {
             }
             .compactMap { member -> Function? in
                 guard case .native(let call) = member.body else { return nil }
-                let body = FunctionBody.native { interpreter, arguments in
-                    var arguments = arguments
-                    arguments["self"] = value
-                    return try call(interpreter, arguments)
+                let body = FunctionBody.native { interpreter, _, arguments in
+                    try call(interpreter, value, arguments)
                 }
                 return Function(
                     name: member.name,

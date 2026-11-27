@@ -359,7 +359,8 @@ extension Interpreter {
             guard
                 case .list(let parts) = try invoke(
                     function,
-                    with: ["self": base, "newValue": value]
+                    with: ["newValue": value],
+                    receiver: Receiver(base, mutable: true)
                 )
                 .storage,
                 parts.count == 2

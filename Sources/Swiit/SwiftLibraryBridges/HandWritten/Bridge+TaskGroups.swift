@@ -189,11 +189,11 @@ extension Bridge {
                 ),
             ],
             returnType: .parameter("Result"),
-            body: .native { interpreter, arguments in
+            body: .native { interpreter, _, arguments in
                 let box = TaskGroupBox(interpreter, isThrowing: isThrowing)
                 let value = SwiftValue.make(box, as: typeName)
                 do {
-                    let result = try interpreter.call(arguments["body"]!, with: [value])
+                    let result = try interpreter.call(arguments[1], with: [value])
                     try box.waitForAll()
                     return result
                 } catch {

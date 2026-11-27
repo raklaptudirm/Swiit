@@ -128,20 +128,7 @@ extension Interpreter {
                     && !own.contains($0.name)
             }
             .map { member in
-                let body: FunctionBody
-                if case .native(let call) = member.body {
-                    body = .native { interpreter, arguments in
-                        var arguments = arguments
-                        if let receiver = arguments["self"],
-                            let items = Interpreter.items(of: receiver)
-                        {
-                            arguments["self"] = .list(Array(IteratorSequence(items)))
-                        }
-                        return try call(interpreter, arguments)
-                    }
-                } else {
-                    body = member.body
-                }
+                let call = member.call
                 return BridgedMember(
                     kind: member.kind,
                     name: member.name,
@@ -158,7 +145,14 @@ extension Interpreter {
                     isMutating: false,
                     attributes: member.attributes,
                     summary: member.summary,
-                    body: body,
+                    origin: member.origin,
+                    typeName: "Array",
+                    call: { receiver, arguments in
+                        guard let items = Interpreter.items(of: receiver) else {
+                            return try call(receiver, arguments)
+                        }
+                        return try call(.list(Array(IteratorSequence(items))), arguments)
+                    },
                     parameterDocs: member.parameterDocs,
                     effect: member.effect,
                     typedThrows: member.typedThrows

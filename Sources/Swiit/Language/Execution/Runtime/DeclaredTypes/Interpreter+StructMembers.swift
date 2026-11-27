@@ -21,7 +21,7 @@ extension Interpreter {
                 name: method.name,
                 parameters: method.parameters,
                 returnType: method.returnType,
-                body: .native { interpreter, arguments in
+                body: .native { interpreter, _, values in
                     guard !method.isMutating else {
                         throw RuntimeError(
                             "mutating method '\(name)' must be called on a variable, as in p.\(name)(…)"
@@ -29,7 +29,7 @@ extension Interpreter {
                     }
                     return try interpreter.invoke(
                         method,
-                        with: arguments,
+                        with: Arguments(method.parameters, values),
                         receiver: Receiver(Value(record: record), mutable: false)
                     )
                 },

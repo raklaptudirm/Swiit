@@ -21,39 +21,35 @@ extension Interpreter {
         }
         guard let plan = site.nativePlan else { return nil }
 
+        // The arguments are moved out of their registers into an array of the parameters, in order.
         let function = plan.function
-        var arguments = Arguments(capacity: plan.fills.count)
-        for (index, parameter) in function.parameters.enumerated() {
-            var value: Value
+        let arity = plan.fills.count
+        let pooled = arity < stack.argumentArrays.count
+        var values =
+            arity == 0
+            ? []
+            : (pooled ? stack.argumentArrays[arity].popLast() : nil)
+                ?? Array(repeating: .nothing, count: arity)
+        for index in 0..<arity {
             switch plan.fills[index] {
             case .argument(let position):
                 let register = stack.base + call.argumentBase + position
-                value = register.move()
+                values[index] = register.move()
                 register.initialize(to: .nothing)
-                if !plan.kinds[index].accepts(value), !plan.checks[index].accepts(value) {
-                    value = try checked(value, for: parameter, of: function.name ?? "function")
-                }
-            case .value(let fixed):
-                value = fixed
-            case .rest(let first):
-                var items: [Value] = []
-                for position in first..<site.labels.count {
-                    let register = stack.base + call.argumentBase + position
-                    items.append(register.move())
-                    register.initialize(to: .nothing)
-                }
-                // A list of what the element's kind plainly takes (none, often) is as it is.
-                if items.allSatisfy({ plan.elementKinds[index].accepts($0) }) {
-                    value = .list(items)
-                } else {
-                    value = try checked(
-                        .list(items),
-                        for: parameter,
+                if !plan.kinds[index].accepts(values[index]),
+                    !plan.checks[index].accepts(values[index])
+                {
+                    values[index] = try checked(
+                        values[index],
+                        for: function.parameters[index],
                         of: function.name ?? "function"
                     )
                 }
+            case .value(let fixed):
+                values[index] = fixed
+            case .rest(let first):
+                values[index] = try rest(from: first, of: call, for: index, of: plan, on: stack)
             }
-            arguments[parameter.name] = value
         }
 
         defer { task.lastCallee = function }
@@ -62,7 +58,40 @@ extension Interpreter {
             throw RuntimeError("maximum call depth (\(maxCallDepth)) exceeded")
         }
         try checkInterrupt()
-        return try plan.body(self, arguments)
+        let result = try plan.body(self, .nothing, values)
+
+        // The array goes back with its elements let go; one a body kept is copied by the first change.
+        if arity > 0, pooled {
+            values.withUnsafeMutableBufferPointer { buffer in
+                for index in 0..<arity { buffer[index] = .nothing }
+            }
+            stack.argumentArrays[arity].append(values)
+        }
+        return result
+    }
+
+    /// The arguments from a position on, as the list a variadic parameter is given.
+    private func rest(
+        from first: Int,
+        of call: ConstructCall,
+        for index: Int,
+        of plan: NativeFunctionPlan,
+        on stack: VMStack
+    ) throws -> Value {
+        var items: [Value] = []
+        for position in first..<call.site.labels.count {
+            let register = stack.base + call.argumentBase + position
+            items.append(register.move())
+            register.initialize(to: .nothing)
+        }
+        // A list of what the element's kind plainly takes (none, often) is as it is.
+        if items.allSatisfy({ plan.elementKinds[index].accepts($0) }) { return .list(items) }
+        let function = plan.function
+        return try checked(
+            .list(items),
+            for: function.parameters[index],
+            of: function.name ?? "function"
+        )
     }
 
     /// The plan for the function a site's name is, if it is a native function, the only one of its
